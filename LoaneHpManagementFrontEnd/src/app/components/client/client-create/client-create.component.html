@@ -1,0 +1,640 @@
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">New Client</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/clients">Clients</a></li>
+          <li class="breadcrumb-item active">New Client</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress mb-4" style="height: 3px;">
+    <div class="progress-bar" role="progressbar"
+         [style.width]="(currentStep / totalSteps * 100) + '%'"
+         [attr.aria-valuenow]="currentStep"
+         aria-valuemin="0"
+         [attr.aria-valuemax]="totalSteps">
+    </div>
+  </div>
+
+  <!-- Step Indicators -->
+  <div class="d-flex justify-content-between mb-4">
+    <div class="step" [class.active]="currentStep >= 1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Client Information</div>
+    </div>
+    <div class="step" [class.active]="currentStep >= 2" 
+         *ngIf="clientForm.get('cifType')?.value !== CIFType.PERSONAL">
+      <div class="step-circle">2</div>
+      <div class="step-label">Business Information</div>
+    </div>
+    <div class="step" [class.active]="currentStep >= 3">
+      <div class="step-circle">{{ clientForm.get('cifType')?.value === CIFType.PERSONAL ? '2' : '3' }}</div>
+      <div class="step-label">Account Setup</div>
+    </div>
+  </div>
+
+  <!-- Step 1: Client Information -->
+  <div class="card" *ngIf="currentStep === 1">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Client Information</h5>
+      
+      <form [formGroup]="clientForm">
+        <div class="row">
+          <!-- Basic Information -->
+          <div class="col-md-6">
+            <div class="card mb-4">
+              <div class="card-body">
+                <h6 class="section-title">Basic Information</h6>
+                
+                <div class="mb-3">
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-control" formControlName="name"
+                         [class.is-invalid]="isFieldInvalid('name')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                    {{ getErrorMessage('name') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <div class="input-group">
+                    <input type="email" class="form-control" formControlName="email"
+                           [class.is-invalid]="isFieldInvalid('email')"
+                           [class.is-valid]="clientForm.get('email')?.valid">
+                    <div class="input-group-append" *ngIf="clientForm.get('email')?.pending">
+                      <span class="input-group-text">
+                        <i class="bi bi-hourglass-split"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+                    {{ getErrorMessage('email') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Phone Number</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" formControlName="phoneNumber"
+                           [class.is-invalid]="isFieldInvalid('phoneNumber')"
+                           [class.is-valid]="clientForm.get('phoneNumber')?.valid">
+                    <div class="input-group-append" *ngIf="clientForm.get('phoneNumber')?.pending">
+                      <span class="input-group-text">
+                        <i class="bi bi-hourglass-split"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber')">
+                    {{ getErrorMessage('phoneNumber') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Date of Birth</label>
+                  <input type="date" class="form-control" formControlName="dateOfBirth"
+                         [class.is-invalid]="isFieldInvalid('dateOfBirth')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
+                    {{ getErrorMessage('dateOfBirth') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Gender</label>
+                  <select class="form-select" formControlName="gender"
+                          [class.is-invalid]="isFieldInvalid('gender')">
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('gender')">
+                    {{ getErrorMessage('gender') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">CIF Type</label>
+                  <select class="form-select" formControlName="cifType"
+                          [class.is-invalid]="isFieldInvalid('cifType')">
+                    <option value="">Select CIF Type</option>
+                    <option [value]="CIFType.PERSONAL">Personal</option>
+                    <option [value]="CIFType.SETUP_COMPANY">Setup Company</option>
+                    <option [value]="CIFType.DEVELOPED_COMPANY">Developed Company</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('cifType')">
+                    {{ getErrorMessage('cifType') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Profile Photo</label>
+                  <input type="file" class="form-control" (change)="onFileSelected($event, 'profile')" 
+                         accept="image/*" [class.is-invalid]="isFieldInvalid('photo')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('photo')">
+                    {{ getErrorMessage('photo') }}
+                  </div>
+                  <div class="mt-2" *ngIf="photoPreview">
+                    <img [src]="photoPreview" class="img-thumbnail" style="max-width: 200px;">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- NRC Information -->
+          <div class="col-md-6">
+            <div class="card mb-4">
+              <div class="card-body">
+                <h6 class="section-title">NRC Information</h6>
+                
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="mb-3">
+                      <label class="form-label">State</label>
+                      <select class="form-select" formControlName="nrcState" 
+                              (change)="onNrcStateChange()"
+                              [class.is-invalid]="isFieldInvalid('nrcState')">
+                        <option value="">Select State</option>
+                        <option *ngFor="let state of nrcStateNumbers" [value]="state">
+                          {{ state }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcState')">
+                        {{ getErrorMessage('nrcState') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label class="form-label">Township</label>
+                      <select class="form-select" formControlName="nrcTownship"
+                              [class.is-invalid]="isFieldInvalid('nrcTownship')">
+                        <option value="">Select Township</option>
+                        <option *ngFor="let township of filteredTownships" [value]="township.name_en">
+                          {{ township.name_en }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcTownship')">
+                        {{ getErrorMessage('nrcTownship') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-2">
+                    <div class="mb-3">
+                      <label class="form-label">Type</label>
+                      <select class="form-select" formControlName="nrcType"
+                              [class.is-invalid]="isFieldInvalid('nrcType')">
+                        <option value="">Type</option>
+                        <option *ngFor="let type of nrcTypes" [value]="type">
+                          {{ type }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcType')">
+                        {{ getErrorMessage('nrcType') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="mb-3">
+                      <label class="form-label">Number</label>
+                      <input type="text" class="form-control" formControlName="nrcNumber"
+                             maxlength="6" [class.is-invalid]="isFieldInvalid('nrcNumber')">
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcNumber')">
+                        {{ getErrorMessage('nrcNumber') }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">NRC Front Photo</label>
+                  <input type="file" class="form-control" (change)="onFileSelected($event, 'front')" 
+                         accept="image/*" [class.is-invalid]="isFieldInvalid('nrcFrontPhoto')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcFrontPhoto')">
+                    {{ getErrorMessage('nrcFrontPhoto') }}
+                  </div>
+                  <div class="mt-2" *ngIf="nrcFrontPhotoPreview">
+                    <img [src]="nrcFrontPhotoPreview" class="img-thumbnail" style="max-width: 200px;">
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">NRC Back Photo</label>
+                  <input type="file" class="form-control" (change)="onFileSelected($event, 'back')" 
+                         accept="image/*" [class.is-invalid]="isFieldInvalid('nrcBackPhoto')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcBackPhoto')">
+                    {{ getErrorMessage('nrcBackPhoto') }}
+                  </div>
+                  <div class="mt-2" *ngIf="nrcBackPhotoPreview">
+                    <img [src]="nrcBackPhotoPreview" class="img-thumbnail" style="max-width: 200px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="card">
+              <div class="card-body">
+                <h6 class="section-title">Address Information</h6>
+                
+                <div formGroupName="address">
+                  <div class="mb-3">
+                    <label class="form-label">State/Region</label>
+                    <select class="form-select" formControlName="state" 
+                            (change)="onStateChange()"
+                            [class.is-invalid]="isFieldInvalid('address.state')">
+                      <option value="">Select State/Region</option>
+                      <option *ngFor="let state of states" [value]="state">
+                        {{ state }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.state')">
+                      {{ getErrorMessage('address.state') }}
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Township</label>
+                    <select class="form-select" formControlName="township" 
+                            (change)="onTownshipChange()"
+                            [class.is-invalid]="isFieldInvalid('address.township')"
+                            [disabled]="!clientForm.get('address.state')?.value">
+                      <option value="">Select Township</option>
+                      <option *ngFor="let township of townships" [value]="township">
+                        {{ township }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.township')">
+                      {{ getErrorMessage('address.township') }}
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">City</label>
+                    <select class="form-select" formControlName="city"
+                            [class.is-invalid]="isFieldInvalid('address.city')"
+                            [disabled]="!clientForm.get('address.township')?.value">
+                      <option value="">Select City</option>
+                      <option *ngFor="let city of cities" [value]="city">
+                        {{ city }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.city')">
+                      {{ getErrorMessage('address.city') }}
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Additional Address</label>
+                    <textarea class="form-control" formControlName="additionalAddress" rows="3"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Step 2: Business Information -->
+  <div class="card" *ngIf="currentStep === 2">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Business Information</h5>
+      
+      <form [formGroup]="businessForm">
+        <!-- Company Information -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="section-title">Company Information</h6>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Company Name</label>
+              <input type="text" class="form-control" formControlName="name"
+                     [class.is-invalid]="isFieldInvalid('name')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                {{ getErrorMessage('name') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Company Type</label>
+              <input type="text" class="form-control" formControlName="companyType"
+                     [class.is-invalid]="isFieldInvalid('companyType')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('companyType')">
+                {{ getErrorMessage('companyType') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Business Type</label>
+              <input type="text" class="form-control" formControlName="businessType"
+                     [class.is-invalid]="isFieldInvalid('businessType')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('businessType')">
+                {{ getErrorMessage('businessType') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Category</label>
+              <input type="text" class="form-control" formControlName="category"
+                     [class.is-invalid]="isFieldInvalid('category')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('category')">
+                {{ getErrorMessage('category') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Registration Date</label>
+              <input type="date" class="form-control" formControlName="registrationDate"
+                     [class.is-invalid]="isFieldInvalid('registrationDate')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('registrationDate')">
+                {{ getErrorMessage('registrationDate') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">License Number</label>
+              <input type="text" class="form-control" formControlName="licenseNumber"
+                     [class.is-invalid]="isFieldInvalid('licenseNumber')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('licenseNumber')">
+                {{ getErrorMessage('licenseNumber') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Phone Number</label>
+              <input type="text" class="form-control" formControlName="phoneNumber"
+                     [class.is-invalid]="isFieldInvalid('phoneNumber', 'business')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber', 'business')">
+                {{ getErrorMessage('phoneNumber', 'business') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">License Issue Date</label>
+              <input type="date" class="form-control" formControlName="licenseIssueDate"
+                     [class.is-invalid]="isFieldInvalid('licenseIssueDate')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('licenseIssueDate')">
+                {{ getErrorMessage('licenseIssueDate') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">License Expiry Date</label>
+              <input type="date" class="form-control" formControlName="licenseExpiryDate"
+                     [class.is-invalid]="isFieldInvalid('licenseExpiryDate')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('licenseExpiryDate')">
+                {{ getErrorMessage('licenseExpiryDate') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Information -->
+        <div class="row mb-4" formGroupName="financial">
+          <div class="col-12">
+            <h6 class="section-title">Financial Information</h6>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Average Monthly Income</label>
+              <input type="number" class="form-control" formControlName="averageIncome"
+                     [class.is-invalid]="isFieldInvalid('financial.averageIncome')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.averageIncome')">
+                {{ getErrorMessage('financial.averageIncome') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Expected Income</label>
+              <input type="number" class="form-control" formControlName="expectedIncome"
+                     [class.is-invalid]="isFieldInvalid('financial.expectedIncome')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.expectedIncome')">
+                {{ getErrorMessage('financial.expectedIncome') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Average Monthly Expenses</label>
+              <input type="number" class="form-control" formControlName="averageExpenses"
+                     [class.is-invalid]="isFieldInvalid('financial.averageExpenses')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.averageExpenses')">
+                {{ getErrorMessage('financial.averageExpenses') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Average Investment</label>
+              <input type="number" class="form-control" formControlName="averageInvestment"
+                     [class.is-invalid]="isFieldInvalid('financial.averageInvestment')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.averageInvestment')">
+                {{ getErrorMessage('financial.averageInvestment') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Average Number of Employees</label>
+              <input type="number" class="form-control" formControlName="averageEmployees"
+                     [class.is-invalid]="isFieldInvalid('financial.averageEmployees')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.averageEmployees')">
+                {{ getErrorMessage('financial.averageEmployees') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Average Salary Paid</label>
+              <input type="number" class="form-control" formControlName="averageSalaryPaid"
+                     [class.is-invalid]="isFieldInvalid('financial.averageSalaryPaid')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.averageSalaryPaid')">
+                {{ getErrorMessage('financial.averageSalaryPaid') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="mb-3">
+              <label class="form-label">Revenue Proof</label>
+              <textarea class="form-control" formControlName="revenueProof" rows="3"
+                        [class.is-invalid]="isFieldInvalid('financial.revenueProof')"></textarea>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('financial.revenueProof')">
+                {{ getErrorMessage('financial.revenueProof') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Photos -->
+        <div class="row">
+          <div class="col-12">
+            <h6 class="section-title">Business Photos</h6>
+            <p class="text-muted small">Upload at least 2 photos of your business premises</p>
+          </div>
+          
+          <div class="col-12">
+            <div class="mb-3">
+              <input type="file" class="form-control" (change)="onBusinessPhotoSelected($event)"
+                     accept="image/*" [disabled]="businessPhotos.length >= 2"
+                     [class.is-invalid]="isFieldInvalid('businessPhotos')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('businessPhotos')">
+                {{ getErrorMessage('businessPhotos') }}
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6" *ngFor="let photo of businessPhotos; let i = index">
+                <div class="position-relative">
+                  <img [src]="photo.preview" class="img-thumbnail w-100" style="height: 200px; object-fit: cover;">
+                  <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                          (click)="removeBusinessPhoto(i)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Address Information -->
+        <div class="row mb-4" formGroupName="address">
+          <div class="col-12">
+            <h6 class="section-title">Business Address</h6>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">State/Region</label>
+              <select class="form-select" formControlName="state" 
+                      (change)="onBusinessStateChange()"
+                      [class.is-invalid]="isFieldInvalid('address.state', 'business')">
+                <option value="">Select State/Region</option>
+                <option *ngFor="let state of businessStates" [value]="state">
+                  {{ state }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('address.state', 'business')">
+                {{ getErrorMessage('address.state', 'business') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Township</label>
+              <select class="form-select" formControlName="township" 
+                      (change)="onBusinessTownshipChange()"
+                      [class.is-invalid]="isFieldInvalid('address.township', 'business')"
+                      [disabled]="!businessForm.get('address.state')?.value">
+                <option value="">Select Township</option>
+                <option *ngFor="let township of businessTownships" [value]="township">
+                  {{ township }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('address.township', 'business')">
+                {{ getErrorMessage('address.township', 'business') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">City</label>
+              <select class="form-select" formControlName="city"
+                      [class.is-invalid]="isFieldInvalid('address.city', 'business')"
+                      [disabled]="!businessForm.get('address.township')?.value">
+                <option value="">Select City</option>
+                <option *ngFor="let city of businessCities" [value]="city">
+                  {{ city }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('address.city', 'business')">
+                {{ getErrorMessage('address.city', 'business') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Additional Address</label>
+              <textarea class="form-control" formControlName="additionalAddress" rows="3"
+                        [class.is-invalid]="isFieldInvalid('address.additionalAddress', 'business')">
+              </textarea>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('address.additionalAddress', 'business')">
+                {{ getErrorMessage('address.additionalAddress', 'business') }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Step 3: Account Setup -->
+  <div class="card" *ngIf="currentStep === 3">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Account Setup</h5>
+      
+      <form [formGroup]="accountForm">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label">Minimum Amount</label>
+              <input type="number" class="form-control" formControlName="minAmount"
+                     [class.is-invalid]="isFieldInvalid('minAmount')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('minAmount')">
+                {{ getErrorMessage('minAmount') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label">Maximum Amount</label>
+              <input type="number" class="form-control" formControlName="maxAmount"
+                     [class.is-invalid]="isFieldInvalid('maxAmount')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('maxAmount')">
+                {{ getErrorMessage('maxAmount') }}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="d-flex justify-content-between mt-4">
+    <button type="button" class="btn btn-outline-secondary" 
+            (click)="previousStep()"
+            *ngIf="currentStep > 1">
+      <i class="bi bi-arrow-left me-2"></i>Previous
+    </button>
+    <button type="button" class="btn btn-outline-secondary" 
+            routerLink="/clients/view">
+      Cancel
+    </button>
+    <button type="button" class="btn btn-primary" 
+            (click)="currentStep === totalSteps ? onSubmit() : nextStep()"
+            [disabled]="loading">
+      <ng-container *ngIf="currentStep === totalSteps; else nextButton">
+        <i class="bi bi-check2 me-2"></i>{{ loading ? 'Creating...' : 'Create Client' }}
+      </ng-container>
+      <ng-template #nextButton>
+        Next<i class="bi bi-arrow-right ms-2"></i>
+      </ng-template>
+    </button>
+  </div>
+</div>

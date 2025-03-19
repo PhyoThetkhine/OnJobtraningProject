@@ -1,0 +1,47 @@
+<div class="modal-header">
+  <h5 class="modal-title">Edit Branch</h5>
+  <button type="button" class="btn-close" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="editForm">
+    <div class="mb-3">
+      <label for="branchName" class="form-label">Branch Name</label>
+      <input type="text" class="form-control" id="branchName" formControlName="branchName">
+    </div>
+    
+    <div class="mb-3">
+      <label for="state" class="form-label">State/Region</label>
+      <select class="form-select" id="state" formControlName="state" (change)="onStateChange()">
+        <option value="">Select State/Region</option>
+        <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="township" class="form-label">Township</label>
+      <select class="form-select" id="township" formControlName="township" (change)="onTownshipChange()">
+        <option value="">Select Township</option>
+        <option *ngFor="let township of townships" [value]="township">{{ township }}</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="city" class="form-label">City</label>
+      <select class="form-select" id="city" formControlName="city">
+        <option value="">Select City</option>
+        <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="additionalAddress" class="form-label">Additional Address</label>
+      <textarea class="form-control" id="additionalAddress" rows="3" formControlName="additionalAddress"></textarea>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!editForm.valid">Update</button>
+</div> 

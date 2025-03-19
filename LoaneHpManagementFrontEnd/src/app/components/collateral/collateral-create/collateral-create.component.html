@@ -1,0 +1,56 @@
+<div class="modal-header">
+  <h4 class="modal-title">Add New Collateral</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="collateralForm" (ngSubmit)="onSubmit()">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Property Type</label>
+          <input type="text" class="form-control" formControlName="propertyType"
+                 [class.is-invalid]="isFieldInvalid('propertyType')"
+                 placeholder="e.g., Land, Building, Vehicle">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('propertyType')">
+            {{ getErrorMessage('propertyType') }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Estimated Value</label>
+          <input type="number" class="form-control" formControlName="estimatedValue"
+                 [class.is-invalid]="isFieldInvalid('estimatedValue')"
+                 placeholder="Enter estimated value in MMK">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('estimatedValue')">
+            {{ getErrorMessage('estimatedValue') }}
+          </div>
+        </div>
+      </div>
+
+    
+
+      <div class="col-12">
+        <div class="mb-3">
+          <label class="form-label">Property Document</label>
+          <input type="file" class="form-control" (change)="onFileSelected($event)"
+                 accept="image/*" [class.is-invalid]="isFieldInvalid('document')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('document')">
+            {{ getErrorMessage('document') }}
+          </div>
+          <div class="mt-2" *ngIf="documentPreview">
+            <img [src]="documentPreview" class="img-thumbnail" style="max-width: 200px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="loading || !collateralForm.valid">
+    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" *ngIf="loading"></span>
+    Add Collateral
+  </button>
+</div> 

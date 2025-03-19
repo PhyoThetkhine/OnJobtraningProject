@@ -1,0 +1,87 @@
+<div class="modal-header">
+  <h4 class="modal-title">Update Financial Information</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="financialForm" (ngSubmit)="onSubmit()">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Average Monthly Income</label>
+          <input type="number" class="form-control" formControlName="averageIncome"
+                 [class.is-invalid]="isFieldInvalid('averageIncome')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('averageIncome')">
+            {{ getErrorMessage('averageIncome') }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Expected Income</label>
+          <input type="number" class="form-control" formControlName="expectedIncome"
+                 [class.is-invalid]="isFieldInvalid('expectedIncome')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('expectedIncome')">
+            {{ getErrorMessage('expectedIncome') }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Average Monthly Expenses</label>
+          <input type="number" class="form-control" formControlName="averageExpenses"
+                 [class.is-invalid]="isFieldInvalid('averageExpenses')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('averageExpenses')">
+            {{ getErrorMessage('averageExpenses') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Average Investment</label>
+          <input type="number" class="form-control" formControlName="averageInvestment"
+                 [class.is-invalid]="isFieldInvalid('averageInvestment')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('averageInvestment')">
+            {{ getErrorMessage('averageInvestment') }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Average Number of Employees</label>
+          <input type="number" class="form-control" formControlName="averageEmployees"
+                 [class.is-invalid]="isFieldInvalid('averageEmployees')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('averageEmployees')">
+            {{ getErrorMessage('averageEmployees') }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Average Salary Paid</label>
+          <input type="number" class="form-control" formControlName="averageSalaryPaid"
+                 [class.is-invalid]="isFieldInvalid('averageSalaryPaid')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('averageSalaryPaid')">
+            {{ getErrorMessage('averageSalaryPaid') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="mb-3">
+          <label class="form-label">Revenue Proof</label>
+          <textarea class="form-control" formControlName="revenueProof" rows="3"
+                    [class.is-invalid]="isFieldInvalid('revenueProof')"></textarea>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('revenueProof')">
+            {{ getErrorMessage('revenueProof') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="loading">
+    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" *ngIf="loading"></span>
+    Update Financial Information
+  </button>
+</div> 

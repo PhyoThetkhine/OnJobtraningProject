@@ -1,0 +1,81 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-0">Create Role</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a routerLink="/roles">Roles</a></li>
+            <li class="breadcrumb-item active">Create Role</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Creation Form -->
+  <div class="card">
+    <div class="card-body">
+      <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <!-- Left Column - Basic Info -->
+          <div class="col-md-6">
+            <div class="mb-4">
+              <label class="form-label">Role Name</label>
+              <input type="text" 
+                     class="form-control" 
+                     formControlName="roleName"
+                     [class.is-invalid]="isFieldInvalid('roleName')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('roleName')">
+                Role name is required and must be at least 3 characters
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Authority Level</label>
+              <select class="form-select" formControlName="authority">
+                <option [value]="AUTHORITY.MainBranchLevel">Main Branch Level</option>
+                <option [value]="AUTHORITY.RegularBranchLevel">Regular Branch Level</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Right Column - Permissions -->
+          <div class="col-md-6">
+            <label class="form-label">Permissions</label>
+            <div class="permissions-grid">
+              <div class="permission-card" 
+                   *ngFor="let permission of permissions"
+                   [class.selected]="isPermissionSelected(permission.id)"
+                   (click)="onPermissionToggle(permission.id)">
+                <div class="permission-icon">
+                  <i class="bi" [class.bi-check-circle-fill]="isPermissionSelected(permission.id)"
+                     [class.bi-circle]="!isPermissionSelected(permission.id)"></i>
+                </div>
+                <div class="permission-info">
+                  <h6 class="mb-0">{{ permission.name }}</h6>
+                </div>
+              </div>
+            </div>
+            <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('permissions')">
+              Please select at least one permission
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-light" routerLink="/roles">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="loading || roleForm.invalid">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+            Create Role
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

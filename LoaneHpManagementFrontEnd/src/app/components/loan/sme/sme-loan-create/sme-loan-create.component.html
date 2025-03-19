@@ -1,0 +1,319 @@
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">New SME Loan</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/loans">Loans</a></li>
+          <li class="breadcrumb-item active">New SME Loan</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress mb-4" style="height: 3px;">
+    <div class="progress-bar" role="progressbar"
+         [style.width]="(currentStep / totalSteps * 100) + '%'"
+         [attr.aria-valuenow]="currentStep"
+         aria-valuemin="0"
+         [attr.aria-valuemax]="totalSteps">
+    </div>
+  </div>
+
+  <!-- Step Indicators -->
+  <div class="d-flex justify-content-between mb-4">
+    <div class="step" [class.active]="currentStep >= 1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Loan Registration</div>
+    </div>
+    <div class="step" [class.active]="currentStep >= 2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Review & Submit</div>
+    </div>
+  </div>
+
+  <!-- Step 1: Loan Registration -->
+  <div class="card" *ngIf="currentStep === 1">
+    <div class="card-body">
+      <form [formGroup]="loanForm">
+        <div formGroupName="step1">
+          <!-- CIF Selection -->
+          <div class="mb-4">
+            <h5 class="card-title">Client Selection</h5>
+            
+            <!-- Search Box -->
+            <div class="mb-3">
+              <label class="form-label">Search Client (CIF Code or Name)</label>
+              <div class="input-group">
+                <input type="text" class="form-control" 
+                       (input)="onCIFSearch($event)"
+                       [class.is-invalid]="isFieldInvalid('step1.cifId')"
+                       placeholder="Enter CIF code or name to search..."
+                       [attr.disabled]="selectedCIF ? '' : null">
+                <button class="btn btn-outline-secondary" type="button" *ngIf="selectedCIF"
+                        (click)="cancelCIFSelection()">
+                  <i class="bi bi-x"></i> Clear
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('step1.cifId')">
+                {{ getErrorMessage('step1.cifId') }}
+              </div>
+            </div>
+
+            <!-- Search Results with Loading State -->
+            <div class="position-relative">
+              <div class="list-group mb-3" *ngIf="cifResults.length > 0 && !selectedCIF">
+                <button type="button" class="list-group-item list-group-item-action"
+                        *ngFor="let cif of cifResults"
+                        (click)="selectCIF(cif)">
+                  <div class="d-flex align-items-center">
+                    <img [src]="cif.photo" class="rounded-circle me-3" 
+                         style="width: 50px; height: 50px; object-fit: cover;"
+                         onerror="this.src='assets/images/default-profile.png'">
+                    <div>
+                      <h6 class="mb-0">{{ cif.name }}</h6>
+                      <small class="text-muted">CIF Code: {{ cif.cifCode }}</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              <!-- Loading Spinner for CIF Search -->
+              <div class="text-center my-3" *ngIf="cifSearchLoading">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Searching...</span>
+              </div>
+            </div>
+
+            <!-- Selected CIF Details -->
+            <div class="card bg-light mb-3" *ngIf="selectedCIF">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <img [src]="selectedCIF.photo" class="rounded-circle me-3" 
+                         style="width: 80px; height: 80px; object-fit: cover;"
+                         onerror="this.src='assets/images/default-profile.png'">
+                    <div>
+                      <h5 class="card-title mb-1">{{ selectedCIF.name }}</h5>
+                      <p class="card-text mb-0">CIF Code: {{ selectedCIF.cifCode }}</p>
+                      <p class="card-text mb-0">
+                        <small class="text-muted">
+                          {{ selectedCIF.address.township }}, {{ selectedCIF.address.state }}
+                        </small>
+                      </p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-outline-danger" (click)="cancelCIFSelection()">
+                    <i class="bi bi-x"></i> Change Client
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Collaterals -->
+          <div class="mb-4">
+            <h5 class="card-title">Available Collaterals</h5>
+            <div class="row g-3">
+              <div class="col-md-4" *ngFor="let collateral of availableCollaterals">
+                <div class="card" [class.border-primary]="selectedCollaterals.includes(collateral)" 
+                     (click)="selectCollateral(collateral)" style="cursor: pointer;">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ collateral.propertyType }}</h6>
+                    <p class="card-text">Estimated Value: {{ collateral.estimatedValue | currency }}</p>
+                    <p class="card-text">
+                      <small class="text-muted">Max Loan: {{ collateral.estimatedValue * 0.7 | currency }}</small>
+                    </p>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" 
+                             [checked]="selectedCollaterals.includes(collateral)">
+                      <label class="form-check-label">Select Collateral</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loan Details -->
+          <div class="mb-4">
+            <h5 class="card-title">Loan Details</h5>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Loan Amount</label>
+                  <input type="number" class="form-control" formControlName="loanAmount"
+                         [class.is-invalid]="isFieldInvalid('step1.loanAmount')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('step1.loanAmount')">
+                    {{ getErrorMessage('step1.loanAmount') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label class="form-label">Frequency</label>
+                  <select class="form-select" formControlName="frequency"
+                          [class.is-invalid]="isFieldInvalid('step1.frequency')">
+                    <option value="">Select Frequency</option>
+                    <option [value]="FREQUENCY.MONTHLY">Monthly</option>
+                    <option [value]="FREQUENCY.YEARLY">Yearly</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('step1.frequency')">
+                    {{ getErrorMessage('step1.frequency') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label class="form-label">{{ durationLabel }}</label>
+                  <input type="number" class="form-control" formControlName="duration"
+                         [class.is-invalid]="isFieldInvalid('step1.duration')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('step1.duration')">
+                    {{ getErrorMessage('step1.duration') }}
+                  </div>
+                </div>
+              </div>
+
+
+              <div class="col-12">
+                <div class="mb-3">
+                  <label class="form-label">Loan Purpose</label>
+                  <textarea class="form-control" formControlName="purpose" rows="3"
+                           [class.is-invalid]="isFieldInvalid('step1.purpose')"></textarea>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('step1.purpose')">
+                    {{ getErrorMessage('step1.purpose') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Step 2: Review & Submit -->
+  <div class="card" *ngIf="currentStep === 2">
+    <div class="card-body">
+      <form [formGroup]="loanForm">
+        <div formGroupName="step2">
+          <h5 class="card-title mb-4">Review Loan Application</h5>
+
+          <!-- Client Information -->
+          <div class="mb-4">
+            <h6 class="mb-3">Client Information</h6>
+            <dl class="row" *ngIf="selectedCIF">
+              <dt class="col-sm-3">Name</dt>
+              <dd class="col-sm-9">{{ selectedCIF.name }}</dd>
+              <dt class="col-sm-3">CIF Code</dt>
+              <dd class="col-sm-9">{{ selectedCIF.cifCode }}</dd>
+            </dl>
+          </div>
+
+          <!-- Loan Details -->
+          <div class="mb-4">
+            <h6 class="mb-3">Loan Details</h6>
+            <dl class="row">
+              <dt class="col-sm-3">Loan Amount</dt>
+              <dd class="col-sm-9">{{ loanForm.get('step1.loanAmount')?.value | currency }}</dd>
+              <dt class="col-sm-3">Frequency</dt>
+              <dd class="col-sm-9">{{ loanForm.get('step1.frequency')?.value }}</dd>
+              <dt class="col-sm-3">Duration</dt>
+              <dd class="col-sm-9">{{ loanForm.get('step1.duration')?.value }} {{ loanForm.get('step1.frequency')?.value === FREQUENCY.YEARLY ? 'years' : 'months' }}</dd>
+             
+              <dt class="col-sm-3">Purpose</dt>
+              <dd class="col-sm-9">{{ loanForm.get('step1.purpose')?.value }}</dd>
+            </dl>
+          </div>
+
+          <!-- Selected Collaterals -->
+          <div class="mb-4">
+            <h6 class="mb-3">Selected Collaterals</h6>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Property Type</th>
+                    <th>Estimated Value</th>
+                    <th>Max Loan Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let collateral of selectedCollaterals">
+                    <td>{{ collateral.propertyType }}</td>
+                    <td>{{ collateral.estimatedValue | currency }}</td>
+                    <td>{{ collateral.estimatedValue * 0.7 | currency }}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="2"><strong>Total Maximum Loan Amount:</strong></td>
+                    <td><strong>{{ maxLoanAmount | currency }}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" formControlName="termsAccepted"
+                     [class.is-invalid]="isFieldInvalid('step2.termsAccepted')">
+              <label class="form-check-label">
+                I confirm that all the information provided is accurate and I agree to the terms and conditions
+              </label>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('step2.termsAccepted')">
+                You must accept the terms and conditions
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="d-flex justify-content-between mt-4">
+    <button type="button" class="btn btn-outline-secondary" 
+            (click)="previousStep()"
+            *ngIf="currentStep > 1">
+      <i class="bi bi-arrow-left me-2"></i>Previous
+    </button>
+    <button type="button" class="btn btn-outline-secondary" 
+            routerLink="/loans">
+      Cancel
+    </button>
+    <button type="button" class="btn btn-primary" 
+            *ngIf="currentStep < 2"
+            (click)="nextStep()"
+            [disabled]="loading || !loanForm.get('step1')?.valid">
+      Next<i class="bi bi-arrow-right ms-2"></i>
+    </button>
+    <button type="button" class="btn btn-success" 
+            *ngIf="currentStep === 2"
+            (click)="onSubmit()"
+            [disabled]="loading || !loanForm.valid">
+      Submit Application
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="position-fixed top-50 start-50 translate-middle" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div class="alert alert-danger mt-3" *ngIf="error">
+    {{ error }}
+    <button type="button" class="btn-close float-end" (click)="error = null"></button>
+  </div>
+</div>

@@ -1,0 +1,88 @@
+/* Form styles */
+.form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.form-control, .form-select {
+  border-color: #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Card styles */
+.card {
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.card-title {
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+/* Invalid form field styles */
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+}
+
+/* File input styles */
+input[type="file"] {
+  padding: 0.375rem 0.75rem;
+}
+
+.profile-preview {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+  margin-bottom: 1rem;
+}
+
+.nrc-preview {
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+}
+
+.nrc-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.breadcrumb {
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item a {
+  color: #6c757d;
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: #0d6efd;
+}
+
+.breadcrumb-item.active {
+  color: #495057;
+}
+
+.btn-primary {
+  min-width: 120px;
+}
+  

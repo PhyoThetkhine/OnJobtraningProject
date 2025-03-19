@@ -1,0 +1,81 @@
+/* Card styles */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Table styles */
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table th {
+    border-top: none;
+    font-weight: 600;
+    color: #2c3e50;
+    background: #f8f9fa;
+  }
+  
+  .table td {
+    vertical-align: middle;
+  }
+  
+  /* Role icon styles */
+  .role-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(52, 152, 219, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .role-icon i {
+    font-size: 1.25rem;
+    color: #3498db;
+  }
+  
+  /* Badge styles */
+  .badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+  }
+  
+  /* Action button styles */
+  .btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+  }
+  
+  .btn-light:hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+  }
+  
+  /* Empty state styles */
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+  }
+  
+  /* Header styles */
+  .header-section h2 {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  .breadcrumb {
+    margin-bottom: 0;
+  }
+  
+  .breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+  }
+  
+  .breadcrumb-item.active {
+    color: #3498db;
+  } 

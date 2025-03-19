@@ -1,0 +1,303 @@
+<div class="container-fluid p-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a routerLink="/users">Users</a></li>
+      <li class="breadcrumb-item active">Create User</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Create New User</h2>
+      </div>
+      
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <!-- Left Column -->
+          <div class="col-md-6">
+            <!-- Profile Photo Card -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title">Profile Photo</h5>
+                <div class="text-center mb-3">
+                  <img [src]="profileImagePreview || 'https://res.cloudinary.com/dwerfxy6q/image/upload/v1740239490/IMG_20250222_222121_965_djylcz.jpg'"
+                       class="rounded-circle profile-preview"
+                       alt="Profile Preview">
+                </div>
+                <div class="mb-3">
+                  <input type="file" 
+                         class="form-control" 
+                         (change)="onProfilePhotoSelected($event)"
+                         accept="image/*">
+                </div>
+              </div>
+            </div>
+
+            <!-- Basic Information Card -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title mb-4">Basic Information</h5>
+                
+                <div class="mb-3">
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-control" formControlName="name">
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" formControlName="email">
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Phone Number</label>
+                  <input type="text" 
+                         class="form-control" 
+                         formControlName="phoneNumber"
+                         [class.is-invalid]="isFieldInvalid('phoneNumber')"
+                         placeholder="09xxxxxxxxx">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber')">
+                    {{ getErrorMessage('phoneNumber') }}
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Date of Birth</label>
+                  <input type="date" class="form-control" formControlName="dateOfBirth">
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Gender</label>
+                  <select class="form-select" formControlName="gender">
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Branch</label>
+                  <select class="form-select" 
+                          formControlName="branchId"
+                          [attr.disabled]="userForm.get('branchId')?.disabled || null">
+                    <option value="">Select Branch</option>
+                    <option *ngFor="let branch of branches" [value]="branch.id">
+                      {{ branch.branchName }}
+                    </option>
+                  </select>
+                  <!-- Optional: Show message when branch is locked -->
+                  <small class="text-muted" *ngIf="userForm.get('branchId')?.disabled">
+                    Branch selection is locked to your assigned branch
+                  </small>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Role</label>
+                  <select class="form-select" 
+                          formControlName="roleId"
+                          [class.is-invalid]="isFieldInvalid('roleId')">
+                    <option value="">Select Role</option>
+                    <option *ngFor="let role of roles" [value]="role.id">
+                      {{ role.roleName }}
+                    </option>
+                  </select>
+                  <small class="text-muted" *ngIf="roles.length > 0">
+                    {{ userAuthorityMessage }}
+                  </small>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('roleId')">
+                    {{ getErrorMessage('roleId') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="col-md-6">
+            <!-- NRC Information Card -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title">NRC Information</h5>
+                
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="mb-3">
+                      <label class="form-label">State</label>
+                      <select class="form-select" formControlName="nrcState" 
+                              (change)="onNrcStateChange()"
+                              [class.is-invalid]="isFieldInvalid('nrcState')">
+                        <option value="">Select State</option>
+                        <option *ngFor="let state of nrcStateNumbers" [value]="state">
+                          {{ state }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcState')">
+                        {{ getErrorMessage('nrcState') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label class="form-label">Township</label>
+                      <select class="form-select" formControlName="nrcTownship"
+                              [class.is-invalid]="isFieldInvalid('nrcTownship')">
+                        <option value="">Select Township</option>
+                        <option *ngFor="let township of filteredTownships" [value]="township.name_en">
+                          {{ township.name_en }} ({{ township.name_mm }}) - [{{ township.nrc_code }}]
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcTownship')">
+                        {{ getErrorMessage('nrcTownship') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-2">
+                    <div class="mb-3">
+                      <label class="form-label">Type</label>
+                      <select class="form-select" formControlName="nrcType">
+                        <option value="">Type</option>
+                        <option *ngFor="let type of nrcTypes" [value]="type">
+                          {{ type }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="mb-3">
+                      <label class="form-label">Number</label>
+                      <input type="text" class="form-control" formControlName="nrcNumber" maxlength="6">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- NRC Photos -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">NRC Front Photo</label>
+                      <div class="nrc-preview mb-2" *ngIf="nrcFrontPreview">
+                        <img [src]="nrcFrontPreview" class="img-fluid rounded" alt="NRC Front">
+                      </div>
+                      <input type="file" 
+                             class="form-control" 
+                             name="nrcFront"
+                             (change)="onNrcPhotoSelected($event, 'front')"
+                             accept="image/*">
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">NRC Back Photo</label>
+                      <div class="nrc-preview mb-2" *ngIf="nrcBackPreview">
+                        <img [src]="nrcBackPreview" class="img-fluid rounded" alt="NRC Back">
+                      </div>
+                      <input type="file" 
+                             class="form-control"
+                             name="nrcBack"
+                             (change)="onNrcPhotoSelected($event, 'back')"
+                             accept="image/*">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address Information Card -->
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-4">Address Information</h5>
+                
+                <div formGroupName="address">
+                  <!-- State/Region -->
+                  <div class="mb-3">
+                    <label class="form-label">State/Region</label>
+                    <select class="form-select" 
+                            formControlName="state" 
+                            (change)="onStateChange()"
+                            [class.is-invalid]="isFieldInvalid('address.state')">
+                      <option value="">Select State/Region</option>
+                      <option *ngFor="let state of states" [value]="state">
+                        {{ state }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.state')">
+                      {{ getErrorMessage('address.state') }}
+                    </div>
+                  </div>
+
+                  <!-- Township -->
+                  <div class="mb-3">
+                    <label class="form-label">Township</label>
+                    <select class="form-select" 
+                            formControlName="township" 
+                            (change)="onTownshipChange()"
+                            [class.is-invalid]="isFieldInvalid('address.township')"
+                            [disabled]="!userForm.get('address.state')?.value || townships.length === 0">
+                      <option value="">Select Township</option>
+                      <option *ngFor="let township of townships" [value]="township">
+                        {{ township }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.township')">
+                      {{ getErrorMessage('address.township') }}
+                    </div>
+                  </div>
+
+                  <!-- City -->
+                  <div class="mb-3">
+                    <label class="form-label">City</label>
+                    <select class="form-select" 
+                            formControlName="city"
+                            [class.is-invalid]="isFieldInvalid('address.city')"
+                            [disabled]="!userForm.get('address.township')?.value || cities.length === 0">
+                      <option value="">Select City</option>
+                      <option *ngFor="let city of cities" [value]="city">
+                        {{ city }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('address.city')">
+                      {{ getErrorMessage('address.city') }}
+                    </div>
+                  </div>
+
+                  <!-- Additional Address -->
+                  <div class="mb-3">
+                    <label class="form-label">Additional Address</label>
+                    <textarea class="form-control" 
+                              formControlName="additionalAddress" 
+                              rows="3"
+                              placeholder="Enter additional address details"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-end mt-4">
+          <button type="button" class="btn btn-secondary me-2" routerLink="/users">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-info me-2" (click)="debugFormValidation()">
+            Debug Form
+          </button>
+          <button type="submit" 
+                  class="btn btn-primary" 
+                  [disabled]="!userForm.valid || loading">
+            <span class="spinner-border spinner-border-sm me-1" 
+                  *ngIf="loading"></span>
+            {{ loading ? 'Creating...' : 'Create User' }}
+            <small class="ms-1">({{ userForm.valid ? 'Valid' : 'Invalid' }})</small>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

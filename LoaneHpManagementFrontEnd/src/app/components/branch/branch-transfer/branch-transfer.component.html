@@ -1,0 +1,124 @@
+<div class="modal-header">
+    <h5 class="modal-title">Transfer to Account</h5>
+    <button type="button" class="btn-close" (click)="dismiss()"></button>
+  </div>
+  
+  <div class="modal-body">
+    <form [formGroup]="transferForm">
+      <!-- Account Type Selection -->
+      <div class="mb-4">
+        <label for="accountType" class="form-label">Account Type</label>
+        <select class="form-select" 
+                id="accountType" 
+                formControlName="accountType"
+                [class.is-invalid]="isFieldInvalid('accountType')">
+          <option *ngFor="let type of accountTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('accountType')">
+          {{ getErrorMessage('accountType') }}
+        </div>
+      </div>
+
+      <!-- CIF Account Selection -->
+      <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.CIF">
+        <label for="cifAccount" class="form-label">Select Client Account</label>
+        <select class="form-select" 
+                id="cifAccount" 
+                formControlName="cifAccount"
+                [class.is-invalid]="isFieldInvalid('cifAccount')">
+          <option value="">Select a client account</option>
+          <option *ngFor="let account of cifAccounts" [value]="account.id">
+            {{ account.cif.name }} - {{ account.accCode }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('cifAccount')">
+          {{ getErrorMessage('cifAccount') }}
+        </div>
+  
+        <!-- Selected Account Details -->
+        <div class="selected-account mt-3" *ngIf="selectedAccount">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <img [src]="selectedAccount.cif.photo || 'assets/images/user-placeholder.jpg'" 
+                     [alt]="selectedAccount.cif.name"
+                     class="rounded-circle me-3"
+                     style="width: 48px; height: 48px; object-fit: cover;">
+                <div>
+                  <h6 class="mb-1">{{ selectedAccount.cif.name }}</h6>
+                  <small class="text-muted">{{ selectedAccount.accCode }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Branch Account Selection -->
+      <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
+        <label for="branchAccount" class="form-label">Select Branch Account</label>
+        <select class="form-select" 
+                id="branchAccount" 
+                formControlName="branchAccount"
+                [class.is-invalid]="isFieldInvalid('branchAccount')">
+          <option value="">Select a branch account</option>
+          <option *ngFor="let account of branchAccounts" [value]="account.id">
+            {{ account.branch.branchName }} - {{ account.accCode }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
+          {{ getErrorMessage('branchAccount') }}
+        </div>
+      </div>
+  
+      <!-- Payment Method Selection -->
+      <div class="mb-4">
+        <label for="paymentMethod" class="form-label">Payment Method</label>
+        <select class="form-select" 
+                id="paymentMethod" 
+                formControlName="paymentMethod"
+                [class.is-invalid]="isFieldInvalid('paymentMethod')">
+          <option value="">Select payment method</option>
+          <option *ngFor="let method of paymentMethods" [value]="method.id">
+            {{ method.paymentType }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('paymentMethod')">
+          {{ getErrorMessage('paymentMethod') }}
+        </div>
+      </div>
+  
+      <!-- Amount Input -->
+      <div class="mb-4">
+        <label for="amount" class="form-label">Amount</label>
+        <div class="input-group">
+          <span class="input-group-text">MMK</span>
+          <input type="number" 
+                 class="form-control" 
+                 id="amount" 
+                 formControlName="amount"
+                 [class.is-invalid]="isFieldInvalid('amount')"
+                 placeholder="Enter amount">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">
+            {{ getErrorMessage('amount') }}
+          </div>
+        </div>
+        <small class="text-muted">
+          Available Balance: {{ branchAccount?.balance?.toLocaleString() }} MMK
+        </small>
+      </div>
+    </form>
+  </div>
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="dismiss()">Cancel</button>
+    <button type="button" 
+            class="btn btn-primary" 
+            (click)="onSubmit()" 
+            [disabled]="!transferForm.valid || loading">
+      <span class="spinner-border spinner-border-sm me-1" *ngIf="loading"></span>
+      Transfer
+    </button>
+  </div>

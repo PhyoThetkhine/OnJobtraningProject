@@ -1,0 +1,1213 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Client Details</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/clients">Clients</a></li>
+          <li class="breadcrumb-item active">Details</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Client Details Content -->
+  <div class="row" *ngIf="client && !loading">
+    <!-- Left Column - Client Profile Card -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <!-- Profile Image -->
+          <div class="mb-4">
+            <img [src]="client.photo || 'assets/images/default-avatar.png'"
+                 [alt]="client.name"
+                 class="rounded-circle"
+                 style="width: 150px; height: 150px; object-fit: cover;">
+          </div>
+
+          <!-- Client Name -->
+          <h4 class="mb-3">{{ client.name }}</h4>
+
+          <!-- Client Info List -->
+          <div class="list-group list-group-flush text-start">
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div><i class="bi bi-person-badge me-2"></i>{{ client.cifCode }}</div>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div><i class="bi bi-envelope me-2"></i>{{ client.email }}</div>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div><i class="bi bi-telephone me-2"></i>{{ client.phoneNumber }}</div>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <i class="bi bi-building me-2"></i>{{ client.cifType | titlecase }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="status-container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="status-label">Status</label>
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm" 
+                        type="button" 
+                        data-bs-toggle="dropdown"
+                        [disabled]="loading">
+                  <i class="bi bi-pencil-square"></i> Change Status
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0)" 
+                       (click)="changeStatus('active')"
+                       [class.active]="client.status === 'active'">
+                      <i class="bi bi-check-circle-fill text-success me-2"></i>Active
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0)" 
+                       (click)="changeStatus('terminated')"
+                       [class.active]="client.status === 'terminated'">
+                      <i class="bi bi-x-circle-fill text-danger me-2"></i>Terminated
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0)" 
+                       (click)="changeStatus('retired')"
+                       [class.active]="client.status === 'retired'">
+                      <i class="bi bi-pause-circle-fill text-warning me-2"></i>Retired
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Status Badge with Loading Effect -->
+            <div class="status-badge position-relative" [ngClass]="{
+              'status-active': client.status === 'active',
+              'status-terminated': client.status === 'terminated',
+              'status-retired': client.status === 'retired',
+              'opacity-75': loading
+            }">
+              <div class="status-content d-flex align-items-center gap-2">
+                <i class="bi" [ngClass]="{
+                  'bi-check-circle-fill': client.status === 'active',
+                  'bi-x-circle-fill': client.status === 'terminated',
+                  'bi-pause-circle-fill': client.status === 'retired'
+                }"></i>
+                <span>{{ client.status | titlecase }}</span>
+              </div>
+              
+              <!-- Progress Line Loading Animation -->
+              <div *ngIf="loading" class="progress-line-container">
+                <div class="progress-line"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Tabs Content -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-white">
+          <ul ngbNav #nav="ngbNav" [(ngModel)]="activeTab" (navChange)="onTabChange($event)" class="nav nav-tabs card-header-tabs">
+            <li [ngbNavItem]="1">
+              <a ngbNavLink>
+                <i class="bi bi-person me-2"></i>Profile Info
+              </a>
+              <ng-template ngbNavContent>
+                <div class="profile-info">
+                  <div class="info-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                      <h5 class="section-title">
+                        <i class="bi bi-person-lines-fill me-2"></i>
+                        Personal Information
+                      </h5>
+                      <button class="btn btn-primary" (click)="openUpdateModal()">
+                        <i class="bi bi-pencil me-2"></i>Update Client
+                      </button>
+                    </div>
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">CIF Code</label>
+                          <div class="fw-medium">{{ client.cifCode }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Full Name</label>
+                          <div class="fw-medium">{{ client.name }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Email</label>
+                          <div class="fw-medium">{{ client.email }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Phone Number</label>
+                          <div class="fw-medium">{{ client.phoneNumber }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Gender</label>
+                          <div class="fw-medium">{{ client.gender | titlecase }}</div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">NRC</label>
+                          <div class="fw-medium">{{ client.nrc }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Date of Birth</label>
+                          <div class="fw-medium">{{ client.dateOfBirth | date:'mediumDate' }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">CIF Type</label>
+                          <div class="fw-medium">{{ getCIFTypeText(client.cifType) }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Created Date</label>
+                          <div class="fw-medium">{{ client.createdDate | date:'medium' }}</div>
+                        </div>
+                        <div class="info-group mb-3">
+                          <label class="text-muted mb-1">Last Updated</label>
+                          <div class="fw-medium">{{ client.updatedDate | date:'medium' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-section mt-4">
+                    <h5 class="section-title">
+                      <i class="bi bi-geo-alt me-2"></i>
+                      Address Information
+                    </h5>
+                    <div class="card">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="info-group mb-3">
+                              <label class="text-muted mb-1">State/Region</label>
+                              <div class="fw-medium">{{ client.address.state }}</div>
+                            </div>
+                            <div class="info-group mb-3">
+                              <label class="text-muted mb-1">City</label>
+                              <div class="fw-medium">{{ client.address.city }}</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="info-group mb-3">
+                              <label class="text-muted mb-1">Township</label>
+                              <div class="fw-medium">{{ client.address.township }}</div>
+                            </div>
+                            <div class="info-group mb-3">
+                              <label class="text-muted mb-1">Additional Address</label>
+                              <div class="fw-medium">{{ client.address.additionalAddress }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-section mt-4">
+                    <h5 class="section-title">
+                      <i class="bi bi-person-badge me-2"></i>
+                      Created By
+                    </h5>
+                    <div class="card">
+                      <div class="card-body">
+                        <div class="d-flex align-items-center">
+                          <img [src]="client.createdUser.photo || 'assets/images/default-avatar.png'"
+                               [alt]="client.createdUser.name"
+                               class="rounded-circle me-3"
+                               style="width: 40px; height: 40px; object-fit: cover;">
+                          <div>
+                            <div class="fw-medium">{{ client.createdUser.name }}</div>
+                            <small class="text-muted">{{ client.createdUser.userCode }}</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-section mt-4">
+                    <h5 class="section-title">
+                      <i class="bi bi-card-image me-2"></i>
+                      NRC Documents
+                    </h5>
+                    <div class="row g-4">
+                      <!-- NRC Front Photo -->
+                      <div class="col-md-6">
+                        <div class="card h-100">
+                          <div class="card-body">
+                            <h6 class="section-title d-flex align-items-center mb-3">
+                              <i class="bi bi-card-image me-2"></i>
+                              NRC Front
+                            </h6>
+                            <div class="nrc-image-container position-relative">
+                              <img [src]="client.nrcFrontPhoto" 
+                                   class="img-fluid rounded w-100"
+                                   alt="NRC Front"
+                                   style="height: 250px; object-fit: cover;"
+                                   (click)="openImageViewer(client.nrcFrontPhoto)"
+                                   onerror="this.src='assets/images/image-placeholder.jpg'">
+                              <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+                                   style="background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s;"
+                                   #overlay1
+                                   (mouseenter)="overlay1.style.opacity = '1'"
+                                   (mouseleave)="overlay1.style.opacity = '0'">
+                                <button class="btn btn-light" (click)="openImageViewer(client.nrcFrontPhoto)">
+                                  <i class="bi bi-zoom-in me-2"></i>View
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- NRC Back Photo -->
+                      <div class="col-md-6">
+                        <div class="card h-100">
+                          <div class="card-body">
+                            <h6 class="section-title d-flex align-items-center mb-3">
+                              <i class="bi bi-card-image me-2"></i>
+                              NRC Back
+                            </h6>
+                            <div class="nrc-image-container position-relative">
+                              <img [src]="client.nrcBackPhoto" 
+                                   class="img-fluid rounded w-100"
+                                   alt="NRC Back"
+                                   style="height: 250px; object-fit: cover;"
+                                   (click)="openImageViewer(client.nrcBackPhoto)"
+                                   onerror="this.src='assets/images/image-placeholder.jpg'">
+                              <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+                                   style="background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s;"
+                                   #overlay2
+                                   (mouseenter)="overlay2.style.opacity = '1'"
+                                   (mouseleave)="overlay2.style.opacity = '0'">
+                                <button class="btn btn-light" (click)="openImageViewer(client.nrcBackPhoto)">
+                                  <i class="bi bi-zoom-in me-2"></i>View
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </li>
+
+            <li [ngbNavItem]="2" *ngIf="client.cifType !== 'PERSONAL'">
+              <a ngbNavLink>
+                <i class="bi bi-building me-2"></i>Business
+              </a>
+              <ng-template ngbNavContent>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <h5 class="mb-0">Business Information</h5>
+                  <button class="btn btn-primary" (click)="openCreateBusinessModal()" *ngIf="activeBusinessTab === 'list'">
+                    <i class="bi bi-plus-circle me-2"></i>Add Business
+                  </button>
+                </div>
+                <div class="business-section">
+                  <!-- Business List View -->
+                  <div *ngIf="activeBusinessTab === 'list'">
+                    <!-- Loading State -->
+                    <div *ngIf="companiesLoading" class="text-center my-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div *ngIf="companiesError" class="alert alert-danger">
+                      {{ companiesError }}
+                    </div>
+
+                    <!-- Companies Table -->
+                    <div class="table-responsive" *ngIf="!companiesLoading && !companiesError && companies.length > 0">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Company Type</th>
+                            <th>Business Type</th>
+                            <th>Category</th>
+                            <th>License Number</th>
+                            <th>Phone Number</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let company of companies">
+                            <td>{{ company.name }}</td>
+                            <td>{{ company.companyType }}</td>
+                            <td>{{ company.businessType }}</td>
+                            <td>{{ company.category }}</td>
+                            <td>{{ company.licenseNumber }}</td>
+                            <td>{{ company.phoneNumber }}</td>
+                            <td>
+                              <button class="btn btn-sm btn-primary" (click)="viewCompanyDetails(company)">
+                                <i class="bi bi-eye"></i> View
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <!-- Companies Pagination -->
+                      <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">
+                          Showing {{ companies.length }} of {{ companiesTotalElements }} companies
+                        </div>
+                        <nav aria-label="Companies pagination" *ngIf="companiesTotalPages > 1">
+                          <ul class="pagination mb-0">
+                            <li class="page-item" [class.disabled]="companiesCurrentPage === 0">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onCompaniesPageChange(companiesCurrentPage - 1)">
+                                Previous
+                              </a>
+                            </li>
+                            <li class="page-item" [class.disabled]="companiesCurrentPage >= companiesTotalPages - 1">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onCompaniesPageChange(companiesCurrentPage + 1)">
+                                Next
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="text-center p-5" *ngIf="!companiesLoading && !companiesError && companies.length === 0">
+                      <i class="bi bi-building fs-1 text-muted mb-3"></i>
+                      <p class="text-muted mb-0">No companies found for this client</p>
+                    </div>
+                  </div>
+
+                  <!-- Company Detail View -->
+                  <div *ngIf="activeBusinessTab === 'detail' && selectedCompany">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                      <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>{{ selectedCompany.name }}
+                      </h5>
+                      <button class="btn btn-outline-secondary" (click)="backToCompanyList()">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                      </button>
+                    </div>
+
+                    <!-- Company Info -->
+                    <div class="card mb-4">
+                      <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                          <li class="nav-item">
+                            <a class="nav-link" 
+                               [class.active]="activeCompanyTab === 'info'"
+                               (click)="setActiveCompanyTab('info')"
+                               href="javascript:void(0)">
+                              <i class="bi bi-info-circle me-2"></i>Company Info
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" 
+                               [class.active]="activeCompanyTab === 'financial'"
+                               (click)="setActiveCompanyTab('financial')"
+                               href="javascript:void(0)">
+                              <i class="bi bi-graph-up me-2"></i>Financial
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="card-body">
+                        <!-- Company Info Tab -->
+                        <div *ngIf="activeCompanyTab === 'info'">
+                          <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-primary btn-sm" (click)="openUpdateBusinessModal()">
+                              <i class="bi bi-pencil-square me-2"></i>Update Business
+                            </button>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Company Type</label>
+                                <div>{{ selectedCompany.companyType }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Business Type</label>
+                                <div>{{ selectedCompany.businessType }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Category</label>
+                                <div>{{ selectedCompany.category }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Phone Number</label>
+                                <div>{{ selectedCompany.phoneNumber }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">License Number</label>
+                                <div>{{ selectedCompany.licenseNumber }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Registration Date</label>
+                                <div>{{ selectedCompany.registrationDate | date:'mediumDate' }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">License Issue Date</label>
+                                <div>{{ selectedCompany.licenseIssueDate | date:'mediumDate' }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">License Expiry Date</label>
+                                <div>{{ selectedCompany.licenseExpiryDate | date:'mediumDate' }}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Financial Tab -->
+                        <div *ngIf="activeCompanyTab === 'financial'">
+                          <!-- Loading State -->
+                          <div *ngIf="financialLoading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                              <span class="visually-hidden">Loading...</span>
+                            </div>
+                          </div>
+
+                          <!-- Error State -->
+                          <div *ngIf="financialError" class="alert alert-danger">
+                            {{ financialError }}
+                          </div>
+
+                          <!-- Financial Data -->
+                          <div *ngIf="!financialLoading && !financialError && financial">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                              <h6 class="mb-0">Financial Information</h6>
+                              <button class="btn btn-outline-primary btn-sm" (click)="openUpdateFinancialModal()">
+                                <i class="bi bi-pencil me-2"></i>Update Financial Info
+                              </button>
+                            </div>
+                            <div class="row g-4">
+                              <!-- Income Information -->
+                              <div class="col-md-6">
+                                <div class="card h-100">
+                                  <div class="card-body">
+                                    <h6 class="card-title mb-4">
+                                      <i class="bi bi-cash me-2"></i>Income Information
+                                    </h6>
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Average Monthly Income</label>
+                                      <div class="fs-5 fw-medium">{{ financial.averageIncome }} MMK</div>
+                                    </div>
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Expected Income</label>
+                                      <div class="fs-5 fw-medium">{{ financial.expectedIncome }} MMK</div>
+                                    </div>
+                                    <div class="info-group">
+                                      <label class="text-muted">Revenue Proof</label>
+                                      <div class="fs-5 fw-medium">{{ financial.revenueProof }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Expenses Information -->
+                              <div class="col-md-6">
+                                <div class="card h-100">
+                                  <div class="card-body">
+                                    <h6 class="card-title mb-4">
+                                      <i class="bi bi-credit-card me-2"></i>Expenses Information
+                                    </h6>
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Average Monthly Expenses</label>
+                                      <div class="fs-5 fw-medium">{{ financial.averageExpenses }} MMK</div>
+                                    </div>
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Average Investment</label>
+                                      <div class="fs-5 fw-medium">{{ financial.averageInvestment }} MMK</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Employee Information -->
+                              <div class="col-md-6">
+                                <div class="card h-100">
+                                  <div class="card-body">
+                                    <h6 class="card-title mb-4">
+                                      <i class="bi bi-people me-2"></i>Employee Information
+                                    </h6>
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Average Number of Employees</label>
+                                      <div class="fs-5 fw-medium">{{ financial.averageEmployees }}</div>
+                                    </div>
+                                    <div class="info-group">
+                                      <label class="text-muted">Average Salary Paid</label>
+                                      <div class="fs-5 fw-medium">{{ financial.averageSalaryPaid }} MMK</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Created Information -->
+                              <div class="col-md-6">
+                                <div class="card h-100">
+                                  <div class="card-body">
+                                    <h6 class="card-title mb-4">
+                                      <i class="bi bi-info-circle me-2"></i>Record Information
+                                    </h6>
+                                    <!-- <div class="info-group mb-3">
+                                      <label class="text-muted">Created By</label>
+                                      <div class="d-flex align-items-center">
+                                        <img [src]="financial.createdUser.photo || 'assets/images/default-avatar.png'"
+                                             [alt]="financial.createdUser.name"
+                                             class="rounded-circle me-2"
+                                             style="width: 32px; height: 32px; object-fit: cover;">
+                                        <div>
+                                          <div class="fw-medium">{{ financial.createdUser.name }}</div>
+                                          <small class="text-muted">{{ financial.createdUser.userCode }}</small>
+                                        </div>
+                                      </div>
+                                    </div> -->
+                                    <div class="info-group mb-3">
+                                      <label class="text-muted">Created Date</label>
+                                      <div>{{ financial.createdDate | date:'medium' }}</div>
+                                    </div>
+                                    <div class="info-group">
+                                      <label class="text-muted">Last Updated</label>
+                                      <div>{{ financial.updatedDate | date:'medium' }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Empty State -->
+                          <div *ngIf="!financialLoading && !financialError && !financial" class="text-center p-5">
+                            <i class="bi bi-graph-up fs-1 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No financial information available</p>
+                            <small class="text-muted">Financial data has not been recorded for this company</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Address Information and Business Photos - Only show when not in financial tab -->
+                    <div *ngIf="activeCompanyTab !== 'financial'">
+                      <!-- Address Information -->
+                      <div class="card mb-4">
+                        <div class="card-header">
+                          <h6 class="mb-0">Address Information</h6>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">State/Region</label>
+                                <div>{{ selectedCompany.address.state }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">City</label>
+                                <div>{{ selectedCompany.address.city }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Township</label>
+                                <div>{{ selectedCompany.address.township }}</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-group">
+                                <label class="text-muted">Additional Address</label>
+                                <div>{{ selectedCompany.address.additionalAddress }}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Business Photos -->
+                      <div class="card">
+                        <div class="card-header">
+                          <h6 class="mb-0">Business Photos</h6>
+                        </div>
+                        <div class="card-body">
+                          <!-- Loading State -->
+                          <div *ngIf="businessPhotosLoading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                              <span class="visually-hidden">Loading...</span>
+                            </div>
+                          </div>
+
+                          <!-- Error State -->
+                          <div *ngIf="businessPhotosError" class="alert alert-danger">
+                            {{ businessPhotosError }}
+                          </div>
+
+                          <!-- Photos Grid -->
+                          <div class="row g-3" *ngIf="!businessPhotosLoading && !businessPhotosError">
+                            <div class="col-md-4" *ngFor="let photo of businessPhotos">
+                              <div class="business-photo-container">
+                                <img [src]="photo.photo" 
+                                     alt="Business Photo"
+                                     class="img-fluid"
+                                     (click)="openImageViewer(photo.photo)">
+                                <div class="photo-overlay">
+                                  <button class="btn btn-light btn-sm" (click)="openImageViewer(photo.photo)">
+                                    <i class="bi bi-zoom-in"></i> View
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-12" *ngIf="businessPhotos.length === 0">
+                              <p class="text-muted text-center mb-0">No business photos available</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </li>
+
+            <li [ngbNavItem]="3">
+              <a ngbNavLink>
+                <i class="bi bi-cash me-2"></i>Loans
+              </a>
+              <ng-template ngbNavContent>
+                <div class="loans-section">
+                  <!-- Loan Type Navigation -->
+                  <ul class="nav nav-pills mb-4">
+                    <li class="nav-item">
+                      <a class="nav-link" 
+                         [class.active]="activeLoanTab === 'sme'"
+                         (click)="setActiveLoanTab('sme')"
+                         href="javascript:void(0)">
+                        SME Loans
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" 
+                         [class.active]="activeLoanTab === 'hp'"
+                         (click)="setActiveLoanTab('hp')"
+                         href="javascript:void(0)">
+                        HP Loans
+                      </a>
+                    </li>
+                  </ul>
+
+                  <!-- SME Loans Content -->
+                  <div *ngIf="activeLoanTab === 'sme'">
+                    <!-- Loading State -->
+                    <div *ngIf="smeLoansLoading" class="text-center my-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div *ngIf="smeLoansError" class="alert alert-danger">
+                      {{ smeLoansError }}
+                    </div>
+
+                    <!-- SME Loans Table -->
+                    <div class="table-responsive" *ngIf="!smeLoansLoading && !smeLoansError && smeLoans.length > 0">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Loan Code</th>
+                            <th>Amount</th>
+                            <th>Interest Rate</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let loan of smeLoans">
+                            <td>
+                              <div>{{ loan.smeLoanCode.substring(0, loan.smeLoanCode.length/2) }}</div>
+                              <div>{{ loan.smeLoanCode.substring(loan.smeLoanCode.length/2) }}</div>
+                            </td>
+                            <td>{{ formatCurrency(loan.loanAmount) }}</td>
+                            <td>{{ loan.interestRate }}%</td>
+                            <td>{{ loan.duration }} months</td>
+                            <td>
+                              <span class="badge" [ngClass]="getLoanStatusBadgeClass(loan.status)">
+                                {{ loan.status }}
+                              </span>
+                            </td>
+                            <td>{{ loan.applicationDate | date:'medium' }}</td>
+                            <td>
+                              <a [routerLink]="['/loans/sme/', loan.id]" class="btn btn-sm btn-outline-primary">
+                                View Details
+                              </a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <!-- SME Loans Pagination -->
+                      <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">
+                          Showing {{ smeLoans.length }} of {{ smeLoadsTotalElements }} loans
+                        </div>
+                        <nav aria-label="SME loans pagination" *ngIf="smeLoadsTotalPages > 1">
+                          <ul class="pagination mb-0">
+                            <li class="page-item" [class.disabled]="smeLoansCurrentPage === 0">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onSMELoansPageChange(smeLoansCurrentPage - 1)">
+                                Previous
+                              </a>
+                            </li>
+                            <li class="page-item" [class.disabled]="smeLoansCurrentPage >= smeLoadsTotalPages - 1">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onSMELoansPageChange(smeLoansCurrentPage + 1)">
+                                Next
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+
+                    <!-- Empty State for SME Loans -->
+                    <div class="text-center p-5" *ngIf="!smeLoansLoading && !smeLoansError && smeLoans.length === 0">
+                      <i class="bi bi-cash-stack fs-1 text-muted mb-3"></i>
+                      <p class="text-muted mb-0">No SME loans found for this client</p>
+                    </div>
+                  </div>
+
+                  <!-- HP Loans Content -->
+                  <div *ngIf="activeLoanTab === 'hp'">
+                    <!-- Loading State -->
+                    <div *ngIf="hpLoansLoading" class="text-center my-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div *ngIf="hpLoansError" class="alert alert-danger">
+                      {{ hpLoansError }}
+                    </div>
+
+                    <!-- HP Loans Table -->
+                    <div class="table-responsive" *ngIf="!hpLoansLoading && !hpLoansError && hpLoans.length > 0">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Loan Code</th>
+                            <th>Amount</th>
+                            <th>Down Payment</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let loan of hpLoans">
+                            <td>{{ loan.hpLoanCode }}</td>
+                            <td>{{ formatCurrency(loan.loanAmount) }}</td>
+                            <td>{{ formatCurrency(loan.downPayment) }}</td>
+                            <td>{{ loan.duration }} months</td>
+                            <td>
+                              <span class="badge" [ngClass]="getLoanStatusBadgeClass(loan.status)">
+                                {{ loan.status }}
+                              </span>
+                            </td>
+                            <td>{{ loan.applicationDate | date:'medium' }}</td>
+                            <td>
+                              <a [routerLink]="['/loans/hp/', loan.id]" class="btn btn-sm btn-outline-primary">
+                                View Details
+                              </a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <!-- HP Loans Pagination -->
+                      <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">
+                          Showing {{ hpLoans.length }} of {{ hpLoadsTotalElements }} loans
+                        </div>
+                        <nav aria-label="HP loans pagination" *ngIf="hpLoadsTotalPages > 1">
+                          <ul class="pagination mb-0">
+                            <li class="page-item" [class.disabled]="hpLoansCurrentPage === 0">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onHPLoansPageChange(hpLoansCurrentPage - 1)">
+                                Previous
+                              </a>
+                            </li>
+                            <li class="page-item" [class.disabled]="hpLoansCurrentPage >= hpLoadsTotalPages - 1">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onHPLoansPageChange(hpLoansCurrentPage + 1)">
+                                Next
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+
+                    <!-- Empty State for HP Loans -->
+                    <div class="text-center p-5" *ngIf="!hpLoansLoading && !hpLoansError && hpLoans.length === 0">
+                      <i class="bi bi-cash-stack fs-1 text-muted mb-3"></i>
+                      <p class="text-muted mb-0">No HP loans found for this client</p>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </li>
+
+            <li [ngbNavItem]="4">
+              <a ngbNavLink>
+                <i class="bi bi-shield-lock me-2"></i>Collaterals
+              </a>
+              <ng-template ngbNavContent>
+                <div class="collaterals-section">
+                  <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Collaterals</h5>
+                    <button class="btn btn-primary" (click)="openCreateCollateralModal()">
+                      <i class="bi bi-plus-circle me-2"></i>Add Collateral
+                    </button>
+                  </div>
+
+                  <!-- Loading State -->
+                  <div *ngIf="collateralsLoading" class="text-center my-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+
+                  <!-- Error State -->
+                  <div *ngIf="collateralsError" class="alert alert-danger">
+                    {{ collateralsError }}
+                  </div>
+
+                  <!-- Collaterals Grid -->
+                  <div class="row g-4">
+                    <div class="col-md-6" *ngFor="let collateral of collaterals">
+                      <div class="card h-100">
+                        <div class="position-relative">
+                          <img [src]="collateral.documentUrl" 
+                               class="card-img-top collateral-image"
+                               [alt]="collateral.propertyType"
+                               onerror="this.src='assets/images/image-placeholder.jpg'"
+                               (click)="openImageViewer(collateral.documentUrl)">
+                          <div class="image-overlay">
+                            <button class="btn btn-light btn-sm" (click)="openImageViewer(collateral.documentUrl)">
+                              <i class="bi bi-zoom-in"></i> View
+                            </button>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ collateral.propertyType }}</h5>
+                            <button class="btn btn-outline-primary btn-sm" (click)="openEditCollateralModal(collateral)">
+                              <i class="bi bi-pencil"></i> Edit
+                            </button>
+                          </div>
+                          <div class="mb-3">
+                            <label class="text-muted mb-1">Estimated Value</label>
+                            <div class="fs-5 fw-bold">{{ formatCurrency(collateral.estimatedValue) }}</div>
+                          </div>
+                          <div class="text-muted small">
+                            <div class="mb-1">Created: {{ collateral.createdDate | date:'medium' }}</div>
+                            <div>Updated: {{ collateral.updatedDate | date:'medium' }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">
+                          Showing {{ collaterals.length }} of {{ collateralsTotalElements }} collaterals
+                        </div>
+                        <nav aria-label="Collaterals pagination" *ngIf="collateralsTotalPages > 1">
+                          <ul class="pagination mb-0">
+                            <li class="page-item" [class.disabled]="collateralsCurrentPage === 0">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onCollateralsPageChange(collateralsCurrentPage - 1)">
+                                Previous
+                              </a>
+                            </li>
+                            <li class="page-item" [class.disabled]="collateralsCurrentPage >= collateralsTotalPages - 1">
+                              <a class="page-link" href="javascript:void(0)" 
+                                 (click)="onCollateralsPageChange(collateralsCurrentPage + 1)">
+                                Next
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div class="text-center p-5" *ngIf="!collateralsLoading && !collateralsError && collaterals.length === 0">
+                    <i class="bi bi-shield-lock fs-1 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No collaterals found for this client</p>
+                  </div>
+                </div>
+              </ng-template>
+            </li>
+
+            <li [ngbNavItem]="5">
+              <a ngbNavLink>
+                <i class="bi bi-wallet2 me-2"></i>Balance
+              </a>
+              <ng-template ngbNavContent>
+                <div class="balance-info">
+                  <div class="card mb-4">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Balance Information</h5>
+                        <button class="btn btn-icon" 
+                                (click)="refreshBalance()"
+                                [disabled]="refreshing"
+                                title="Refresh">
+                          <i class="bi bi-arrow-repeat" [class.spin]="refreshing"></i>
+                        </button>
+                      </div>
+                      
+                      <!-- Loading State -->
+                      <div *ngIf="accountLoading" class="text-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+
+                      <!-- Error State -->
+                      <div *ngIf="accountError" class="alert alert-danger mt-3">
+                        {{ accountError }}
+                      </div>
+
+                      <!-- Account Information -->
+                      <div class="row mt-4" *ngIf="!accountLoading && !accountError && cifAccount">
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="text-muted">Current Balance</label>
+                            <h3 class="mb-0">{{ formatCurrency(cifAccount.balance) }}</h3>
+                            <div class="account-code mt-2">{{ cifAccount.accCode }}</div>
+                            <div class="account-dates mt-3">
+                              <small class="text-muted d-block">
+                                Created: {{ cifAccount.createdDate | date:'medium' }}
+                              </small>
+                              <small class="text-muted d-block">
+                                Last Updated: {{ cifAccount.updatedDate | date:'medium' }}
+                              </small>
+                            </div>
+                          </div>
+                          <div class="mb-3">
+                           
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                              <h6 class="card-subtitle text-muted">Account Limits</h6>
+                              <button class="btn btn-outline-primary btn-sm" (click)="openUpdateAccountLimitsModal()">
+                                <i class="bi bi-pencil me-1"></i>Update Limits
+                              </button>
+                            </div>
+                            <div class="row">
+                              <div class="col-md-6">
+                                <p class="mb-1">Minimum Amount</p>
+                                <h5>{{ formatCurrency(cifAccount.minAmount) }}</h5>
+                              </div>
+                              <div class="col-md-6">
+                                <p class="mb-1">Maximum Amount</p>
+                                <h5>{{ formatCurrency(cifAccount.maxAmount) }}</h5>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="text-muted">Account Status</label>
+                            <div class="d-flex align-items-center gap-2">
+                              <span class="badge" [ngClass]="{
+                                'bg-success': cifAccount.isFreeze === FreezeStatus.NOT_FREEZE,
+                                'bg-danger': cifAccount.isFreeze === FreezeStatus.IS_FREEZE
+                              }">
+                                <i class="bi" [ngClass]="{
+                                  'bi-unlock-fill': cifAccount.isFreeze === FreezeStatus.NOT_FREEZE,
+                                  'bi-lock-fill': cifAccount.isFreeze === FreezeStatus.IS_FREEZE
+                                }"></i>
+                                {{ cifAccount.isFreeze === FreezeStatus.NOT_FREEZE ? 'Active' : 'Frozen' }}
+                              </span>
+                              <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown"
+                                        [disabled]="accountLoading">
+                                  <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                  <li>
+                                    <a class="dropdown-item" 
+                                       href="javascript:void(0)" 
+                                       (click)="changeFreezeStatus(FreezeStatus.NOT_FREEZE)"
+                                       [class.active]="cifAccount.isFreeze === FreezeStatus.NOT_FREEZE">
+                                      <i class="bi bi-unlock-fill text-success me-2"></i>Unfreeze Account
+                                    </a>
+                                  </li>
+                                  <li>
+                                    <a class="dropdown-item" 
+                                       href="javascript:void(0)" 
+                                       (click)="changeFreezeStatus(FreezeStatus.IS_FREEZE)"
+                                       [class.active]="cifAccount.isFreeze === FreezeStatus.IS_FREEZE">
+                                      <i class="bi bi-lock-fill text-danger me-2"></i>Freeze Account
+                                    </a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Empty State -->
+                      <div *ngIf="!accountLoading && !accountError && !cifAccount" class="text-center py-4">
+                        <i class="bi bi-wallet2 fs-1 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No account information available</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Transaction History -->
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Transaction History</h5>
+                      <div class="table-responsive mt-4">
+                        <table class="table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Type</th>
+                              <th>From/To</th>
+                              <th>Payment Method</th>
+                              <th>Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngIf="transactionLoading">
+                              <td colspan="5" class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                  <span class="visually-hidden">Loading...</span>
+                                </div>
+                              </td>
+                            </tr>
+                            
+                            <tr *ngFor="let transaction of transactions">
+                              <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                              <td>
+                                <span class="badge" [ngClass]="{
+                                  'bg-success': transaction.toAccountType === 'CIF',
+                                  'bg-danger': transaction.fromAccountType === 'CIF'
+                                }">
+                                  {{ transaction.fromAccountType === 'CIF' ? 'Debit' : 'Credit' }}
+                                </span>
+                              </td>
+                              <td>
+                                <div *ngIf="transaction.fromAccountType === 'CIF'">
+                                  To: {{ transaction.toAccountType }}
+                                </div>
+                                <div *ngIf="transaction.toAccountType === 'CIF'">
+                                  From: {{ transaction.fromAccountType }}
+                                </div>
+                              </td>
+                              <td>{{ transaction.paymentMethod.paymentType }}</td>
+                              <td [ngClass]="{
+                                'text-success': transaction.toAccountType === 'CIF',
+                                'text-danger': transaction.fromAccountType === 'CIF'
+                              }">
+                                {{ formatCurrency(transaction.amount) }}
+                              </td>
+                            </tr>
+                            
+                            <tr *ngIf="transactions.length === 0 && !transactionLoading">
+                              <td colspan="5" class="text-center text-muted">
+                                No transactions found
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        <!-- Pagination controls -->
+                        <div class="d-flex justify-content-between align-items-center mt-3 px-3">
+                          <div class="text-muted">
+                            Showing {{ transactions.length ? (currentPage * pageSize) + 1 : 0 }} 
+                            to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+                            of {{ totalElements }} entries
+                          </div>
+                          <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" 
+                                    (click)="previousPage()" 
+                                    [disabled]="currentPage === 0 || transactionLoading">
+                              <i class="bi bi-chevron-left"></i> Previous
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" 
+                                    (click)="nextPage()" 
+                                    [disabled]="currentPage >= totalPages - 1 || transactionLoading">
+                              Next <i class="bi bi-chevron-right"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <div [ngbNavOutlet]="nav"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Viewer Modal -->
+  <div class="image-viewer-modal" *ngIf="showImageViewer" (click)="closeImageViewer()">
+    <div class="image-viewer-content">
+      <button class="close-viewer" (click)="closeImageViewer()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <img [src]="selectedImage" alt="Full size image">
+    </div>
+  </div>

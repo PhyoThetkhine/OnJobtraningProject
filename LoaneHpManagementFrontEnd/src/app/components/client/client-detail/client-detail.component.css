@@ -1,0 +1,353 @@
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.info-group label {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.status-badge.bg-success {
+  background-color: #d1e7dd !important;
+  color: #0f5132;
+}
+
+.status-badge.bg-danger {
+  background-color: #f8d7da !important;
+  color: #842029;
+}
+
+.status-badge.bg-warning {
+  background-color: #fff3cd !important;
+  color: #664d03;
+}
+
+.nrc-image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.nrc-image-container img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nrc-image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.nrc-image-container:hover img {
+  transform: scale(1.05);
+}
+
+.image-viewer-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.image-viewer-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90vh;
+}
+
+.image-viewer-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.close-viewer {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.nav-tabs .nav-link {
+  color: #6c757d;
+  border: none;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #0d6efd;
+  background: rgba(13, 110, 253, 0.1);
+  border: none;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  background: none;
+  border-bottom: 2px solid #0d6efd;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item {
+  border: none;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+/* Business Tab Styles */
+.document-card {
+  padding: 2rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.document-card:hover {
+  background-color: #e9ecef;
+  transform: translateY(-5px);
+}
+
+.document-card i {
+  color: #0d6efd;
+}
+
+/* Balance Tab Styles */
+.balance-amount {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #198754;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background-color: #f8f9fa;
+  color: #0d6efd;
+}
+
+/* Table Styles */
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  border-top: none;
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #495057;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Card Styles */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Badge Styles */
+.badge {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .balance-amount {
+    font-size: 2rem;
+  }
+  
+  .document-card {
+    padding: 1.5rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Nested Loan Tabs Styles */
+.nav-pills {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1rem;
+}
+
+.nav-pills .nav-link {
+  color: #6c757d;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.nav-pills .nav-link.active {
+  color: #fff;
+  background-color: #0d6efd;
+}
+
+/* Add spacing between loan tables and tabs */
+.loans-section .table-responsive {
+  margin-top: 1.5rem;
+}
+
+/* Business Section Styles */
+.company-list .table {
+  margin-bottom: 0;
+}
+
+.company-list .table th {
+  border-top: none;
+  background-color: #f8f9fa;
+}
+
+.company-detail .nav-pills .nav-link {
+  color: #6c757d;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.company-detail .nav-pills .nav-link.active {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.company-info .info-group label {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.company-info .info-group .fw-medium {
+  color: #212529;
+}
+
+.btn-link {
+  text-decoration: none;
+  color: #6c757d;
+}
+
+.btn-link:hover {
+  color: #0d6efd;
+}
+
+/* Add these styles to the existing CSS */
+
+.business-photo-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  height: 200px;
+}
+
+.business-photo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.business-photo-container:hover img {
+  transform: scale(1.05);
+}
+
+.business-photo-container .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.business-photo-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.business-photo-container .btn-light {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.business-photo-container .btn-light:hover {
+  background: white;
+  transform: scale(1.05);
+} 

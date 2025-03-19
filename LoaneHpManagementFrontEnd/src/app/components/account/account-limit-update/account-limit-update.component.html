@@ -1,0 +1,42 @@
+<div class="modal-header">
+  <h4 class="modal-title">Update Account Limits</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Minimum Amount</label>
+          <input type="number" class="form-control" formControlName="minAmount"
+                 [class.is-invalid]="isFieldInvalid('minAmount')"
+                 placeholder="Enter minimum amount">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('minAmount')">
+            {{ getErrorMessage('minAmount') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Maximum Amount</label>
+          <input type="number" class="form-control" formControlName="maxAmount"
+                 [class.is-invalid]="isFieldInvalid('maxAmount')"
+                 placeholder="Enter maximum amount">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('maxAmount')">
+            {{ getErrorMessage('maxAmount') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="loading || !accountForm.valid">
+    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" *ngIf="loading"></span>
+    Update Limits
+  </button>
+</div> 

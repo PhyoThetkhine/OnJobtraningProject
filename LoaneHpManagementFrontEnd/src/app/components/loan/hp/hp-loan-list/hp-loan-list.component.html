@@ -1,0 +1,135 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">HP Loans</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">HP Loans</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <button class="btn btn-primary" routerLink="/loans/hp/create">
+      <i class="bi bi-plus"></i> Create HP Loan
+    </button>
+    <div class="d-flex">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search...">
+        <button class="btn btn-outline-secondary" type="button">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Loan Code</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Loan Amount</th>
+          <th>Disbursement Amount</th>
+          <th>Down Payment</th>
+          <th>Duration</th>
+          <th>Interest Rate</th>
+          <th>Status</th>
+          <th>Application Date</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let loan of loans" 
+            [routerLink]="['/loans/hp', loan.id]" 
+            style="cursor: pointer;">
+          <td>
+            <div>{{ loan.hpLoanCode.substring(0, loan.hpLoanCode.length/2) }}</div>
+            <div>{{ loan.hpLoanCode.substring(loan.hpLoanCode.length/2) }}</div>
+          </td>
+          <td>
+            <div class="d-flex align-items-center">
+              <div class="customer-avatar me-2">
+                <img [src]="loan.cif.photo || 'assets/images/default-avatar.png'" 
+                     [alt]="loan.cif.name"
+                     class="rounded-circle"
+                     style="width: 32px; height: 32px; object-fit: cover;">
+              </div>
+              <div class="customer-info">
+                <div class="fw-medium">{{ loan.cif.name }}</div>
+                <small class="text-muted">{{ loan.cif.cifCode }}</small>
+              </div>
+            </div>
+          </td>
+          <td>{{ loan.product.name }}</td>
+          <td>{{ loan.loanAmount | currency:'MMK ' }}</td>
+          <td>{{ loan.disbursementAmount ? (loan.disbursementAmount | currency:'MMK ') : 'Not disbursed' }}</td>
+          <td>{{ loan.downPayment ? (loan.downPayment | currency:'MMK ') : '-' }}</td>
+          <td>{{ loan.duration }} months</td>
+          <td>{{ loan.interestRate ? loan.interestRate + '%' : 'Not set' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadgeClass(loan.status)">
+              {{ loan.status | titlecase }}
+            </span>
+          </td>
+          <td>{{ loan.applicationDate | date:'medium' }}</td>
+          <td class="text-end">
+            <div class="dropdown">
+              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li *ngIf="loan.status === 'under_review'">
+                  <a class="dropdown-item" [routerLink]="['/loans/hp', loan.id]">
+                    <i class="bi bi-check-circle me-2"></i>Confirm Loan
+                  </a>
+                </li>
+                <li *ngIf="loan.status !== 'under_review'">
+                  <a class="dropdown-item" [routerLink]="['/loans/hp', loan.id]">
+                    <i class="bi bi-eye me-2"></i>View Details
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="loans.length === 0">
+          <td colspan="10" class="text-center">No loans found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="totalPages > 1">
+    <div class="text-muted">
+      Page {{ currentPage + 1 }} of {{ totalPages }}
+    </div>
+    <nav aria-label="Page navigation">
+      <ul class="pagination mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 0">
+          <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">Previous</a>
+        </li>
+        <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage">
+          <a class="page-link" href="javascript:void(0)" (click)="onPageChange(page)">{{ page + 1 }}</a>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+          <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

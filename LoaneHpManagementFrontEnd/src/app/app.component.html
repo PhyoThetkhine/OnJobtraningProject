@@ -1,0 +1,17 @@
+<div class="d-flex flex-column min-vh-100">
+  <ng-container *ngIf="!isLoginPage">
+    <app-navbar></app-navbar>
+    <div class="d-flex flex-grow-1">
+   
+      <app-sidebar class="sidebar"></app-sidebar>
+      <main class="main-content flex-grow-1 p-3">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="isLoginPage">
+    <div class="flex-grow-1">
+      <router-outlet></router-outlet>
+    </div>
+  </ng-container>
+</div>

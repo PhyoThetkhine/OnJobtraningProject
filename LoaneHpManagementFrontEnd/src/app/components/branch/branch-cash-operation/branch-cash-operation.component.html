@@ -1,0 +1,96 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ operationType === 'Cash_In' ? 'Cash In' : 'Cash Out' }}</h5>
+  <button type="button" class="btn-close" (click)="dismiss()"></button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="cashForm">
+    <!-- Amount Input -->
+    <div class="mb-4">
+      <label for="amount" class="form-label">Amount</label>
+      <div class="input-group">
+        <span class="input-group-text">MMK</span>
+        <input type="number" 
+               class="form-control" 
+               id="amount" 
+               formControlName="amount"
+               [class.is-invalid]="isFieldInvalid('amount')"
+               placeholder="Enter amount">
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">
+          {{ getErrorMessage('amount') }}
+        </div>
+      </div>
+      <small class="text-muted" *ngIf="operationType === 'Cash_Out'">
+        Available Balance: {{ branchAccount?.balance?.toLocaleString() }} MMK
+      </small>
+    </div>
+
+    <!-- Description Input -->
+    <div class="mb-4">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" 
+                id="description" 
+                formControlName="description"
+                [class.is-invalid]="isFieldInvalid('description')"
+                rows="3"
+                placeholder="Enter transaction description"></textarea>
+      <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">
+        {{ getErrorMessage('description') }}
+      </div>
+    </div>
+  </form>
+
+  <!-- Transaction Summary -->
+  <div class="transaction-summary mt-4">
+    <div class="card bg-light">
+      <div class="card-body">
+        <h6 class="card-title mb-3">Transaction Summary</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Operation Type:</span>
+          <span class="fw-medium" [class.text-success]="operationType === 'Cash_In'" 
+                                [class.text-danger]="operationType === 'Cash_Out'">
+            {{ operationType === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Branch:</span>
+          <span class="fw-medium">{{ branch?.branchName }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Account:</span>
+          <span class="fw-medium">{{ branchAccount?.accCode }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="dismiss()">Cancel</button>
+  <button type="button" 
+          class="btn" 
+          [class.btn-success]="operationType === 'Cash_In'"
+          [class.btn-danger]="operationType === 'Cash_Out'"
+          (click)="onSubmit()" 
+          [disabled]="!cashForm.valid || loading">
+    <span class="spinner-border spinner-border-sm me-1" *ngIf="loading"></span>
+    {{ operationType === 'Cash_In' ? 'Deposit' : 'Withdraw' }}
+  </button>
+</div>
+
+<style>
+.transaction-summary .card {
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.transaction-summary .card-title {
+  color: #666;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+textarea {
+  resize: none;
+}
+</style> 

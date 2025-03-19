@@ -1,0 +1,45 @@
+.section-title {
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.info-group {
+  margin-bottom: 1rem;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.info-group div {
+  font-weight: 500;
+  color: #212529;
+}
+
+.nav-tabs .nav-link {
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  font-weight: 500;
+}
+
+.list-group-item {
+  padding: 1rem;
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.customer-info img {
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+} 

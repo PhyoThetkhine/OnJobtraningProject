@@ -1,0 +1,257 @@
+<div class="container-fluid p-4">
+  <!-- Header with Actions -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-0">{{ role?.roleName || 'Loading...' }}</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a routerLink="/roles">Roles</a></li>
+            <li class="breadcrumb-item active">Role Details</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="text-center my-4" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="row g-4" *ngIf="!loading && role">
+    <!-- Left Column - Role Info -->
+    <div class="col-md-4">
+      <div class="card role-info-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center">
+              <div class="role-icon-wrapper me-3">
+                <i class="bi bi-shield-lock"></i>
+              </div>
+              <div>
+                <h5 class="card-title mb-1">Role Information</h5>
+                <small class="text-muted">Role Details and Status</small>
+              </div>
+            </div>
+            <!-- Add edit button -->
+            <button class="btn btn-outline-primary btn-sm" 
+                    (click)="startEditing()" 
+                    *ngIf="!isEditing">
+              <i class="bi bi-pencil me-1"></i>
+              Edit
+            </button>
+          </div>
+
+          <!-- Edit Form -->
+          <form [formGroup]="roleForm" (ngSubmit)="updateRole()" *ngIf="isEditing">
+            <div class="info-list">
+              <div class="info-item">
+                <label class="form-label">Role Name</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="roleName"
+                       [class.is-invalid]="isFieldInvalid('roleName')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('roleName')">
+                  Role name is required and must be at least 3 characters
+                </div>
+              </div>
+              <div class="info-item">
+                <label class="form-label">Authority Level</label>
+                <select class="form-select" formControlName="authority">
+                  <option [value]="AUTHORITY.MainBranchLevel">Main Branch Level</option>
+                  <option [value]="AUTHORITY.RegularBranchLevel">Regular Branch Level</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" 
+                      class="btn btn-light" 
+                      (click)="cancelEditing()">
+                Cancel
+              </button>
+              <button type="submit" 
+                      class="btn btn-primary" 
+                      [disabled]="roleForm.invalid || loading">
+                <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+                Save Changes
+              </button>
+            </div>
+          </form>
+
+          <!-- Display Info -->
+          <div class="info-list" *ngIf="!isEditing">
+            <div class="info-item">
+              <label>Role Name</label>
+              <p>{{ role.roleName }}</p>
+            </div>
+            <div class="info-item">
+              <label>Authority Level</label>
+              <span [class]="'badge ' + getAuthorityBadgeClass(role.authority)">
+                {{ role.authority }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Created Date</label>
+              <p>{{ role.createdDate | date:'medium' }}</p>
+            </div>
+            <div class="info-item">
+              <label>Last Updated</label>
+              <p>{{ role.updatedDate | date:'medium' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Tabs -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <!-- Tab Navigation -->
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'staff'"
+                 (click)="setActiveTab('staff')" href="javascript:void(0)">
+                <i class="bi bi-people me-2"></i>Staff Members
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'permissions'"
+                 (click)="setActiveTab('permissions')" href="javascript:void(0)">
+                <i class="bi bi-shield-check me-2"></i>Permissions
+              </a>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content mt-4">
+            <!-- Staff Tab -->
+            <div *ngIf="activeTab === 'staff'">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Staff</th>
+                      <th>User Code</th>
+                      <th>Branch</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let user of users">
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <img [src]="user.photo || 'assets/images/user-placeholder.jpg'" 
+                               [alt]="user.name"
+                               class="user-photo rounded-circle me-2"
+                               onerror="this.src='assets/images/user-placeholder.jpg'">
+                          <div>
+                            <h6 class="mb-0">{{ user.name }}</h6>
+                            <small class="text-muted">{{ user.email }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{{ user.userCode }}</td>
+                      <td>{{ user.branch?.branchName }}</td>
+                      <td>
+                        <span [class]="'badge ' + (user.status === 'active' ? 'bg-success' : 'bg-danger')">
+                          {{ user.status }}
+                        </span>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-light" [routerLink]="['/users', user.id]" type="button">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted">
+                  Showing {{ users.length ? (currentPage * pageSize) + 1 : 0 }} 
+                  to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+                  of {{ totalElements }} entries
+                </div>
+                <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" [class.disabled]="currentPage === 0">
+                      <button class="page-link" (click)="onPageChange(currentPage - 1)">Previous</button>
+                    </li>
+                    <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index"
+                        [class.active]="i === currentPage">
+                      <button class="page-link" (click)="onPageChange(i)">{{ i + 1 }}</button>
+                    </li>
+                    <li class="page-item" [class.disabled]="currentPage >= totalPages - 1">
+                      <button class="page-link" (click)="onPageChange(currentPage + 1)">Next</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            <!-- Permissions Tab -->
+            <div *ngIf="activeTab === 'permissions'">
+              <!-- Current Permissions -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Current Permissions</h6>
+                </div>
+                <div class="permissions-grid">
+                  <div class="permission-card" *ngFor="let perm of permissions">
+                    <div class="permission-icon">
+                      <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="permission-info flex-grow-1">
+                      <h6 class="mb-0">{{ perm.permission.name }}</h6>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            (click)="removePermission(perm.permission.id, perm.permission.name)"
+                            [disabled]="removingPermission">
+                      <i class="bi" [class.bi-trash]="!removingPermission" 
+                         [class.bi-hourglass-split]="removingPermission"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Available Permissions -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Available Permissions</h6>
+                </div>
+                <div class="permissions-grid">
+                  <div class="permission-card available" 
+                       *ngFor="let permission of availablePermissions">
+                    <div class="permission-icon">
+                      <i class="bi bi-shield"></i>
+                    </div>
+                    <div class="permission-info flex-grow-1">
+                      <h6 class="mb-0">{{ permission.name }}</h6>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            (click)="addPermission(permission.id)"
+                            [disabled]="addingPermission">
+                      <i class="bi" [class.bi-plus-lg]="!addingPermission"
+                         [class.bi-hourglass-split]="addingPermission"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

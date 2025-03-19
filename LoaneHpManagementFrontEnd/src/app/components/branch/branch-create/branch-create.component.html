@@ -1,0 +1,77 @@
+<ng-container *ngIf="isModal">
+  <!-- Modal Header -->
+  <div class="modal-header">
+    <h5 class="modal-title">{{ isEdit ? 'Edit Branch' : 'Add New Branch' }}</h5>
+    <button type="button" class="btn-close" (click)="closeModal()"></button>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="!isModal">
+  <!-- Full Page Header -->
+  <div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-0">{{ isEdit ? 'Edit Branch' : 'Create New Branch' }}</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a routerLink="/branches">Branches</a></li>
+            <li class="breadcrumb-item active">{{ isEdit ? 'Edit Branch' : 'Create Branch' }}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Form Content -->
+<div [class.modal-body]="isModal" [class.container-fluid]="!isModal" [class.p-4]="!isModal">
+  <form [formGroup]="branchForm">
+    <div class="mb-3">
+      <label for="branchName" class="form-label">Branch Name</label>
+      <input type="text" class="form-control" id="branchName" formControlName="branchName">
+    </div>
+
+    <!-- Address Form Group -->
+    <div formGroupName="address">
+      <div class="mb-3">
+        <label for="state" class="form-label">State/Region</label>
+        <select class="form-select" id="state" formControlName="state" (change)="onStateChange()">
+          <option value="">Select State/Region</option>
+          <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="township" class="form-label">Township</label>
+        <select class="form-select" id="township" formControlName="township" (change)="onTownshipChange()">
+          <option value="">Select Township</option>
+          <option *ngFor="let township of townships" [value]="township">{{ township }}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="city" class="form-label">City</label>
+        <select class="form-select" id="city" formControlName="city">
+          <option value="">Select City</option>
+          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="additionalAddress" class="form-label">Additional Address</label>
+        <textarea class="form-control" id="additionalAddress" rows="3" formControlName="additionalAddress"></textarea>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Footer -->
+<div [class.modal-footer]="isModal" [class.container-fluid]="!isModal" [class.p-4]="!isModal">
+  <button type="button" class="btn btn-secondary me-2" (click)="cancel()">
+    {{ isModal ? 'Close' : 'Cancel' }}
+  </button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!branchForm.valid">
+    {{ isEdit ? 'Update' : 'Save' }}
+  </button>
+</div>

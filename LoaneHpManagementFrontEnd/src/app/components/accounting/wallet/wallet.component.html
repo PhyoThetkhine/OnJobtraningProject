@@ -1,0 +1,742 @@
+<div class="container-fluid p-4">
+  <!-- Header with Actions -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-0">{{ branch?.branchName || 'Loading...' }}</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Branch Wallet</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="text-center my-4" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-danger" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Content -->
+  <div class="row g-4" *ngIf="!loading && branch">
+    <!-- Left Column -->
+    <div class="col-md-4">
+      <!-- Summary Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="summary-card">
+            <div class="summary-icon">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="summary-info">
+              <div class="summary-count">{{ userTotalElements }}</div>
+              <div class="summary-label">Staff</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="summary-card">
+            <div class="summary-icon client-icon">
+              <i class="bi bi-person-vcard-fill"></i>
+            </div>
+            <div class="summary-info">
+              <div class="summary-count">{{ clientTotalElements }}</div>
+              <div class="summary-label">Clients</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Branch Info Card -->
+      <div class="card branch-info-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h5 class="card-title mb-1">Branch Information</h5>
+              <small class="text-muted">Branch Details and Status</small>
+            </div>
+          </div>
+          <hr>
+          
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-hash text-primary me-2"></i>
+              <label class="text-muted">Branch Code</label>
+            </div>
+            <p class="mb-0 ms-4">{{ branch.branchCode }}</p>
+          </div>
+
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-building-fill text-primary me-2"></i>
+              <label class="text-muted">Branch Name</label>
+            </div>
+            <p class="mb-0 ms-4">{{ branch.branchName }}</p>
+          </div>
+
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-circle-fill text-primary me-2"></i>
+              <label class="text-muted">Status</label>
+            </div>
+            <p class="mb-0 ms-4">
+              <span [class]="'badge ' + getStatusBadgeClass(branch.status || BranchStatus.CLOSED)">
+                {{ branch.status }}
+              </span>
+            </p>
+          </div>
+
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-calendar-event text-primary me-2"></i>
+              <label class="text-muted">Created Date</label>
+            </div>
+            <p class="mb-0 ms-4">{{ branch.createdDate | date:'medium' }}</p>
+          </div>
+
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-clock-history text-primary me-2"></i>
+              <label class="text-muted">Last Updated</label>
+            </div>
+            <p class="mb-0 ms-4">{{ branch.updatedDate | date:'medium' }}</p>
+          </div>
+
+          <div class="info-item mb-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+              <label class="text-muted">Address</label>
+            </div>
+            <div class="address-details ms-4">
+              <p class="mb-1" *ngIf="branch.address.additionalAddress">
+                <i class="bi bi-house-door me-2"></i>
+                {{ branch.address.additionalAddress }}
+              </p>
+              <p class="mb-1">
+                <i class="bi bi-pin-map me-2"></i>
+                {{ branch.address.township }}, {{ branch.address.city }}
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-globe me-2"></i>
+                {{ branch.address.state }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-md-8">
+      <div class="card">
+        <!-- Enhanced Tab Navigation -->
+        <div class="card-header border-0 bg-transparent">
+          <ul class="nav nav-tabs-modern">
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'members'"
+                 (click)="onTabChange('members')">
+                <i class="bi bi-people me-2"></i>Members
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'balance'"
+                 (click)="onTabChange('balance')">
+                <i class="bi bi-wallet2 me-2"></i>Balance
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'transactions'"
+                 (click)="onTabChange('transactions')">
+                <i class="bi bi-arrow-left-right me-2"></i>Transactions
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'charts'"
+                 (click)="onTabChange('charts')">
+                <i class="bi bi-bar-chart-line me-2"></i>Charts & Graphs
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <!-- Balance Tab Content -->
+          <div *ngIf="activeTab === 'balance'" class="balance-section">
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div>
+                        <h6 class="text-muted mb-2">Current Balance</h6>
+                        <h3 class="mb-2">{{ branchAccount?.balance?.toLocaleString() || 0 }} MMK</h3>
+                        <div class="text-muted">{{ branchAccount?.accCode }}</div>
+                      </div>
+                      <button class="btn btn-light" 
+                              (click)="refreshBalance()"
+                              [disabled]="refreshing"
+                              title="Refresh">
+                        <i class="bi bi-arrow-repeat" [class.spin]="refreshing"></i>
+                      </button>
+                    </div>
+
+                    <div class="mt-3">
+                      <small class="text-muted d-block mb-2">
+                        <i class="bi bi-calendar3 me-2"></i>Created: {{ branchAccount?.createdDate | date:'medium' }}
+                      </small>
+                      <small class="text-muted d-block">
+                        <i class="bi bi-clock-history me-2"></i>Last Updated: {{ branchAccount?.updatedDate | date:'medium' }}
+                      </small>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-primary" (click)="openTransferModal()">
+                        <i class="bi bi-arrow-left-right me-2"></i>Transfer
+                      </button>
+                      <button class="btn btn-success" (click)="openCashInModal()">
+                        <i class="bi bi-cash-stack me-2"></i>Cash In
+                      </button>
+                      <button class="btn btn-danger" (click)="openCashOutModal()">
+                        <i class="bi bi-cash me-2"></i>Cash Out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Transfer Transactions -->
+                <div class="card mt-4">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Recent Transfer Transactions</h6>
+                    <button class="btn btn-link text-primary" (click)="onTabChange('transactions')">
+                      View All
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>From/To</th>
+                            <th>Payment Method</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngIf="transactionLoading">
+                            <td colspan="5" class="text-center">
+                              <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                            </td>
+                          </tr>
+                       
+                          <tr *ngFor="let transaction of transactions.slice(0, 5)">
+                            <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                            <td> 
+                          
+
+                              <span class="badge" [ngClass]="{
+                                'bg-success': transaction.toAccountId === branchAccount?.id,
+                                'bg-danger': transaction.fromAccountId === branchAccount?.id
+                              }">
+                                {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                              </span>
+                            </td>
+                            <td>
+                              <div *ngIf="transaction.fromAccountId === branchAccount?.id">
+                                To: {{ transaction.toAccountType }}
+                              </div>
+                              <div *ngIf="transaction.toAccountId === branchAccount?.id">
+                                From: {{ transaction.fromAccountType }}
+                              </div>
+                            </td>
+                            <td>{{ transaction.paymentMethod.paymentType }}</td>
+                            <td [ngClass]="{
+                              'text-success': transaction.toAccountId === branchAccount?.id,
+                              'text-danger': transaction.fromAccountId === branchAccount?.id
+                            }">
+                              {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                            </td>
+                          </tr>
+                          
+                          <tr *ngIf="transactions.length === 0 && !transactionLoading">
+                            <td colspan="5" class="text-center text-muted">
+                              No transactions found
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Cash Operations -->
+                <div class="card mt-4">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Recent Cash Operations</h6>
+                    <button class="btn btn-link text-primary" (click)="onTabChange('transactions')">
+                      View All
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngIf="cashTransactionsLoading">
+                            <td colspan="4" class="text-center">
+                              <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                            </td>
+                          </tr>
+                          
+                          <tr *ngFor="let transaction of cashTransactions.slice(0, 5)">
+                            <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                            <td>
+                              <span class="badge" [ngClass]="{
+                                'bg-success': transaction.type === 'Cash_In',
+                                'bg-danger': transaction.type === 'Cash_Out'
+                              }">
+                                {{ transaction.type === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
+                              </span>
+                            </td>
+                            <td>{{ transaction.description }}</td>
+                            <td [ngClass]="{
+                              'text-success': transaction.type === 'Cash_In',
+                              'text-danger': transaction.type === 'Cash_Out'
+                            }">
+                              {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                            </td>
+                          </tr>
+                          
+                          <tr *ngIf="cashTransactions?.length === 0 && !cashTransactionsLoading">
+                            <td colspan="4" class="text-center text-muted">
+                              No cash operations found
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Members Tab Content -->
+          <div *ngIf="activeTab === 'members'" class="members-section">
+            <!-- Users Table Section -->
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th style="width: 50px">Photo</th>
+                    <th>User Code</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Loading state -->
+                  <tr *ngIf="userLoading">
+                    <td colspan="5" class="text-center py-4">
+                      <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Data rows -->
+                  <tr *ngFor="let user of users">
+                    <td>
+                      <img [src]="user.photo || 'assets/images/user-placeholder.jpg'" 
+                           [alt]="user.name"
+                           class="user-photo rounded-circle">
+                    </td>
+                    <td>{{ user.userCode }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.role?.roleName }}</td>
+                    <td>
+                      <span [class]="'badge ' + getUserStatusBadgeClass(user.status || 'inactive')">
+                        {{ user.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-light" [routerLink]="['/users', user.id]">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- No data state -->
+                  <tr *ngIf="users.length === 0 && !userLoading">
+                    <td colspan="5" class="text-center py-4">
+                      <p class="text-muted mb-0">No users found</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="text-muted">
+                Showing {{ users.length ? (userCurrentPage * userPageSize) + 1 : 0 }} 
+                to {{ Math.min((userCurrentPage + 1) * userPageSize, userTotalElements) }} 
+                of {{ userTotalElements }} entries
+              </div>
+              <nav aria-label="User pagination">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="userCurrentPage === 0">
+                    <button class="page-link" (click)="onUserPageChange(userCurrentPage - 1)">
+                      Previous
+                    </button>
+                  </li>
+                  <li class="page-item" *ngFor="let page of userPageNumbers" 
+                      [class.active]="page === userCurrentPage">
+                    <button class="page-link" (click)="onUserPageChange(page)">
+                      {{ page + 1 }}
+                    </button>
+                  </li>
+                  <li class="page-item" [class.disabled]="userCurrentPage >= userTotalPages - 1">
+                    <button class="page-link" (click)="onUserPageChange(userCurrentPage + 1)">
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            <!-- Clients Table -->
+            <div class="table-responsive mt-4">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th style="width: 50px">Photo</th>
+                    <th>CIF Code</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Loading state -->
+                  <tr *ngIf="clientLoading">
+                    <td colspan="5" class="text-center py-4">
+                      <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Data rows -->
+                  <tr *ngFor="let client of clients">
+                    <td>
+                      <img [src]="client.photo || 'assets/images/user-placeholder.jpg'" 
+                           [alt]="client.name"
+                           class="user-photo rounded-circle">
+                    </td>
+                    <td>{{ client.cifCode }}</td>
+                    <td>{{ client.name }}</td>
+                    <td>
+                      <span class="badge bg-info">
+                        {{ client.cifType }}
+                      </span>
+                    </td>
+                    <td>
+                      <span [class]="'badge ' + getClientStatusBadgeClass(client.status || 'inactive')">
+                        {{ client.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-light" [routerLink]="['/clients', client.id]">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- No data state -->
+                  <tr *ngIf="clients.length === 0 && !clientLoading">
+                    <td colspan="5" class="text-center py-4">
+                      <p class="text-muted mb-0">No clients found</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Clients Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="text-muted">
+                Showing {{ clients.length ? (clientCurrentPage * clientPageSize) + 1 : 0 }} 
+                to {{ Math.min((clientCurrentPage + 1) * clientPageSize, clientTotalElements) }} 
+                of {{ clientTotalElements }} entries
+              </div>
+              <nav aria-label="Client pagination">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="clientCurrentPage === 0">
+                    <button class="page-link" (click)="onClientPageChange(clientCurrentPage - 1)">
+                      Previous
+                    </button>
+                  </li>
+                  <li class="page-item" *ngFor="let page of clientPageNumbers" 
+                      [class.active]="page === clientCurrentPage">
+                    <button class="page-link" (click)="onClientPageChange(page)">
+                      {{ page + 1 }}
+                    </button>
+                  </li>
+                  <li class="page-item" [class.disabled]="clientCurrentPage >= clientTotalPages - 1">
+                    <button class="page-link" (click)="onClientPageChange(clientCurrentPage + 1)">
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+
+          <!-- Charts Tab -->
+          <div *ngIf="activeTab === 'charts'" class="mt-4">
+            <div class="card">
+              <div class="card-header">
+                <h6 class="mb-0">Transaction Visualizations</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-4">
+                    <div class="chart-container bg-white rounded p-3 shadow-sm">
+                      <h6 class="mb-3 text-primary">Transaction Types Distribution</h6>
+                      <ngx-charts-pie-chart
+                        [results]="transactionTypeData"
+                        [legend]="true"
+                        [labels]="true"
+                        [doughnut]="true"
+                        [arcWidth]="0.4"
+                        [scheme]="'cool'">
+                      </ngx-charts-pie-chart>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6 mb-4">
+                    <div class="chart-container bg-white rounded p-3 shadow-sm">
+                      <h6 class="mb-3 text-primary">Cash Flow Over Time</h6>
+                      <ngx-charts-line-chart
+                        [results]="cashFlowData"
+                        [xAxis]="true"
+                        [yAxis]="true"
+                        [showXAxisLabel]="true"
+                        [showYAxisLabel]="true"
+                        [xAxisLabel]="'Date'"
+                        [yAxisLabel]="'Amount (MMK)'"
+                        [scheme]="'vivid'">
+                      </ngx-charts-line-chart>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions Tab -->
+          <div *ngIf="activeTab === 'transactions'">
+            <!-- Regular Transactions -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h6 class="mb-0">Transfer Transactions</h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>From/To</th>
+                        <th>Payment Method</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngIf="transactionLoading">
+                        <td colspan="5" class="text-center">
+                          <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      <tr *ngFor="let transaction of transactions">
+                        <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                        <td>
+                          <span class="badge" [ngClass]="{
+                            'bg-success': transaction.toAccountId === branchAccount?.id,
+                            'bg-danger': transaction.fromAccountId === branchAccount?.id
+                          }">
+                            {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                          </span>
+                        </td>
+                        <td>
+                          <div *ngIf="transaction.fromAccountId === branchAccount?.id">
+                            To: {{ transaction.toAccountType }}
+                          </div>
+                          <div *ngIf="transaction.toAccountId === branchAccount?.id">
+                            From: {{ transaction.fromAccountType }}
+                          </div>
+                        </td>
+                        <td>{{ transaction.paymentMethod.paymentType }}</td>
+                        <td [ngClass]="{
+                          'text-success': transaction.toAccountId === branchAccount?.id,
+                          'text-danger': transaction.fromAccountId === branchAccount?.id
+                        }">
+                          {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                        </td>
+                      </tr>
+                      
+                      <tr *ngIf="transactions.length === 0 && !transactionLoading">
+                        <td colspan="5" class="text-center text-muted">
+                          No transactions found
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- Pagination controls -->
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted">
+                      Showing {{ transactions.length ? (currentPage * pageSize) + 1 : 0 }} 
+                      to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+                      of {{ totalElements }} entries
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-secondary btn-sm" 
+                              (click)="previousPage()" 
+                              [disabled]="currentPage === 0 || transactionLoading">
+                        Previous
+                      </button>
+                      <button class="btn btn-outline-secondary btn-sm" 
+                              (click)="nextPage()" 
+                              [disabled]="currentPage >= totalPages - 1 || transactionLoading">
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cash In/Out Transactions -->
+            <div class="card">
+              <div class="card-header">
+                <h6 class="mb-0">Cash Operations</h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngIf="cashTransactionsLoading">
+                        <td colspan="4" class="text-center">
+                          <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      <tr *ngFor="let transaction of cashTransactions">
+                        <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                        <td>
+                          <span class="badge" [ngClass]="{
+                            'bg-success': transaction.type === 'Cash_In',
+                            'bg-danger': transaction.type === 'Cash_Out'
+                          }">
+                            {{ transaction.type === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
+                          </span>
+                        </td>
+                        <td>{{ transaction.description }}</td>
+                        <td [ngClass]="{
+                          'text-success': transaction.type === 'Cash_In',
+                          'text-danger': transaction.type === 'Cash_Out'
+                        }">
+                          {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                        </td>
+                      </tr>
+                      
+                      <tr *ngIf="cashTransactions?.length === 0 && !cashTransactionsLoading">
+                        <td colspan="4" class="text-center text-muted">
+                          No cash operations found
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- Pagination controls -->
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted">
+                      Showing {{ cashTransactions?.length ? (cashCurrentPage * cashPageSize) + 1 : 0 }} 
+                      to {{ Math.min((cashCurrentPage + 1) * cashPageSize, cashTotalElements) }} 
+                      of {{ cashTotalElements }} entries
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-secondary btn-sm" 
+                              (click)="onCashTransactionsPageChange(cashCurrentPage - 1)" 
+                              [disabled]="cashCurrentPage === 0 || cashTransactionsLoading">
+                        Previous
+                      </button>
+                      <button class="btn btn-outline-secondary btn-sm" 
+                              (click)="onCashTransactionsPageChange(cashCurrentPage + 1)" 
+                              [disabled]="cashCurrentPage >= cashTotalPages - 1 || cashTransactionsLoading">
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

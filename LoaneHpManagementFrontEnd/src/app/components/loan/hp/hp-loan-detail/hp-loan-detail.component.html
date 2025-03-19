@@ -1,0 +1,367 @@
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-0">HP Loan Details</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a routerLink="/loans/hp">HP Loans</a></li>
+            <li class="breadcrumb-item active">Details</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="text-center my-4">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <!-- Content -->
+    <div class="row g-4" *ngIf="!loading && loan">
+      <!-- Left Column - Loan Info Card -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <!-- Customer Info -->
+            <div class="info-item mb-4">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-person-fill text-primary me-2"></i>
+                <label class="text-muted">Customer Information</label>
+              </div>
+              <div class="created-user-info ms-4 d-flex align-items-center">
+                <div class="created-user-photo me-3">
+                  <img [src]="loan.cif.photo || 'assets/images/user-placeholder.jpg'"
+                       [alt]="loan.cif.name"
+                       class="rounded-circle"
+                       style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+                <div>
+                  <p class="mb-0 fw-medium">{{ loan.cif.name }}</p>
+                  <small class="text-muted">{{ loan.cif.cifCode }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Created By section -->
+            <div class="info-item mb-3" *ngIf="loan.createdUser">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-person-fill text-primary me-2"></i>
+                <label class="text-muted">Created By</label>
+              </div>
+              <div class="created-user-info ms-4 d-flex align-items-center">
+                <div class="created-user-photo me-3">
+                  <img [src]="loan.createdUser.photo || 'assets/images/user-placeholder.jpg'"
+                       [alt]="loan.createdUser.name"
+                       class="rounded-circle"
+                       style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+                <div>
+                  <p class="mb-0 fw-medium">{{ loan.createdUser.name }}</p>
+                  <small class="text-muted">{{ loan.createdUser.userCode }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirmed By section -->
+            <div class="info-item mb-3" *ngIf="confirmUser">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-person-check-fill text-primary me-2"></i>
+                <label class="text-muted">Confirmed By</label>
+              </div>
+              <div class="created-user-info ms-4 d-flex align-items-center">
+                <div class="created-user-photo me-3">
+                  <img [src]="confirmUser.photo || 'assets/images/user-placeholder.jpg'"
+                       [alt]="confirmUser.name"
+                       class="rounded-circle"
+                       style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+                <div>
+                  <p class="mb-0 fw-medium">{{ confirmUser.name }}</p>
+                  <small class="text-muted">{{ confirmUser.userCode }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loan Status -->
+            <div class="info-item mb-4">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-circle-fill text-primary me-2"></i>
+                <label class="text-muted">Status</label>
+              </div>
+              <p class="mb-0 ms-4">
+                <span class="badge" [ngClass]="getStatusBadgeClass(loan.status)">
+                  {{ loan.status | titlecase }}
+                </span>
+              </p>
+            </div>
+  
+            <!-- Quick Info List -->
+            <div class="list-group list-group-flush">
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Loan Code</div>
+                <div>{{ loan.hpLoanCode }}</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Loan Amount</div>
+                <div>{{ loan.loanAmount | currency:'MMK ' }}</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Product</div>
+                <div>{{ loan.product.name }}</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Disbursement Amount</div>
+                <div>{{ loan.disbursementAmount ? (loan.disbursementAmount | currency:'MMK ') : 'Not disbursed' }}</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Down Payment</div>
+                <div>{{ loan.downPayment ? (loan.downPayment | currency:'MMK ') : '-' }}</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Duration</div>
+                <div>{{ loan.duration }} months</div>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-muted">Interest Rate</div>
+                <div>{{ loan.interestRate ? loan.interestRate + '%' : 'Not set' }}</div>
+              </div>
+            </div>
+  
+            <!-- Action Button -->
+            <div class="mt-4" *ngIf="loan.status === 'under_review'">
+              <button class="btn btn-primary w-100 mb-2" (click)="confirmLoan()">
+                <i class="bi bi-check-circle me-2"></i>Confirm Loan
+              </button>
+              <button class="btn btn-outline-primary w-100" (click)="updateLoan()">
+                <i class="bi bi-pencil me-2"></i>Update Loan
+              </button>
+            </div>
+
+            <!-- Add this after the confirm loan button in the left column card -->
+            <div class="mt-3" *ngIf="canShowVoucher()">
+              <button class="btn btn-outline-primary w-100" (click)="viewVoucher()">
+                <i class="bi bi-file-earmark-text me-2"></i>View Voucher
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Right Column - Tabs -->
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header bg-white">
+            <ul class="nav nav-tabs card-header-tabs">
+              <li class="nav-item">
+                <a class="nav-link" 
+                   [class.active]="activeTab === 'loan-info'"
+                   (click)="setActiveTab('loan-info')"
+                   href="javascript:void(0)">
+                  <i class="bi bi-info-circle me-2"></i>Loan Info
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" 
+                   [class.active]="activeTab === 'repayment-schedule'"
+                   (click)="setActiveTab('repayment-schedule')"
+                   href="javascript:void(0)">
+                  <i class="bi bi-calendar me-2"></i>Repayment Schedule
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" 
+                   [class.active]="activeTab === 'repayment-history'"
+                   (click)="setActiveTab('repayment-history')"
+                   href="javascript:void(0)">
+                  <i class="bi bi-clock-history me-2"></i>Repayment History
+                </a>
+              </li>
+            </ul>
+          </div>
+  
+          <div class="card-body">
+            <!-- Loan Info Tab -->
+            <div *ngIf="activeTab === 'loan-info'">
+              <div class="row">
+                <!-- Loan Details -->
+                <div class="col-12 mb-4">
+                  <h6 class="section-title d-flex align-items-center mb-3">
+                    <i class="bi bi-file-text me-2"></i>
+                    Loan Details
+                  </h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Application Date</label>
+                        <div>{{ loan.applicationDate | date:'medium' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Start Date</label>
+                        <div>{{ loan.startDate ? (loan.startDate | date:'mediumDate') : 'Not set' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">End Date</label>
+                        <div>{{ loan.endDate ? (loan.endDate | date:'mediumDate') : 'Not set' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Grace Period</label>
+                        <div>{{ loan.gracePeriod || 0 }} days</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Product</label>
+                        <div>{{ loan.product.name}}</div>
+                        <small class="text-muted">{{ loan.product.price | currency:'MMK ' }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- Fee Information -->
+                <div class="col-12 mb-4">
+                  <h6 class="section-title d-flex align-items-center mb-3">
+                    <i class="bi bi-cash me-2"></i>
+                    Fee Information
+                  </h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Document Fee Rate</label>
+                        <div>{{ loan.documentFeeRate || 0 }}%</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Document Fee</label>
+                        <div>{{ loan.documentFee | currency:'MMK ' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Service Charge Rate</label>
+                        <div>{{ loan.serviceChargeFeeRate || 0 }}%</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-group">
+                        <label class="text-muted">Service Charge</label>
+                        <div>{{ loan.serviceCharge | currency:'MMK ' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- Penalty Rates -->
+                <div class="col-12">
+                  <h6 class="section-title d-flex align-items-center mb-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Penalty Rates
+                  </h6>
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <div class="info-group">
+                        <label class="text-muted">Late Fee Rate</label>
+                        <div>{{ loan.lateFeeRate || 0 }}%</div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-group">
+                        <label class="text-muted">Default Rate</label>
+                        <div>{{ loan.defaultedRate || 0 }}%</div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-group">
+                        <label class="text-muted">Long Term Overdue Rate</label>
+                        <div>{{ loan.longTermOverdueRate || 0 }}%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Repayment Schedule Tab -->
+            <div *ngIf="activeTab === 'repayment-schedule'" class="repayment-schedule">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle table-bordered border-secondary">
+                  <thead>
+                    <tr class="bg-light">
+                      <th class="text-center align-middle" style="width: 50px">No.</th>
+                      <th class="text-center align-middle" style="width: 120px">Principal</th>
+                      <th class="text-center align-middle" style="width: 120px">Interest</th>
+                      <th class="text-center align-middle" style="width: 130px; white-space: nowrap;">Due Date</th>
+                  
+                      <th class="text-center align-middle" style="width: 120px">Interest Overdue</th>
+                      <th class="text-center align-middle" style="width: 80px">Late Days</th>
+                      <th class="text-center align-middle" style="width: 120px">Principal Overdue</th>
+                      <th class="text-center align-middle" style="width: 80px">Late Days</th>
+                      <th class="text-center align-middle" style="width: 120px">Total Repayment</th>
+                      <th class="text-center align-middle" style="width: 100px">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let term of loan?.terms; let i = index">
+                      <td class="text-center">{{ i + 1 }}</td>
+                      <td class="text-end">{{ term.principal | number:'1.0-2' }} </td>
+                      <td class="text-end">{{ term.interest | number:'1.0-2' }} </td>
+                      <td class="text-center" style="white-space: nowrap;">{{ term.dueDate | date:'MMM d, y' }}</td>
+                     
+                      <td class="text-end">{{ term.interestOfOverdue | number:'1.0-2' }} </td>
+                      <td class="text-center">{{ term.interestLateDays }}</td>
+                      <td class="text-end">{{ term.principalOfOverdue | number:'1.0-2' }} </td>
+                      <td class="text-center">{{ term.latePrincipalDays }}</td>
+                      <td class="text-end">{{ term.totalRepaymentAmount | number:'1.0-2' }} </td>
+                      <td class="text-center">
+                        <span class="badge" [ngClass]="getTermStatusBadgeClass(term.status)">
+                          {{ term.status | titlecase }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr *ngIf="!loan?.terms?.length">
+                      <td colspan="11" class="text-center py-3">
+                        <p class="text-muted mb-0">No repayment schedule available</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+  
+            <!-- Repayment History Tab -->
+            <div *ngIf="activeTab === 'repayment-history'">
+              <p class="text-muted text-center">Repayment history will be available after loan disbursement.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- 
+  <div class="card-footer" *ngIf="loan">
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary mb-2" *ngIf="canUpdateLoan()" (click)="updateLoan()">
+        <i class="bi bi-pencil-square me-1"></i>
+        Update Loan
+      </button>
+      <button class="btn btn-success mb-2" *ngIf="loan.status === 'under_review'" (click)="confirmLoan()">
+        <i class="bi bi-check-circle me-1"></i>
+        Confirm Loan
+      </button>
+      <button class="btn btn-info mb-2" *ngIf="canShowVoucher()" (click)="viewVoucher()">
+        <i class="bi bi-file-text me-1"></i>
+        View Voucher
+      </button>
+    </div>
+  </div>  -->

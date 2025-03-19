@@ -1,0 +1,114 @@
+<div class="sidebar bg-light border-end" [class.show]="isOpen">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <img src="https://res.cloudinary.com/dwerfxy6q/image/upload/v1739877729/hpornmapdxku63hfvdtg.jpg">
+      </div>
+    </div>
+    <div class="sidebar-content p-3">
+      <ul class="nav flex-column">
+        <li class="nav-item" *ngFor="let item of filteredMenuItems">
+          <ng-container *ngIf="!item.submenu; else submenuTemplate">
+            <a [routerLink]="item.route" class="nav-link">
+              <i class="bi {{ item.icon }} me-2"></i>
+              {{ item.title }}
+            </a>
+          </ng-container>
+          <ng-template #submenuTemplate>
+            <div class="nav-link dropdown">
+              <a class="dropdown-toggle text-decoration-none" 
+                 data-bs-toggle="collapse" 
+                 [href]="'#' + item.title.toLowerCase().replace(' ', '')" 
+                 role="button" 
+                 aria-expanded="false" 
+                 [attr.aria-controls]="item.title.toLowerCase().replace(' ', '')">
+                <i class="bi {{ item.icon }} me-2"></i>
+                {{ item.title }}
+              </a>
+              <div class="collapse" [id]="item.title.toLowerCase().replace(' ', '')">
+                <ul class="nav flex-column ms-3 mt-2">
+                  <li class="nav-item" *ngFor="let subItem of item.submenu">
+                    <ng-container *ngIf="!subItem.submenu; else nestedSubmenu">
+                      <a [routerLink]="subItem.route" class="nav-link" [class.short-text]="isShortText(subItem.title)">
+                        {{ subItem.title }}
+                      </a>
+                    </ng-container>
+                    <ng-template #nestedSubmenu>
+                      <div class="nav-link dropdown">
+                        <a class="dropdown-toggle text-decoration-none" data-bs-toggle="collapse" [href]="'#' + subItem.title.toLowerCase()">
+                          {{ subItem.title }}
+                        </a>
+                        <div class="collapse" [id]="subItem.title.toLowerCase()">
+                          <ul class="nav flex-column ms-3 mt-2">
+                            <li class="nav-item" *ngFor="let nestedItem of subItem.submenu">
+                              <a [routerLink]="nestedItem.route" class="nav-link">
+                                {{ nestedItem.title }}
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </ng-template>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ng-template>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Bottom section for Settings and Logout -->
+    <div class="sidebar-footer">
+      <ul class="nav flex-column">
+        <li class="nav-item" *ngFor="let item of filteredBottomMenuItems">
+          <ng-container *ngIf="!item.submenu; else submenuTemplate">
+            <a [routerLink]="item.route" class="nav-link">
+              <i class="bi {{ item.icon }} me-2"></i>
+              {{ item.title }}
+            </a>
+          </ng-container>
+          <ng-template #submenuTemplate>
+            <div class="nav-link dropdown">
+              <a class="dropdown-toggle text-decoration-none" 
+                 data-bs-toggle="collapse" 
+                 [href]="'#' + item.title.toLowerCase().replace(' ', '')" 
+                 role="button" 
+                 aria-expanded="false" 
+                 [attr.aria-controls]="item.title.toLowerCase().replace(' ', '')">
+                <i class="bi {{ item.icon }} me-2"></i>
+                {{ item.title }}
+              </a>
+              <div class="collapse" [id]="item.title.toLowerCase().replace(' ', '')">
+                <ul class="nav flex-column ms-3 mt-2">
+                  <li class="nav-item" *ngFor="let subItem of item.submenu">
+                    <ng-container *ngIf="!subItem.submenu; else nestedSubmenu">
+                      <a [routerLink]="subItem.route" class="nav-link" [class.short-text]="isShortText(subItem.title)">
+                        {{ subItem.title }}
+                      </a>
+                    </ng-container>
+                    <ng-template #nestedSubmenu>
+                      <div class="nav-link dropdown">
+                        <a class="dropdown-toggle text-decoration-none" data-bs-toggle="collapse" [href]="'#' + subItem.title.toLowerCase()">
+                          {{ subItem.title }}
+                        </a>
+                        <div class="collapse" [id]="subItem.title.toLowerCase()">
+                          <ul class="nav flex-column ms-3 mt-2">
+                            <li class="nav-item" *ngFor="let nestedItem of subItem.submenu">
+                              <a [routerLink]="nestedItem.route" class="nav-link">
+                                {{ nestedItem.title }}
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </ng-template>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ng-template>
+        </li>
+      </ul>
+    </div>
+</div>
+<div class="sidebar-overlay d-lg-none" [class.show]="isOpen" (click)="toggleSidebar()"></div>

@@ -1,0 +1,59 @@
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-content">
+      <!-- Left side with image -->
+      <div class="login-image">
+        <img src="https://res.cloudinary.com/dwerfxy6q/image/upload/v1739877280/yngupfdsfzogmsegfuzd.jpg" alt="Company Logo">
+      </div>
+
+      <!-- Right side with login form -->
+      <div class="login-form-container">
+        <div class="login-header">
+          <h2>Welcome Back!</h2>
+          <p>Please sign in to continue</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <div class="form-group">
+            <label for="userCode">User Code</label>
+            <div class="input-group">
+              <i class="bi bi-person"></i>
+              <input
+                type="text"
+                id="userCode"
+                formControlName="userCode"
+                [ngClass]="{ 'is-invalid': submitted && f['userCode'].errors }"
+                placeholder="Enter your user code"
+              />
+            </div>
+            <div *ngIf="submitted && f['userCode'].errors" class="error-message">
+              <div *ngIf="f['userCode'].errors['required']">User Code is required</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-group">
+              <i class="bi bi-lock"></i>
+              <input
+                type="password"
+                id="password"
+                formControlName="password"
+                [ngClass]="{ 'is-invalid': submitted && f['password'].errors }"
+                placeholder="Enter your password"
+              />
+            </div>
+            <div *ngIf="submitted && f['password'].errors" class="error-message">
+              <div *ngIf="f['password'].errors['required']">Password is required</div>
+            </div>
+          </div>
+
+          <button type="submit" class="login-button" [disabled]="loading">
+            <span *ngIf="loading" class="spinner"></span>
+            {{ loading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.permission-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permission-card:hover {
+  background: #e9ecef;
+}
+
+.permission-card.selected {
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid #3498db;
+}
+
+.permission-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permission-icon i {
+  font-size: 1.25rem;
+  color: #6c757d;
+}
+
+.permission-card.selected .permission-icon i {
+  color: #3498db;
+}
+
+.permission-info h6 {
+  color: #2c3e50;
+  font-weight: 500;
+}
