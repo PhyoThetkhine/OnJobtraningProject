@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { PaymentMethod, PagedResponse, PaymentMethodStatus } from '../models/payment-method.model';
-import { ApiResponse } from '../models/user.model';
+import { ApiResponse, CurrentUser } from '../models/user.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,9 @@ import { ApiResponse } from '../models/user.model';
 export class PaymentMethodService {
   private apiUrl = `${environment.apiUrl}/payment-methods`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,
+    private authService: AuthService 
+  ) {}
 
   getAllPaymentMethods(
     page: number = 0,
@@ -27,11 +30,21 @@ export class PaymentMethodService {
     return this.http.put<ApiResponse<PaymentMethod>>(`${this.apiUrl}/${id}/status`, { status });
   }
   createPaymentMethod(method: Partial<PaymentMethod>): Observable<ApiResponse<PaymentMethod>> {
-    return this.http.post<ApiResponse<PaymentMethod>>(`${this.apiUrl}`, method);
+    console.log("method " + method.id);
+    console.log("method " + method.paymentType);
+    console.log("method " + method.status);
+    console.log("method " + method.updatedDate);
+    return this.authService.getCurrentUser().pipe(
+      switchMap((user: CurrentUser) => {
+        const userId = user.id
+        ;
+      
+        return this.http.post<ApiResponse<PaymentMethod>>(`${this.apiUrl}/create/${userId}`, method);
+      })
+    );
   }
-
   updatePaymentMethod(id: number, method: Partial<PaymentMethod>): Observable<ApiResponse<PaymentMethod>> {
-    return this.http.put<ApiResponse<PaymentMethod>>(`${this.apiUrl}/${id}`, method);
+    return this.http.put<ApiResponse<PaymentMethod>>(`${this.apiUrl}/update/${id}`, method);
   }
 
   

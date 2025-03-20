@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -19,5 +20,10 @@ public interface CIFCurrentAccountRepository extends JpaRepository<CIFCurrentAcc
     Optional<CIFCurrentAccount> findByCifId(@Param("cifId") int cifId);
     @Query("SELECT c FROM CIFCurrentAccount c WHERE c.accCode LIKE CONCAT('CAC', :branchCode, '%')")
     Page<CIFCurrentAccount> findByBranchCode(@Param("branchCode") String branchCode, Pageable pageable);
+
+    @Query("SELECT c FROM CIFCurrentAccount c WHERE c.accCode LIKE CONCAT('CAC', :branchCode, '%')")
+    List<CIFCurrentAccount> findByBranchCode(@Param("branchCode") String branchCode);
+
+
 
 }

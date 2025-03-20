@@ -251,7 +251,7 @@
 
                     <hr>
 
-                    <div class="d-flex gap-2">
+                    <!-- <div class="d-flex gap-2">
                       <button class="btn btn-primary" (click)="openTransferModal()">
                         <i class="bi bi-arrow-left-right me-2"></i>Transfer
                       </button>
@@ -261,7 +261,7 @@
                       <button class="btn btn-danger" (click)="openCashOutModal()">
                         <i class="bi bi-cash me-2"></i>Cash Out
                       </button>
-                    </div>
+                    </div> -->
                             <!-- Recent Transfer Transactions -->
                 <div class="card mt-4">
                   <div class="card-header d-flex justify-content-between align-items-center">
@@ -301,13 +301,34 @@
                                 {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
                               </span>
                             </td>
-                            <td>
+                            <!-- <td>
                               <div *ngIf="transaction.fromAccountId === branchAccount?.id">
                                 To: {{ transaction.toAccountType }}
                               </div>
                               <div *ngIf="transaction.toAccountId === branchAccount?.id">
                                 From: {{ transaction.fromAccountType }}
                               </div>
+                            </td> -->
+                            <td>
+                              <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                                To: 
+                                <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                                  {{ code }}
+                                </ng-container>
+                                <ng-template #loading>
+                                  <span class="text-muted">Loading...</span>
+                                </ng-template>
+                              </ng-container>
+                            
+                              <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                                From: 
+                                <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                                  {{ code }}
+                                </ng-container>
+                                <ng-template #loading>
+                                  <span class="text-muted">Loading...</span>
+                                </ng-template>
+                              </ng-container>
                             </td>
                             <td>{{ transaction.paymentMethod.paymentType }}</td>
                             <td [ngClass]="{
@@ -328,64 +349,66 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Recent Cash Operations -->
-                <div class="card mt-4">
-                  <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">Recent Cash Operations</h6>
-                    <button class="btn btn-link text-primary" (click)="onTabChange('transactions')">
-                      View All
-                    </button>
-                  </div>
-                  <div class="card-body">
-                    <div class="table-responsive">
-                      <table class="table">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr *ngIf="cashTransactionsLoading">
-                            <td colspan="4" class="text-center">
-                              <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                              </div>
-                            </td>
-                          </tr>
-                          
-                          <tr *ngFor="let transaction of cashTransactions.slice(0, 5)">
-                            <td>{{ transaction.transactionDate | date:'medium' }}</td>
-                            <td>
-                              <span class="badge" [ngClass]="{
-                                'bg-success': transaction.type === 'Cash_In',
-                                'bg-danger': transaction.type === 'Cash_Out'
-                              }">
-                                {{ transaction.type === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
-                              </span>
-                            </td>
-                            <td>{{ transaction.description }}</td>
-                            <td [ngClass]="{
-                              'text-success': transaction.type === 'Cash_In',
-                              'text-danger': transaction.type === 'Cash_Out'
-                            }">
-                              {{ transaction.amount?.toLocaleString() }} MMK
-                            </td>
-                          </tr>
-                          
-                          <tr *ngIf="cashTransactions?.length === 0 && !cashTransactionsLoading">
-                            <td colspan="4" class="text-center text-muted">
-                              No cash operations found
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                
+  <!-- Recent Cash Operations -->
+  <div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">Recent Cash Operations</h6>
+      <button class="btn btn-link text-primary" (click)="onTabChange('transactions')">
+        View All
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="cashTransactionsLoading">
+              <td colspan="4" class="text-center">
+                <div class="spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Loading...</span>
                 </div>
+              </td>
+            </tr>
+            
+            <tr *ngFor="let transaction of cashTransactions.slice(0, 5)">
+              <td>{{ transaction.transactionDate | date:'medium' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': transaction.type === 'Cash_In',
+                  'bg-danger': transaction.type === 'Cash_Out'
+                }">
+                  {{ transaction.type === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
+                </span>
+              </td>
+              <td>{{ transaction.description }}</td>
+              <td [ngClass]="{
+                'text-success': transaction.type === 'Cash_In',
+                'text-danger': transaction.type === 'Cash_Out'
+              }">
+                {{ transaction.amount?.toLocaleString() || 0 }} MMK
+              </td>
+            </tr>
+            
+            <tr *ngIf="cashTransactions?.length === 0 && !cashTransactionsLoading">
+              <td colspan="4" class="text-center text-muted">
+                No cash operations found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+
                   </div>
                 </div>
               </div>
@@ -616,13 +639,34 @@
                             {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
                           </span>
                         </td>
-                        <td>
+                        <!-- <td>
                           <div *ngIf="transaction.fromAccountId === branchAccount?.id">
                             To: {{ transaction.toAccountType }}
                           </div>
                           <div *ngIf="transaction.toAccountId === branchAccount?.id">
                             From: {{ transaction.fromAccountType }}
                           </div>
+                        </td> -->
+                        <td>
+                          <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                            To: 
+                            <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                              {{ code }}
+                            </ng-container>
+                            <ng-template #loading>
+                              <span class="text-muted">Loading...</span>
+                            </ng-template>
+                          </ng-container>
+                        
+                          <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                            From: 
+                            <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                              {{ code }}
+                            </ng-container>
+                            <ng-template #loading>
+                              <span class="text-muted">Loading...</span>
+                            </ng-template>
+                          </ng-container>
                         </td>
                         <td>{{ transaction.paymentMethod.paymentType }}</td>
                         <td [ngClass]="{

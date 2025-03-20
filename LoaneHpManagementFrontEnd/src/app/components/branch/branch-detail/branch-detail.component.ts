@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BranchService } from '../../../services/branch.service';
 import { Branch, BranchStatus } from '../../../models/branch.model';
-import { User } from '../../../models/user.model';
+import { ApiResponse, User } from '../../../models/user.model';
 import { CIF } from '../../../models/cif.model';
 import { ToastrService } from 'ngx-toastr';
 import { BranchCurrentAccount } from '../../../models/branch-account.model';
@@ -17,6 +17,9 @@ import { CashInOutTransaction } from '../../../models/cash-in-out-transaction.mo
 import { TransactionService } from '../../../services/transaction.service';
 import { CashInOutService } from '../../../services/cash-in-out.service';
 import { Transaction } from '../../../models/transaction.model';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { CIFCurrentAccount } from 'src/app/models/cif-current-account.model';
+import { CIFCurrentAccountService } from 'src/app/services/cif-current-account.service';
 
 @Component({
   selector: 'app-branch-detail',
@@ -58,7 +61,7 @@ export class BranchDetailComponent implements OnInit {
   transactionLoading = false;
   transactions: Transaction[] = [];
   currentPage = 0;
-  pageSize = 10;
+  pageSize = 5;
   totalElements = 0;
   totalPages = 0;
 
@@ -66,9 +69,10 @@ export class BranchDetailComponent implements OnInit {
   cashTransactionsLoading = false;
   cashTransactions: CashInOutTransaction[] = [];
   cashCurrentPage = 0;
-  cashPageSize = 10;
+  cashPageSize = 5;
   cashTotalElements = 0;
   cashTotalPages = 0;
+ 
 
   constructor(
     private route: ActivatedRoute,
@@ -77,7 +81,8 @@ export class BranchDetailComponent implements OnInit {
     private modalService: NgbModal,
     private loadingDelayService: LoadingDelayService,
     private transactionService: TransactionService,
-    private cashInOutService: CashInOutService
+    private cashInOutService: CashInOutService,
+    private cifService : CIFCurrentAccountService,
   ) {}
 
   ngOnInit() {
@@ -178,44 +183,21 @@ export class BranchDetailComponent implements OnInit {
     
     this.activeTab = event;
     
-    if (this.activeTab === 'transactions' && this.branch) {
+    if ((this.activeTab === 'transactions' || this.activeTab === 'balance') && this.branch) {
       this.loadTransactions(0);
       this.loadCashTransactions(0);
     }
   }
-
   loadTransactions(page: number) {
     if (!this.branchAccount?.id) return;
     
     this.transactionLoading = true;
-    this.transactionService.getTransactionsByCifId(this.branchAccount.id, page, this.pageSize)
-      .subscribe({
-        next: (response) => {
-         
-          this.transactions = response.content;
-          console.log('Transaction response:', this.transactions.toString);
-          this.totalPages = response.page.totalPages;
-          this.totalElements = response.page.totalElements;
-          this.currentPage = response.page.number;
-          this.pageSize = response.page.size;
-          this.transactionLoading = false;
-        },
-        error: (error) => {
-          console.error('Error loading transactions:', error);
-          this.toastr.error('Failed to load transactions');
-          this.transactionLoading = false;
-        }
-      });
-  }
-
-  loadCashTransactions(page: number) {
-    if (!this.branchAccount?.id) return;
-    
-    this.cashTransactionsLoading = true;
     this.transactionService.getTransactionsByAccountId(this.branchAccount.id, page, this.pageSize)
       .subscribe({
         next: (response) => {
           this.transactions = response.data.content;
+          console.log('Transaction response:', this.transactions);
+          console.log('account id:', this.branchAccount?.id);
           this.totalPages = response.data.totalPages;
           this.totalElements = response.data.totalElements;
           this.currentPage = response.data.number;
@@ -229,6 +211,68 @@ export class BranchDetailComponent implements OnInit {
         }
       });
   }
+
+
+  loadCashTransactions(page: number) {
+    if (!this.branchAccount?.id) return;
+    
+    this.cashTransactionsLoading = true;
+    this.cashInOutService.getTransactionsByAccountId(this.branchAccount.id, page, this.cashPageSize)
+      .subscribe({
+        next: (response) => {
+          if (response && response.data) {
+            this.cashTransactions = response.data.content;
+          
+            this.cashTotalPages = response.data.totalPages;
+            this.cashTotalElements = response.data.totalElements;
+            this.cashCurrentPage = response.data.number;
+            this.cashTransactionsLoading = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading cash transactions:', error);
+          this.toastr.error('Failed to load cash transactions');
+          this.cashTransactionsLoading = false;
+        }
+      });
+  }
+  private accountCodeCache = new Map<string, Observable<string>>();
+
+getAccountCode(accountId: number, accountType: string): Observable<string> {
+  const cacheKey = `${accountType.toUpperCase()}_${accountId}`;
+  
+  if (this.accountCodeCache.has(cacheKey)) {
+    return this.accountCodeCache.get(cacheKey)!;
+  }
+
+  const request$ = this.createAccountCodeRequest(accountId, accountType).pipe(
+    shareReplay(1),
+    catchError(() => of('N/A'))
+  );
+
+  this.accountCodeCache.set(cacheKey, request$);
+  return request$;
+}
+
+private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
+  switch(accountType.toUpperCase()) {
+    case 'CIF':
+      return this.cifService.getAccountByCifId(accountId).pipe(
+        map((response: CIFCurrentAccount) => response.accCode),
+        catchError(() => of('CIF Not Found'))
+      );
+
+    case 'BRANCH':
+      return this.branchService.getBranchAccount(accountId).pipe(
+        map((response: ApiResponse<BranchCurrentAccount>) => response.data.accCode),
+        catchError(() => of('Branch Not Found'))
+      );
+
+    default:
+      return of('Unknown Account Type');
+  }
+}
+
 
   previousPage() {
     if (this.currentPage > 0) {

@@ -9,6 +9,7 @@ import { UserService } from '../../../services/user.service';
 import { User } from '../../../models/user.model';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PaymentMethodEditComponent } from '../payment-method-edit/payment-method-edit.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-payment-method-list',
@@ -34,7 +35,8 @@ export class PaymentMethodListComponent implements OnInit {
     private paymentMethodService: PaymentMethodService,
     private userService: UserService,
     private toastr: ToastrService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {

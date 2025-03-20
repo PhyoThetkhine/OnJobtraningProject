@@ -19,6 +19,19 @@ public class PaymentMethodController {
 
     @Autowired
     private PaymentMethodService paymentMethodService;
+    @PostMapping("/create/{userId}")
+    public ResponseEntity<?> createPaymentMethod(@PathVariable int userId,@RequestBody PaymentMethod method) {
+        System.out.println(userId);
+        System.out.println("revice dto"+method);
+        try {
+            PaymentMethod createdPaymentMethod = paymentMethodService.createPaymentMethod(method, userId);
+            ApiResponse<PaymentMethod> response = ApiResponse.success(HttpStatus.CREATED.value(), "Payment method created successfully", createdPaymentMethod);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (ServiceException e) {
+            ApiResponse<String> errorResponse = ApiResponse.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<PagedResponse<PaymentMethod>>> getAllPaymentMethods(
@@ -49,17 +62,7 @@ public class PaymentMethodController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<?> createPaymentMethod(@RequestBody PaymentMethod paymentMethod, @RequestParam int userId) {
-        try {
-            PaymentMethod createdPaymentMethod = paymentMethodService.createPaymentMethod(paymentMethod, userId);
-            ApiResponse<PaymentMethod> response = ApiResponse.success(HttpStatus.CREATED.value(), "Payment method created successfully", createdPaymentMethod);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (ServiceException e) {
-            ApiResponse<String> errorResponse = ApiResponse.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
+
 
 
     @GetMapping("/list/{id}")

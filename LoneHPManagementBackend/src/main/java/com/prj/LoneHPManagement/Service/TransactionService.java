@@ -1,6 +1,7 @@
 package com.prj.LoneHPManagement.Service;
 
 import com.prj.LoneHPManagement.model.dto.TransactionHistoryResponse;
+import com.prj.LoneHPManagement.model.dto.TransferRequest;
 import com.prj.LoneHPManagement.model.entity.CIFCurrentAccount;
 import com.prj.LoneHPManagement.model.entity.Transaction;
 import com.prj.LoneHPManagement.model.entity.UserCurrentAccount;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public interface TransactionService {
       Page<Transaction> getTransactionsByAccount(int accountId, Pageable pageable);
+    Transaction transferFunds(TransferRequest request);
     Transaction processTransaction(Transaction transaction) ;
     List<TransactionHistoryResponse> getTransactionHistory(String accountType, int accountId);
      Page<Transaction> getTransactionsByUserId(

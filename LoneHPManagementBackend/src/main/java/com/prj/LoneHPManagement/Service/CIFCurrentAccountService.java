@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 public interface CIFCurrentAccountService {
+    List<CIFCurrentAccount> getByBranchCode(String branchCode);
     CIFCurrentAccount getAccountByCifId(int id);
     CIFCurrentAccount changeFreezeStatus(int accountId, String status);
 

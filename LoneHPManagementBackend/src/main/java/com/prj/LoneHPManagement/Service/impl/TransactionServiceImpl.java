@@ -2,10 +2,12 @@ package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.TransactionService;
 import com.prj.LoneHPManagement.model.dto.TransactionHistoryResponse;
+import com.prj.LoneHPManagement.model.dto.TransferRequest;
 import com.prj.LoneHPManagement.model.entity.*;
 import com.prj.LoneHPManagement.model.exception.AccountNotFoundException;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
 import com.prj.LoneHPManagement.model.repo.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private BranchCurrentAccountRepository branchCurrentAccountRepository;
     @Autowired
     private CIFCurrentAccountRepository cifCurrentAccountRepository;
     @Autowired
@@ -82,8 +87,90 @@ public class TransactionServiceImpl implements TransactionService {
     }
     @Override
     public Page<Transaction> getTransactionsByAccount(int accountId, Pageable pageable) {
+     //   Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "transactionDate"));
         return transactionRepository.findByFromAccountIdOrToAccountId(accountId, accountId, pageable);
     }
+
+    @Override
+    @Transactional
+    public Transaction transferFunds(TransferRequest request) {
+        BigDecimal transferAmount = request.getAmount();
+
+        PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId()) .orElseThrow(() -> new ServiceException("Payment not found"));
+        // Handle BRANCH to CIF transaction
+        if (request.getFromAccountType() == Transaction.AccountType.BRANCH &&
+                request.getToAccountType() == Transaction.AccountType.CIF) {
+            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(request.getToAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+
+            // Credit CIF account
+            cifAccount.setBalance(cifAccount.getBalance().add(request.getAmount()));
+            cifCurrentAccountRepository.save(cifAccount);
+            //Debit Branch Account
+            BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getFromAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
+
+            branchCurrentAccount.setBalance(branchCurrentAccount.getBalance().subtract(request.getAmount()));
+            branchCurrentAccountRepository.save(branchCurrentAccount);
+        }
+        // Handle CIF to BRANCH transaction
+        else if (request.getFromAccountType() == Transaction.AccountType.CIF &&
+                request.getToAccountType() == Transaction.AccountType.BRANCH) {
+            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(request.getFromAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+
+            // Validate CIF account
+            validateCIFSender(cifAccount, request.getAmount());
+
+            // Debit CIF account
+            cifAccount.setBalance(cifAccount.getBalance().subtract(request.getAmount()));
+            cifCurrentAccountRepository.save(cifAccount);
+
+
+            BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getToAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
+            branchCurrentAccount.setBalance(branchCurrentAccount.getBalance().add(request.getAmount()));
+            branchCurrentAccountRepository.save(branchCurrentAccount);
+        }else if (request.getFromAccountType() == Transaction.AccountType.BRANCH &&
+                request.getToAccountType() == Transaction.AccountType.BRANCH) {
+
+            // Retrieve the source branch account
+            BranchCurrentAccount sourceBranchAccount = branchCurrentAccountRepository
+                    .findByBranch_Id(request.getFromAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("Source branch account not found"));
+
+            // Validate sufficient funds in the source account (assuming validateBranchSender exists, or you can perform inline validation)
+            if (sourceBranchAccount.getBalance().compareTo(request.getAmount()) < 0) {
+                throw new ServiceException("Insufficient funds in source branch account");
+            }
+
+            // Debit source branch account
+            sourceBranchAccount.setBalance(sourceBranchAccount.getBalance().subtract(request.getAmount()));
+            branchCurrentAccountRepository.save(sourceBranchAccount);
+
+            // Retrieve the destination branch account
+            BranchCurrentAccount destinationBranchAccount = branchCurrentAccountRepository
+                    .findById(request.getToAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("Destination branch account not found"));
+
+            // Credit destination branch account
+            destinationBranchAccount.setBalance(destinationBranchAccount.getBalance().add(request.getAmount()));
+            branchCurrentAccountRepository.save(destinationBranchAccount);
+        }
+
+
+        // Create transaction record
+        Transaction transaction = new Transaction();
+        transaction.setFromAccountId(request.getFromAccountId());
+        transaction.setToAccountId(request.getToAccountId());
+        transaction.setFromAccountType(request.getFromAccountType());
+        transaction.setToAccountType(request.getToAccountType());
+        transaction.setAmount(request.getAmount());
+        transaction.setPaymentMethod(paymentMethod);
+        transaction.setTransactionDate(LocalDateTime.now());
+
+        return transactionRepository.save(transaction);
+    }
+
+
 
     @Override
     public Transaction processTransaction(Transaction transaction) {

@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { BranchService } from '../../../services/branch.service';
 import { Branch, BranchStatus } from '../../../models/branch.model';
-import { User } from '../../../models/user.model';
+import { ApiResponse, User } from '../../../models/user.model';
 import { CIF } from '../../../models/cif.model';
 import { BranchCurrentAccount } from '../../../models/branch-account.model';
 import { LoadingDelayService } from '../../../services/loading-delay.service';
@@ -17,6 +17,11 @@ import { CashInOutService } from '../../../services/cash-in-out.service';
 import { Transaction } from '../../../models/transaction.model';
 import { AuthService } from '../../../services/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CIFCurrentAccountService } from 'src/app/services/cif-current-account.service';
+import { CIFCurrentAccount } from 'src/app/models/cif-current-account.model';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { ChartComponent } from '../chart/chart.component';
+
 
 @Component({
   selector: 'app-wallet',
@@ -26,8 +31,9 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   imports: [
     CommonModule,
     RouterModule,
-    NgxChartsModule
-  ]
+    NgxChartsModule,
+    ChartComponent
+]
 })
 export class WalletComponent implements OnInit {
   branch: Branch | null = null;
@@ -85,11 +91,14 @@ export class WalletComponent implements OnInit {
     private transactionService: TransactionService,
     private cashInOutService: CashInOutService,
     private authService: AuthService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private cifService:CIFCurrentAccountService,
   ) {}
 
   ngOnInit() {
     this.loadCurrentUserBranch();
+    this.loadTransactions(0);
+    this.loadCashTransactions(0);
   }
 
   loadCurrentUserBranch() {
@@ -201,7 +210,7 @@ export class WalletComponent implements OnInit {
     
     this.activeTab = event;
     
-    if ((this.activeTab === 'transactions' || this.activeTab === 'balance') && this.branch) {
+    if ((this.activeTab === 'transactions' || this.activeTab === 'balance'||this.activeTab == 'members') && this.branch) {
       this.loadTransactions(0);
       this.loadCashTransactions(0);
     }
@@ -215,6 +224,8 @@ export class WalletComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.transactions = response.data.content;
+          this.processTransactionTypes();
+        this.processCashFlow();
           console.log('Transaction response:', this.transactions);
           console.log('account id:', this.branchAccount?.id);
           this.totalPages = response.data.totalPages;
@@ -240,7 +251,9 @@ export class WalletComponent implements OnInit {
         next: (response) => {
           if (response && response.data) {
             this.cashTransactions = response.data.content;
-            this.processCashFlow();
+           
+            this.processTransactionTypes();
+        this.processCashFlow();
             this.cashTotalPages = response.data.totalPages;
             this.cashTotalElements = response.data.totalElements;
             this.cashCurrentPage = response.data.number;
@@ -369,6 +382,8 @@ export class WalletComponent implements OnInit {
       (result) => {
         if (result) {
           this.loadBranchAccount();
+          this.loadCashTransactions(0);
+          this.loadTransactions(0);
           this.toastr.success('Transfer completed successfully');
         }
       },
@@ -393,6 +408,8 @@ export class WalletComponent implements OnInit {
       (result) => {
         if (result) {
           this.loadBranchAccount();
+          this.loadCashTransactions(0);
+          this.loadTransactions(0);
           this.toastr.success('Cash in completed successfully');
         }
       },
@@ -423,18 +440,69 @@ export class WalletComponent implements OnInit {
       (result) => {
         if (result) {
           this.loadBranchAccount();
+          this.loadCashTransactions(0);
+          this.loadTransactions(0);
           this.toastr.success('Cash out completed successfully');
         }
       },
       () => {} // Modal dismissed
     );
   }
+// In your component
+private accountCodeCache = new Map<string, Observable<string>>();
 
+getAccountCode(accountId: number, accountType: string): Observable<string> {
+  const cacheKey = `${accountType.toUpperCase()}_${accountId}`;
+  
+  if (this.accountCodeCache.has(cacheKey)) {
+    return this.accountCodeCache.get(cacheKey)!;
+  }
+
+  const request$ = this.createAccountCodeRequest(accountId, accountType).pipe(
+    shareReplay(1),
+    catchError(() => of('N/A'))
+  );
+
+  this.accountCodeCache.set(cacheKey, request$);
+  return request$;
+}
+
+private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
+  switch(accountType.toUpperCase()) {
+    case 'CIF':
+      return this.cifService.getAccountByCifId(accountId).pipe(
+        map((response: CIFCurrentAccount) => response.accCode),
+        catchError(() => of('CIF Not Found'))
+      );
+
+    case 'BRANCH':
+      return this.branchService.getBranchAccount(accountId).pipe(
+        map((response: ApiResponse<BranchCurrentAccount>) => response.data.accCode),
+        catchError(() => of('Branch Not Found'))
+      );
+
+    default:
+      return of('Unknown Account Type');
+  }
+}
   // Add cash flow chart data property
   cashFlowData: any[] = [];
   colorScheme = { domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5'] };
   dateFormat = (d: Date) => d.toLocaleDateString();
   amountFormat = (value: number) => `$${value.toLocaleString()}`;
+
+  private processTransactionTypes() {
+    const typeCounts = this.transactions.reduce((acc, transaction) => {
+      const type = transaction.paymentMethod.paymentType; // Or use transaction.type if available
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  
+    this.transactionTypeData = Object.entries(typeCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+  }
 
   // Add cash flow processing method
   private processCashFlow() {

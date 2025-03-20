@@ -1,5 +1,7 @@
 package com.prj.LoneHPManagement.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,10 +26,17 @@ public class CIFCurrentAccount extends CurrentAccountBaseEntity{
     private BigDecimal maxAmount;
     @Column(name = "hold_amount", precision = 32, scale = 2, nullable = true)
     private BigDecimal holdAmount;
+    @Column(name = "is_freeze", nullable = false)
+    @JsonIgnore
+    private int isFreeze;
     @OneToOne
     @JoinColumn(name = "cif_id", nullable = false)
     private CIF cif;
-
+    @JsonProperty("isFreeze")
+    public String getIsFreezeDescription() {
+        ConstraintEnum constraint = ConstraintEnum.fromCode(isFreeze);
+        return constraint != null ? constraint.getDescription() : "unknown";
+    }
     public int getId() {
         return id;
     }

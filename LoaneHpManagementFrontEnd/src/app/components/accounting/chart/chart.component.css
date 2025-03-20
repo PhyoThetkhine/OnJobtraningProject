@@ -1,0 +1,44 @@
+/* chart.component.css */
+.chart-container {
+    padding: 20px;
+  }
+  
+  .custom-tooltip {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 200px;
+  }
+  
+  .card {
+    margin-bottom: 2rem;
+    border: none;
+    background-color: #f8f9fa;
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+  
+  /* Spinner styling */
+  .text-center {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .custom-tooltip {
+    min-width: 120px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  
+  .small {
+    font-size: 0.85rem;
+  }

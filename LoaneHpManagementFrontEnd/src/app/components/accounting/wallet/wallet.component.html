@@ -256,13 +256,34 @@
                               </span>
                             </td>
                             <td>
+                              <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                                To: 
+                                <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                                  {{ code }}
+                                </ng-container>
+                                <ng-template #loading>
+                                  <span class="text-muted">Loading...</span>
+                                </ng-template>
+                              </ng-container>
+                            
+                              <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                                From: 
+                                <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                                  {{ code }}
+                                </ng-container>
+                                <ng-template #loading>
+                                  <span class="text-muted">Loading...</span>
+                                </ng-template>
+                              </ng-container>
+                            </td>
+                            <!-- <td>
                               <div *ngIf="transaction.fromAccountId === branchAccount?.id">
                                 To: {{ transaction.toAccountType }}
                               </div>
                               <div *ngIf="transaction.toAccountId === branchAccount?.id">
                                 From: {{ transaction.fromAccountType }}
                               </div>
-                            </td>
+                            </td> -->
                             <td>{{ transaction.paymentMethod.paymentType }}</td>
                             <td [ngClass]="{
                               'text-success': transaction.toAccountId === branchAccount?.id,
@@ -340,6 +361,7 @@
                     </div>
                   </div>
                 </div>
+                
               </div>
             </div>
           </div>
@@ -560,6 +582,7 @@
               </div>
             </div>
           </div>
+        
 
           <!-- Transactions Tab -->
           <div *ngIf="activeTab === 'transactions'">
@@ -599,13 +622,34 @@
                             {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
                           </span>
                         </td>
-                        <td>
+                        <!-- <td>
                           <div *ngIf="transaction.fromAccountId === branchAccount?.id">
                             To: {{ transaction.toAccountType }}
                           </div>
                           <div *ngIf="transaction.toAccountId === branchAccount?.id">
                             From: {{ transaction.fromAccountType }}
                           </div>
+                        </td> -->
+                        <td>
+                          <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                            To: 
+                            <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                              {{ code }}
+                            </ng-container>
+                            <ng-template #loading>
+                              <span class="text-muted">Loading...</span>
+                            </ng-template>
+                          </ng-container>
+                        
+                          <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                            From: 
+                            <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                              {{ code }}
+                            </ng-container>
+                            <ng-template #loading>
+                              <span class="text-muted">Loading...</span>
+                            </ng-template>
+                          </ng-container>
                         </td>
                         <td>{{ transaction.paymentMethod.paymentType }}</td>
                         <td [ngClass]="{
@@ -723,6 +767,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

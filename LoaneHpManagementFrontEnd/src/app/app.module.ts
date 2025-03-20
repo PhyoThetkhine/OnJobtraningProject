@@ -68,7 +68,7 @@ import { ClientDetailComponent } from './components/client/client-detail/client-
     
     PaymentMethodListComponent,
     PaymentMethodCreateComponent,
-    ChartComponent,
+    
    
     MainCategoriesComponent,
     SubCategoriesComponent,

@@ -1,6 +1,7 @@
 package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.PaymentMethodService;
+import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import com.prj.LoneHPManagement.model.entity.PaymentMethod;
 import com.prj.LoneHPManagement.model.entity.User;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +37,9 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         }
 
         paymentMethod.setCreatedUser(user.get());
+        paymentMethod.setCreatedDate(LocalDateTime.now());
+        paymentMethod.setUpdatedDate(LocalDateTime.now());
+        paymentMethod.setStatus(ConstraintEnum.ACTIVE.getCode());
         return paymentMethodRepository.save(paymentMethod);
     }
 

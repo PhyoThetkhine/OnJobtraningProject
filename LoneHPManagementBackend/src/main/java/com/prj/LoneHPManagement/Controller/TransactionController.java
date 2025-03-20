@@ -3,6 +3,7 @@ package com.prj.LoneHPManagement.Controller;
 import com.prj.LoneHPManagement.Service.AutoPaymentService;
 import com.prj.LoneHPManagement.Service.TransactionService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
+import com.prj.LoneHPManagement.model.dto.TransferRequest;
 import com.prj.LoneHPManagement.model.entity.PaymentMethod;
 import com.prj.LoneHPManagement.model.entity.Transaction;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -39,6 +40,16 @@ public class TransactionController {
         transaction.setPaymentMethod(paymentMethod);
         return ResponseEntity.ok(transactionService.processTransaction(transaction));
     }
+    @PostMapping("/transfer")
+    public ResponseEntity<?> transferFunds(@RequestBody TransferRequest request) {
+        System.out.println(request);
+        try {
+            Transaction transaction = transactionService.transferFunds(request);
+            return ResponseEntity.ok(transaction);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 
     @GetMapping("/user/{userId}")
@@ -70,13 +81,14 @@ public class TransactionController {
     @GetMapping("/account/{accountId}")
     public ResponseEntity<?> getTransactionsByAccountId(
             @PathVariable int accountId,
-            @RequestParam(defaultValue = "transactionDate") String sortBy,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy){
 
         // Create a new Pageable object with sorting
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "transactionDate"));
 
-        Page<Transaction> transactions = transactionService.getTransactionsByAccount(accountId, sortedPageable);
+        Page<Transaction> transactions = transactionService.getTransactionsByAccount(accountId, pageable);
 
         ApiResponse<Map<String, Object>> response = new ApiResponse<>();
         Map<String, Object> responseData = new HashMap<>();

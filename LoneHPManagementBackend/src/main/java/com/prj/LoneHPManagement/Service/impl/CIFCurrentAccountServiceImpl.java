@@ -77,6 +77,10 @@ public class CIFCurrentAccountServiceImpl implements CIFCurrentAccountService {
     public Page<CIFCurrentAccount> findByBranch(String branchCode, Pageable pageable) {
         return cifCurrentAccountRepository.findByBranchCode(branchCode, pageable);
     }
+    @Override
+    public List<CIFCurrentAccount> getByBranchCode(String branchCode){
+        return cifCurrentAccountRepository.findByBranchCode(branchCode);
+    }
 
 //    @Override
 //    public Page<CIFCurrentAccount> findByCifId(int cifId, Pageable pageable) {

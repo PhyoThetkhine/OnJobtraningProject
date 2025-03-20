@@ -22,9 +22,7 @@ public abstract class CurrentAccountBaseEntity {
     private String accCode; //CAC00100200123
     @Column(name = "balance", precision = 32, scale = 2, nullable = false)
     private BigDecimal balance;
-    @Column(name = "is_freeze", nullable = false)
-    @JsonIgnore
-    private int isFreeze;
+
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
     @Column(name = "updated_date", nullable = false)
@@ -44,14 +42,6 @@ public abstract class CurrentAccountBaseEntity {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
-    }
-
-    public int getIsFreeze() {
-        return isFreeze;
-    }
-
-    public void setIsFreeze(int isFreeze) {
-        this.isFreeze = isFreeze;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -85,9 +75,5 @@ public abstract class CurrentAccountBaseEntity {
         updatedDate = LocalDateTime.now();
     }
 
-    @JsonProperty("isFreeze")
-    public String getIsFreezeDescription() {
-        ConstraintEnum constraint = ConstraintEnum.fromCode(isFreeze);
-        return constraint != null ? constraint.getDescription() : "unknown";
-    }
+
 }
