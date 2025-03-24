@@ -21,8 +21,8 @@
         </div>
       </div>
 
-      <!-- CIF Account Selection -->
-      <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.CIF">
+      
+      <!-- <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.CIF">
         <label for="cifAccount" class="form-label">Select Client Account</label>
         <select class="form-select" 
                 id="cifAccount" 
@@ -35,10 +35,41 @@
         </select>
         <div class="invalid-feedback" *ngIf="isFieldInvalid('cifAccount')">
           {{ getErrorMessage('cifAccount') }}
-        </div>
-  
-        <!-- Selected Account Details -->
-        <div class="selected-account mt-3" *ngIf="selectedAccount">
+        </div> -->
+
+        <!-- Modified CIF Account Selection Section -->
+<div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.CIF">
+  <label for="cifAccount" class="form-label">Select Client Account</label>
+  <div class="position-relative">
+    <input type="text" 
+    class="form-control" 
+    id="cifAccount" 
+    [(ngModel)]="searchCifTerm"
+    [ngModelOptions]="{standalone: true}"
+    [class.is-invalid]="isFieldInvalid('cifAccount')"
+    placeholder="Search by account code or name"
+    (input)="onSearchCifAccount()"
+    (focus)="showCifDropdown = true"
+    (blur)="onBlurCifInput()">
+    
+    <!-- Search Results Dropdown -->
+    <div class="dropdown-menu w-100 show" *ngIf="showCifDropdown && filteredCifAccounts.length">
+      <div class="list-group">
+        <button type="button" 
+                class="list-group-item list-group-item-action" 
+                *ngFor="let account of filteredCifAccounts"
+                (mousedown)="selectCifAccount(account)">
+          {{ account.accCode }} - {{ account.cif.name }}
+        </button>
+      </div>
+    </div>
+    
+    <div class="invalid-feedback" *ngIf="isFieldInvalid('cifAccount')">
+      {{ getErrorMessage('cifAccount') }}
+    </div>
+  </div>
+        
+     <div class="selected-account mt-3" *ngIf="selectedAccount">
           <div class="card">
             <div class="card-body">
               <div class="d-flex align-items-center">
@@ -56,22 +87,22 @@
         </div>
       </div>
 
-      <!-- Branch Account Selection -->
-      <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
-        <label for="branchAccount" class="form-label">Select Branch Account</label>
-        <select class="form-select" 
-                id="branchAccount" 
-                formControlName="branchAccount"
-                [class.is-invalid]="isFieldInvalid('branchAccount')">
-          <option value="">Select a branch account</option>
-          <option *ngFor="let account of branchAccounts" [value]="account.id">
-            {{ account.branch.branchName }} - {{ account.accCode }}
-          </option>
-        </select>
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
-          {{ getErrorMessage('branchAccount') }}
-        </div>
-      </div>
+    <!-- Update branch account selection in template -->
+<div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
+  <label for="branchAccount" class="form-label">Select Branch Account</label>
+  <select class="form-select" 
+          id="branchAccount" 
+          formControlName="branchAccount"
+          [class.is-invalid]="isFieldInvalid('branchAccount')">
+    <option value="">Select a branch account</option>
+    <option *ngFor="let branch of branchAccounts" [value]="branch.id">
+      {{ branch.branchName }} ({{ branch.branchCode }})
+    </option>
+  </select>
+  <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
+    {{ getErrorMessage('branchAccount') }}
+  </div>
+</div>
   
       <!-- Payment Method Selection -->
       <div class="mb-4">

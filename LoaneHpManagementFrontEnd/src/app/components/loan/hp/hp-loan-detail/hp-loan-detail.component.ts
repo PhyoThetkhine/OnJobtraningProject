@@ -12,6 +12,8 @@ import { HpLoanConfirmComponent } from '../hp-loan-confirm/hp-loan-confirm.compo
 import { HpLoanUpdateComponent } from '../hp-loan-update/hp-loan-update.component';
 import { VoucherService } from '../../../../services/voucher.service';
 import { ApiResponse } from '../../../../models/user.model';
+import { HpLoanHistory } from 'src/app/models/hp-loan-history';
+import { HpLongOverPaidHistory } from 'src/app/models/hp-long-over-paid-history';
 
 @Component({
   selector: 'app-hp-loan-detail',
@@ -24,8 +26,20 @@ export class HpLoanDetailComponent implements OnInit {
   loanId!: number;
   loan: HpLoan | null = null;
   loading = false;
+  createdUser:User | null = null;
   confirmUser: User | null = null;
   activeTab: 'loan-info' | 'repayment-schedule' | 'repayment-history' = 'loan-info';
+     // Add these properties
+     under90History: HpLoanHistory[] = [];
+     over90History: HpLongOverPaidHistory[] = [];
+     under90CurrentPage = 0;
+     over90CurrentPage = 0;
+     pageSize = 5;
+     under90Total = 0;
+     over90Total = 0;
+     loadingUnder = false;
+     loadingOver = false;
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -56,9 +70,15 @@ export class HpLoanDetailComponent implements OnInit {
             this.confirmUser = loan.confirmUser as User;
           }
         }
-        
-        // Load terms after loading loan details
-        this.loadTerms();
+        if (loan.createdUser && typeof loan.createdUser === 'number') {
+          this.loadCreatedUser(loan.createdUser);
+        } else if (loan.createdUser && typeof loan.createdUser === 'object') {
+          this.createdUser = loan.createdUser;
+        }
+        this.loadTerms(() => {
+          // Load histories AFTER terms are available
+          this.loadHistories();
+        });
       },
       error: (error) => {
         console.error('Error loading loan details:', error);
@@ -67,22 +87,95 @@ export class HpLoanDetailComponent implements OnInit {
       }
     });
   }
-
-  loadTerms() {
-    this.hpLoanService.getTermsByLoanId(this.loanId).subscribe({
-      next: (terms) => {
-        if (this.loan) {
-          this.loan.terms = terms;
+   loadHistories() {
+      this.loadUnder90();
+      this.loadOver90();
+    }
+    loadCreatedUser(userId: number): void {
+      this.userService.getUserById(userId).subscribe({
+        next: (user: User) => {
+          this.createdUser = user;
+        },
+        error: (error) => {
+          console.error('Error loading confirm user:', error);
         }
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading loan terms:', error);
-        this.toastr.error('Failed to load loan terms');
-        this.loading = false;
+      });
+    }
+  
+    private loadUnder90(page: number = 0) {
+      this.loadingUnder = true;
+      this.hpLoanService.getUnder90History(this.loanId, page, this.pageSize)
+        .subscribe({
+          next: (res) => {
+            this.under90History = this.mapTermNumbers(res.data.content);
+            this.under90Total = res.data.totalElements;
+            this.under90CurrentPage = page;
+            this.loadingUnder = false;
+          },
+          error: (err) => { /* error handling */ }
+        });
+    }
+    private mapTermNumbers(histories: HpLoanHistory[]): HpLoanHistory[] {
+      if (!this.loan?.terms) return histories;
+    
+      return histories.map(history => {
+        // Get the term ID from nested structure
+        const termId = history.hpTerm.id;
+    
+        // Find the index of the term in loan.terms array
+        const termIndex = this.loan!.terms!.findIndex(t => t.id === termId);
+    
+        return {
+          ...history,
+          termNumber: termIndex !== -1 ? termIndex + 1 : undefined
+        };
+      });
+    }
+    
+  
+    private loadOver90(page: number = 0) {
+      this.loadingOver = true;
+      this.hpLoanService.getOver90History(this.loanId, page, this.pageSize)
+        .subscribe({
+          next: (res) => {
+            this.over90History = res.data.content;
+            this.over90Total = res.data.totalElements;
+            this.over90CurrentPage = page;
+            this.loadingOver = false;
+          },
+          error: (err) => {
+            this.loadingOver = false;
+            this.toastr.error('Failed to load over 90 days history');
+          }
+        });
+    }
+  
+    onUnderPageChange(page: number) {
+      if (page >= 0 && page < Math.ceil(this.under90Total / this.pageSize)) {
+        this.loadUnder90(page);
       }
-    });
-  }
+    }
+  
+    onOverPageChange(page: number) {
+      if (page >= 0 && page < Math.ceil(this.over90Total / this.pageSize)) {
+        this.loadOver90(page);
+      }
+    }
+  
+
+    loadTerms(callback?: () => void): void {
+      this.hpLoanService.getTermsByLoanId(this.loanId).subscribe({
+        next: (terms) => {
+          if (this.loan) this.loan.terms = terms;
+          this.loading = false;
+          if (callback) callback();
+        },
+        error: (error) => {
+          this.loading = false;
+          this.toastr.error('Failed to load loan terms');
+        }
+      });
+    }
 
   loadConfirmUser(userId: number): void {
     this.userService.getUserById(userId).subscribe({

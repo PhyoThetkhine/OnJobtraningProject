@@ -75,6 +75,10 @@ public class BranchController {
         ApiResponse<Branch> response = ApiResponse.success(HttpStatus.OK.value(),"Branch create successfully",createBranch);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/allBranches")
+    public List<Branch> getAllBranches() {
+        return branchService.getAllBranches();
+    }
 
     @GetMapping("/code/{branchCode}")
     public ResponseEntity<ApiResponse<Branch>> getBranchByCode(@PathVariable String branchCode) {
@@ -94,6 +98,8 @@ public class BranchController {
         Branch updatedBranch = branchService.updateBranch(id, branchUpdateDTO);
         return ResponseEntity.ok(updatedBranch);
     }
+
+
 
 
 }

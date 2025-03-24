@@ -93,9 +93,11 @@ export class CollateralCreateComponent implements OnInit {
           cifId: this.cifId,
           createdUserId: currentUser.id
         };
+        
 
         // Create collateral
         await this.collateralService.createCollateral(collateralData).toPromise();
+        console.log("collateralData"+collateralData)
         this.toastr.success('Collateral added successfully');
         this.activeModal.close(true);
       } catch (error) {

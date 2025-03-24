@@ -26,94 +26,94 @@ export class SidebarComponent implements OnInit {
     {
       title: 'Accounting',
       icon: 'bi-calculator',
-      permission: 'Accounting',
+      permission: 'Accounting Menu',
       submenu: [
-        { title: 'View Chart', route: '/accounting/chart', permission: 'Accounting' },
-        { title: 'Wallet', route: '/accounting/wallet', permission: 'Accounting' },
-        { title: 'Transactions', route: '/accounting/transactions', permission: 'Accounting' }
+        { title: 'View Chart', route: '/accounting/chart', permission: 'Accounting Menu' },
+        { title: 'Wallet', route: '/accounting/wallet', permission: 'Accounting Menu' },
+        { title: 'Transactions', route: '/accounting/transactions', permission: 'Accounting Menu' }
       ]
     },
     {
-      title: 'Dealer',
+      title: 'Dealer Management',
       icon: 'bi-shop',
-      permission: 'Dealer',
+      permission: 'Dealer Management Menu',
       submenu: [
-        { title: 'Products', route: '/dealer/products', permission: 'Dealer' },
-        { title: 'Main Categories', route: '/dealer/main-categories', permission: 'Dealer' },
-        { title: 'Sub Categories', route: '/dealer/sub-categories', permission: 'Dealer' }
+        { title: 'Products', route: '/dealer/products', permission: 'Dealer Management Menu' },
+        { title: 'Main Categories', route: '/dealer/main-categories', permission: 'Dealer Management Menu' },
+        { title: 'Sub Categories', route: '/dealer/sub-categories', permission: 'Dealer Management Menu' }
       ]
     },
     {
-      title: 'Payment',
+      title: 'Payment Method',
       icon: 'bi-credit-card',
-      permission: 'Payment',
+      permission: 'Payment Method Menu',
       submenu: [
-        { title: 'View Payment Methods', route: '/payments/methods', permission: 'Payment' },
-        { title: 'Create Payment Method', route: '/payments/methods/create', permission: 'Payment' }
+        { title: 'View Payment Methods', route: '/payments/methods', permission: 'Payment Method Menu' },
+        { title: 'Create Payment Method', route: '/payments/methods/create', permission: 'Payment Method Menu' }
       ]
     },
     {
-      title: 'Branch',
+      title: 'Branch Management',
       icon: 'bi-building',
-      permission: 'Branch',
+      permission: 'Branch Management Menu',
       submenu: [
-        { title: 'View Branches', route: '/branches', permission: 'Branch' },
-        { title: 'Create Branch', route: '/branches/create', permission: 'Branch' }
+        { title: 'View Branches', route: '/branches', permission: 'Branch Management Menu' },
+        { title: 'Create Branch', route: '/branches/create', permission: 'Branch Management Menu' }
       ]
     },
     {
-      title: 'Clients',
+      title: 'Client Management',
       icon: 'bi-people',
-      permission: 'Clients',
+      permission: 'Client Management Menu',
       submenu: [
-        { title: 'View Clients', route: '/clients', permission: 'Clients' },
-        { title: 'Create Client', route: '/clients/create', permission: 'Clients' }
+        { title: 'View Clients', route: '/clients', permission: 'Client Management Menu' },
+        { title: 'Create Client', route: '/clients/create', permission: 'Client Management Menu' }
       ]
     },
     {
-      title: 'Loans',
+      title: 'Loan Management',
       icon: 'bi-cash-coin',
-      permission: 'Loans',
+      permission: 'Loan Management Menu',
       submenu: [
         {
           title: 'SME',
-          permission: 'SME',
+          permission: 'SME Menu',
           submenu: [
-            { title: 'View Loans', route: '/loans/sme', permission: 'Loans' },
-            { title: 'View Applications', route: '/loans/sme/applications', permission: 'Loans' },
-            { title: 'Create Loan', route: '/loans/sme/create', permission: 'Loans' }
+            { title: 'View Loans', route: '/loans/sme', permission: 'Loan Management Menu' },
+            { title: 'View Applications', route: '/loans/sme/applications', permission: 'Loan Management Menu' },
+            { title: 'Create Loan', route: '/loans/sme/create', permission: 'Loan Management Menu' }
           ]
         },
         {
           title: 'HP',
-          permission: 'HP',
+          permission: 'HP Menu',
           submenu: [
-            { title: 'View Loans', route: '/loans/hp', permission: 'Loans' },
-            { title: 'View Applications', route: '/loans/hp/applications', permission: 'Loans' },
-            { title: 'Create Loan', route: '/loans/hp/create', permission: 'Loans' }
+            { title: 'View Loans', route: '/loans/hp', permission: 'Loan Management Menu' },
+            { title: 'View Applications', route: '/loans/hp/applications', permission: 'Loan Management Menu' },
+            { title: 'Create Loan', route: '/loans/hp/create', permission: 'Loan Management Menu' }
           ]
         }
       ]
     },
     {
-      title: 'Users',
+      title: 'Staff Management',
       icon: 'bi-people',
-      permission: 'Users',
+      permission: 'Staff Management Menu',
       submenu: [
-        { title: 'View Users', route: '/users', permission: 'Users' },
-        { title: 'Create User', route: '/users/create', permission: 'Users' }
+        { title: 'View staff', route: '/users', permission: 'Staff Management Menu' },
+        { title: 'Create staff', route: '/users/create', permission: 'Staff Management Menu' }
       ]
     },
     {
       title: 'Access Control',
       icon: 'bi-shield-lock',
-      permission: 'AccessControl',
+      permission: 'AccessControl Menu',
       submenu: [
-        { title: 'View Roles', route: '/access-control/roles', permission: 'AccessControl' },
-        { title: 'Create Role', route: '/access-control/roles/create', permission: 'AccessControl' }
+        { title: 'View Roles', route: '/access-control/roles', permission: 'AccessControl Menu' },
+        { title: 'Create Role', route: '/access-control/roles/create', permission: 'AccessControl Menu' }
       ]
     },
-    { title: 'Reports', icon: 'bi-file-earmark-text', route: '/reports', permission: 'Report' },
+    { title: 'Reports', icon: 'bi-file-earmark-text', route: '/reports', permission: 'Report Menu' },
   ];
 
   private bottomMenuItems: MenuItem[] = [

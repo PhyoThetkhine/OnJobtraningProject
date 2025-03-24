@@ -55,14 +55,14 @@ export class CollateralService {
   }
 
   createCollateral(collateral: Partial<Collateral>): Observable<Collateral> {
-    return this.http.post<ApiResponse<Collateral>>(this.apiUrl, collateral)
+    return this.http.post<ApiResponse<Collateral>>(`${this.apiUrl}/create`, collateral)
       .pipe(
         map(response => response.data)
       );
   }
 
   updateCollateral(id: number, collateral: Partial<Collateral>): Observable<Collateral> {
-    return this.http.put<ApiResponse<Collateral>>(`${this.apiUrl}/${id}`, collateral)
+    return this.http.put<ApiResponse<Collateral>>(`${this.apiUrl}/update/${id}`, collateral)
       .pipe(
         map(response => response.data)
       );

@@ -3,6 +3,7 @@ package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.CodeGenerateService;
 import com.prj.LoneHPManagement.Service.UserService;
+import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
 import com.prj.LoneHPManagement.model.dto.UserUpdateDTO;
 import com.prj.LoneHPManagement.model.entity.*;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +29,7 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
+
 
     @Autowired
     private UserRepository userRepository;
@@ -231,6 +235,24 @@ public class UserServiceImpl implements UserService {
         Page<User> users = userRepository.findAll(pageable);
         return users;
     }
+    public Page<User> getUsersByStatus(String status, Pageable pageable){
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "active":
+                statusCode = ConstraintEnum.ACTIVE.getCode();
+                break;
+            case "terminated":
+                statusCode = ConstraintEnum.TERMINATED.getCode();
+                break;
+            case "retired":
+                statusCode = ConstraintEnum.RETIRED.getCode();
+                break;
+            default:
+
+        }
+        Page<User> users = userRepository.findByStatus(statusCode,pageable);
+        return users;
+    }
     @Override
     public User changeUserStatus(int userId, int statusCode) {
         // Retrieve user from repository
@@ -246,6 +268,24 @@ public class UserServiceImpl implements UserService {
     }
     public Page<User> getUsersByBranchId(int branchId, Pageable pageable) {
         return userRepository.findByBranch_Id(branchId, pageable);
+    }
+
+    public Page<User> getUsersByBranchIdAndStatus(int branchId,String status, Pageable pageable) {
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "active":
+                statusCode = ConstraintEnum.ACTIVE.getCode();
+                break;
+            case "terminated":
+                statusCode = ConstraintEnum.TERMINATED.getCode();
+                break;
+            case "retired":
+                statusCode = ConstraintEnum.RETIRED.getCode();
+                break;
+            default:
+
+        }
+        return userRepository.findByBranch_IdAndStatus(branchId,statusCode, pageable);
     }
 
 

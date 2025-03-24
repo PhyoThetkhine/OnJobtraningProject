@@ -60,7 +60,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <label class="status-label">Status</label>
               <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm" 
+                <button *ngIf="hasPermission('Update Client Info')" class="btn btn-outline-secondary btn-sm" 
                         type="button" 
                         data-bs-toggle="dropdown"
                         [disabled]="loading">
@@ -79,13 +79,6 @@
                        (click)="changeStatus('terminated')"
                        [class.active]="client.status === 'terminated'">
                       <i class="bi bi-x-circle-fill text-danger me-2"></i>Terminated
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0)" 
-                       (click)="changeStatus('retired')"
-                       [class.active]="client.status === 'retired'">
-                      <i class="bi bi-pause-circle-fill text-warning me-2"></i>Retired
                     </a>
                   </li>
                 </ul>
@@ -135,7 +128,7 @@
                         <i class="bi bi-person-lines-fill me-2"></i>
                         Personal Information
                       </h5>
-                      <button class="btn btn-primary" (click)="openUpdateModal()">
+                      <button *ngIf="hasPermission('Update Client Info')" class="btn btn-primary" (click)="openUpdateModal()">
                         <i class="bi bi-pencil me-2"></i>Update Client
                       </button>
                     </div>
@@ -317,7 +310,7 @@
               <ng-template ngbNavContent>
                 <div class="d-flex justify-content-between align-items-center mb-4">
                   <h5 class="mb-0">Business Information</h5>
-                  <button class="btn btn-primary" (click)="openCreateBusinessModal()" *ngIf="activeBusinessTab === 'list'">
+                  <button *ngIf="hasPermission('Add New Business for Client') && activeBusinessTab === 'list'"  class="btn btn-primary" (click)="openCreateBusinessModal()">
                     <i class="bi bi-plus-circle me-2"></i>Add Business
                   </button>
                 </div>
@@ -435,7 +428,7 @@
                         <!-- Company Info Tab -->
                         <div *ngIf="activeCompanyTab === 'info'">
                           <div class="d-flex justify-content-end mb-3">
-                            <button class="btn btn-primary btn-sm" (click)="openUpdateBusinessModal()">
+                            <button *ngIf="hasPermission('Update Client Info')" class="btn btn-primary btn-sm" (click)="openUpdateBusinessModal()">
                               <i class="bi bi-pencil-square me-2"></i>Update Business
                             </button>
                           </div>
@@ -509,7 +502,7 @@
                           <div *ngIf="!financialLoading && !financialError && financial">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                               <h6 class="mb-0">Financial Information</h6>
-                              <button class="btn btn-outline-primary btn-sm" (click)="openUpdateFinancialModal()">
+                              <button *ngIf="hasPermission('Update Client Info')" class="btn btn-outline-primary btn-sm" (click)="openUpdateFinancialModal()">
                                 <i class="bi bi-pencil me-2"></i>Update Financial Info
                               </button>
                             </div>
@@ -1038,7 +1031,7 @@
                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
                               <h6 class="card-subtitle text-muted">Account Limits</h6>
-                              <button class="btn btn-outline-primary btn-sm" (click)="openUpdateAccountLimitsModal()">
+                              <button  *ngIf="hasPermission('Update Client Info')" class="btn btn-outline-primary btn-sm" (click)="openUpdateAccountLimitsModal()">
                                 <i class="bi bi-pencil me-1"></i>Update Limits
                               </button>
                             </div>
@@ -1069,7 +1062,7 @@
                                 {{ cifAccount.isFreeze === FreezeStatus.NOT_FREEZE ? 'Active' : 'Frozen' }}
                               </span>
                               <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm" 
+                                <button  *ngIf="hasPermission('Update Client Info')" class="btn btn-outline-secondary btn-sm" 
                                         type="button" 
                                         data-bs-toggle="dropdown"
                                         [disabled]="accountLoading">
@@ -1104,91 +1097,110 @@
                         <i class="bi bi-wallet2 fs-1 text-muted mb-3"></i>
                         <p class="text-muted mb-0">No account information available</p>
                       </div>
+                      <div class="d-flex gap-2" *ngIf="hasPermission('Money Transformation')">
+                        <button class="btn btn-primary" >
+                          <i class="bi bi-arrow-left-right me-2"></i>Transfer
+                        </button>
+                      </div>
+
                     </div>
                   </div>
 
                   <!-- Transaction History -->
-                  <div class="card">
-                    <div class="card-body">
-                      <h5 class="card-title">Transaction History</h5>
-                      <div class="table-responsive mt-4">
-                        <table class="table">
-                          <thead>
-                            <tr>
-                              <th>Date</th>
-                              <th>Type</th>
-                              <th>From/To</th>
-                              <th>Payment Method</th>
-                              <th>Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr *ngIf="transactionLoading">
-                              <td colspan="5" class="text-center">
-                                <div class="spinner-border spinner-border-sm" role="status">
-                                  <span class="visually-hidden">Loading...</span>
-                                </div>
-                              </td>
-                            </tr>
-                            
-                            <tr *ngFor="let transaction of transactions">
-                              <td>{{ transaction.transactionDate | date:'medium' }}</td>
-                              <td>
-                                <span class="badge" [ngClass]="{
-                                  'bg-success': transaction.toAccountType === 'CIF',
-                                  'bg-danger': transaction.fromAccountType === 'CIF'
-                                }">
-                                  {{ transaction.fromAccountType === 'CIF' ? 'Debit' : 'Credit' }}
-                                </span>
-                              </td>
-                              <td>
-                                <div *ngIf="transaction.fromAccountType === 'CIF'">
-                                  To: {{ transaction.toAccountType }}
-                                </div>
-                                <div *ngIf="transaction.toAccountType === 'CIF'">
-                                  From: {{ transaction.fromAccountType }}
-                                </div>
-                              </td>
-                              <td>{{ transaction.paymentMethod.paymentType }}</td>
-                              <td [ngClass]="{
-                                'text-success': transaction.toAccountType === 'CIF',
-                                'text-danger': transaction.fromAccountType === 'CIF'
-                              }">
-                                {{ formatCurrency(transaction.amount) }}
-                              </td>
-                            </tr>
-                            
-                            <tr *ngIf="transactions.length === 0 && !transactionLoading">
-                              <td colspan="5" class="text-center text-muted">
-                                No transactions found
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+               <!-- In the Balance tab content -->
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Transaction History</h5>
+    <div class="table-responsive mt-4">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>From/To</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="transactionLoading">
+            <td colspan="5" class="text-center">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </td>
+          </tr>
+          
+          <tr *ngFor="let transaction of transactions">
+            <td>{{ transaction.transactionDate | date:'medium' }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-success': isCredit(transaction),
+                'bg-danger': isDebit(transaction)
+              }">
+                {{ isDebit(transaction) ? 'Debit' : 'Credit' }}
+              </span>
+            </td>
+            <td>
+              <ng-container *ngIf="isDebit(transaction)">
+                To: 
+                <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                  {{ code }} ({{ transaction.toAccountType }})
+                </ng-container>
+              </ng-container>
+            
+              <ng-container *ngIf="isCredit(transaction)">
+                From: 
+                <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                  {{ code }} ({{ transaction.fromAccountType }})
+                </ng-container>
+              </ng-container>
+            
+              <ng-template #loading>
+                <span class="text-muted">Loading...</span>
+              </ng-template>
+            </td>
+            <td>{{ transaction.paymentMethod?.paymentType }}</td>
+            <td [ngClass]="{
+              'text-success': isCredit(transaction),
+              'text-danger': isDebit(transaction)
+            }">
+              {{ formatCurrency(transaction.amount) }}
+            </td>
+          </tr>
+          
+          <tr *ngIf="transactions.length === 0 && !transactionLoading">
+            <td colspan="5" class="text-center text-muted">
+              No transactions found
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-                        <!-- Pagination controls -->
-                        <div class="d-flex justify-content-between align-items-center mt-3 px-3">
-                          <div class="text-muted">
-                            Showing {{ transactions.length ? (currentPage * pageSize) + 1 : 0 }} 
-                            to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
-                            of {{ totalElements }} entries
-                          </div>
-                          <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" 
-                                    (click)="previousPage()" 
-                                    [disabled]="currentPage === 0 || transactionLoading">
-                              <i class="bi bi-chevron-left"></i> Previous
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" 
-                                    (click)="nextPage()" 
-                                    [disabled]="currentPage >= totalPages - 1 || transactionLoading">
-                              Next <i class="bi bi-chevron-right"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+<!-- Update pagination display -->
+<div class="d-flex justify-content-between align-items-center mt-3 px-3">
+  <div class="text-muted">
+    Showing {{ transactions?.length ? (currentPage * pageSize) + 1 : 0 }} 
+    to {{ Math.min((currentPage + 1) * pageSize, totalElements) || 0 }} 
+    of {{ totalElements || 0 }} entries
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary btn-sm" 
+            (click)="currentPage > 0 && loadTransactions(currentPage - 1)" 
+            [disabled]="currentPage === 0 || transactionLoading">
+      <i class="bi bi-chevron-left"></i> Previous
+    </button>
+    <button class="btn btn-outline-secondary btn-sm" 
+            (click)="currentPage < totalPages - 1 && loadTransactions(currentPage + 1)" 
+            [disabled]="currentPage >= totalPages - 1 || transactionLoading">
+      Next <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+
                 </div>
               </ng-template>
             </li>

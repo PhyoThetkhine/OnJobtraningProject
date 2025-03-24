@@ -21,6 +21,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findByRoleId(Integer roleId, Pageable pageable);
     User findByUserCode(String userCode);
     Page<User> findByBranch_Id(int branchId, Pageable pageable);
+    Page<User> findByBranch_IdAndStatus(int branchId,int status,Pageable pageable);
     @Query("SELECT DISTINCT u.phoneNumber FROM User u")
     List<String> findAllUniquePhoneNumbers();
     List<User> findByRole_Id(int roleId);
@@ -34,6 +35,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     public User findByEmail(String email);
 
     List<User> findByStatus(int status);
+    Page<User> findByStatus(int status,Pageable pageable);
     @Query("SELECT MAX(u.userCode) FROM User u WHERE u.branch = :branch")
     String findMaxUserCodeByBranch(@Param("branch") Branch branch);
 

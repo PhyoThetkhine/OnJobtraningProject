@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface BranchRepository extends JpaRepository<Branch,Integer> {
-
+    List<Branch> findByStatus(int status);
    Branch findByBranchCode(String branchCode);
     Page<Branch> findAll(Pageable pageable);
 

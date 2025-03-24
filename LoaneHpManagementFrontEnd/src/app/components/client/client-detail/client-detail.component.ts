@@ -23,7 +23,7 @@ import { Financial } from '../../../models/financial.model';
 import { CIFCurrentAccountService } from '../../../services/cif-current-account.service';
 import { CIFCurrentAccount, FreezeStatus } from '../../../models/cif-current-account.model';
 import { TransactionService } from '../../../services/transaction.service';
-import { Transaction, TransactionResponse } from '../../../models/transaction.model';
+import { AccountType, Transaction, TransactionResponse } from '../../../models/transaction.model';
 import { ClientUpdateComponent } from '../client-update/client-update.component';
 import { BusinessCreateComponent } from '../../business/business-create/business-create.component';
 import { BusinessUpdateComponent } from '../../business/business-update/business-update.component';
@@ -32,6 +32,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CollateralCreateComponent } from '../../collateral/collateral-create/collateral-create.component';
 import { CollateralEditComponent } from '../../collateral/collateral-edit/collateral-edit.component';
 import { AccountLimitUpdateComponent } from '../../account/account-limit-update/account-limit-update.component';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { ApiResponse } from 'src/app/models/user.model';
+import { BranchCurrentAccount } from 'src/app/models/branch-account.model';
+import { BranchService } from 'src/app/services/branch.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -54,6 +59,7 @@ import { AccountLimitUpdateComponent } from '../../account/account-limit-update/
 })
 export class ClientDetailComponent implements OnInit {
   @ViewChild('nav') nav!: NgbNav;
+ 
   clientId!: number;
   client: CIF | null = null;
   loading = false;
@@ -123,10 +129,11 @@ export class ClientDetailComponent implements OnInit {
   transactions: Transaction[] = [];
   transactionLoading = false;
   currentPage = 0;
-  pageSize = 3;
+  pageSize = 10;
   totalElements = 0;
   totalPages = 0;
   Math = Math;
+  branchAccount: any;
 
   constructor(
     private route: ActivatedRoute,
@@ -140,7 +147,10 @@ export class ClientDetailComponent implements OnInit {
     private collateralService: CollateralService,
     private financialService: FinancialService,
     private cifAccountService: CIFCurrentAccountService,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private branchService: BranchService,
+    private authService: AuthService,
+
   ) {}
 
   ngOnInit() {
@@ -189,7 +199,7 @@ export class ClientDetailComponent implements OnInit {
       case 5:
         // Balance tab
         this.loadCIFAccount();
-        this.loadTransactions(0);
+        
         break;
     }
   }
@@ -469,6 +479,7 @@ export class ClientDetailComponent implements OnInit {
       next: (account) => {
         this.cifAccount = account;
         this.accountLoading = false;
+        this.loadTransactions(0); 
       },
       error: (error) => {
         console.error('Error loading CIF account:', error);
@@ -546,27 +557,87 @@ export class ClientDetailComponent implements OnInit {
     );
   }
 
-  loadTransactions(page: number) {
-    if (!this.clientId) return;
-    
-    this.transactionLoading = true;
-    this.transactionService.getTransactionsByCifId(this.clientId, page, this.pageSize)
-      .subscribe({
-        next: (response: TransactionResponse) => {
-          this.transactions = response.content;
-          this.totalPages = response.page.totalPages;
-          this.totalElements = response.page.totalElements;
-          this.currentPage = response.page.number;
-          this.pageSize = response.page.size;
-          this.transactionLoading = false;
-        },
-        error: (error) => {
-          console.error('Error loading transactions:', error);
-          this.toastr.error('Failed to load transactions', 'Error');
-          this.transactionLoading = false;
-        }
-      });
+ // Update the loadTransactions method
+loadTransactions(page: number) {
+  if (!this.cifAccount?.id) {
+    this.toastr.warning('Please load account information first');
+    return;
   }
+
+  this.transactionLoading = true;
+  this.transactions = []; // Reset transactions array
+
+  this.transactionService.getTransactionsByCifaccountId(
+    this.cifAccount.id,
+    page,
+    this.pageSize
+  ).subscribe({
+    next: (response: any) => {
+      // Match the response structure
+      this.transactions = response.data?.content || [];
+      this.totalPages = response.data?.totalPages || 0;
+      this.totalElements = response.data?.totalElements || 0;
+      this.currentPage = response.data?.number || 0;
+      this.pageSize = response.data?.size || this.pageSize;
+      this.transactionLoading = false;
+    },
+    error: (error) => {
+      console.error('Error loading transactions:', error);
+      this.toastr.error('Failed to load transactions');
+      this.transactionLoading = false;
+      this.transactions = []; // Ensure empty array on error
+    }
+  });
+  }
+  
+// Add these methods for account code resolution
+private accountCodeCache = new Map<string, Observable<string>>();
+
+getAccountCode(accountId: number, accountType: string): Observable<string> {
+  const cacheKey = `${accountType.toUpperCase()}_${accountId}`;
+  
+  if (this.accountCodeCache.has(cacheKey)) {
+    return this.accountCodeCache.get(cacheKey)!;
+  }
+
+  const request$ = this.createAccountCodeRequest(accountId, accountType).pipe(
+    shareReplay(1),
+    catchError(() => of('N/A'))
+  );
+
+  this.accountCodeCache.set(cacheKey, request$);
+  return request$;
+}
+
+private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
+  switch(accountType.toUpperCase()) {
+    case 'CIF':
+      return this.cifAccountService.getAccountByCifId(accountId).pipe(
+        map((response: any) => response?.data?.accCode || 'N/A'),
+        catchError(() => of('CIF Not Found'))
+      );
+
+    case 'BRANCH':
+      return this.branchService.getBranchAccount(accountId).pipe(
+        map((response: any) => response?.data?.accCode || 'N/A'),
+        catchError(() => of('Branch Not Found'))
+      );
+
+    default:
+      return of('Unknown Account Type');
+  }
+}
+
+isDebit(transaction: Transaction): boolean {
+  return transaction.fromAccountType === AccountType.CIF && 
+         transaction.fromAccountId === this.cifAccount?.id;
+}
+
+isCredit(transaction: Transaction): boolean {
+  return transaction.toAccountType === AccountType.CIF && 
+         transaction.toAccountId === this.cifAccount?.id;
+}
+  
 
   previousPage() {
     if (this.currentPage > 0) {
@@ -599,7 +670,7 @@ export class ClientDetailComponent implements OnInit {
     );
   }
 
-  changeStatus(newStatus: 'active' | 'terminated' | 'retired') {
+  changeStatus(newStatus: 'active' | 'terminated' ) {
     if (this.client && this.client.status !== newStatus) {
       const modalRef = this.modalService.open(ConfirmationModalComponent, {
         centered: true
@@ -683,7 +754,9 @@ export class ClientDetailComponent implements OnInit {
       () => {} // Modal dismissed
     );
   }
-
+  public hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
+  }
   openUpdateBusinessModal() {
     if (!this.selectedCompany) return;
 
@@ -705,6 +778,30 @@ export class ClientDetailComponent implements OnInit {
       () => {} // Modal dismissed
     );
   }
+  //  openTransferModal() {
+  //     if (!this.branch || !this.branchAccount) return;
+  
+  //     const modalRef = this.modalService.open(BranchTransferComponent, {
+  //       size: 'lg',
+  //       centered: true,
+  //       backdrop: 'static'
+  //     });
+  
+  //     modalRef.componentInstance.branch = this.branch;
+  //     modalRef.componentInstance.branchAccount = this.branchAccount;
+  
+  //     modalRef.result.then(
+  //       (result) => {
+  //         if (result) {
+  //           this.loadBranchAccount();
+  //           this.loadCashTransactions(0);
+  //           this.loadTransactions(0);
+  //           this.toastr.success('Transfer completed successfully');
+  //         }
+  //       },
+  //       () => {} // Modal dismissed
+  //     );
+  //   }
 
   openUpdateFinancialModal() {
     if (!this.selectedCompany || !this.financial) {

@@ -5,6 +5,8 @@ import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { SMELoan, SMETerm } from '../models/sme-loan.model';
 import { ApiResponse, PagedResponse } from '../models/common.types';
+import { SMELoanHistory } from '../models/sme-loan-history.interface';
+import { LongOverPaidHistory } from '../models/long-over-paid-history.interface';
 
 interface ConfirmLoanData {
   disbursementAmount: number;
@@ -38,6 +40,54 @@ export class SmeLoanService {
         map(response => response.data)
       );
   }
+  getAllLoansByStatus(status:String,page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<SMELoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<SMELoan>>>(`${this.apiUrl}/all/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  getAllLoansByBranch(branchId:number,page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<SMELoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<SMELoan>>>(`${this.apiUrl}/all/branch/${branchId}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  getAllLoansByBranchAndStatus(branchId:number,status:String,page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<SMELoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<SMELoan>>>(`${this.apiUrl}/all/branch/${branchId}/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  // sme-loan.service.ts
+  getUnder90History(loanId: number, page: number, size: number): 
+  Observable<ApiResponse<PagedResponse<SMELoanHistory>>> {
+  return this.http.get<ApiResponse<PagedResponse<SMELoanHistory>>>(
+    `${environment.apiUrl}/loans/${loanId}/repayment-history/under-90?page=${page}&size=${size}`
+  );
+}
+
+
+getOver90History(loanId: number, page: number, size: number): 
+  Observable<ApiResponse<PagedResponse<LongOverPaidHistory>>> {
+  return this.http.get<ApiResponse<PagedResponse<LongOverPaidHistory>>>(
+    `${environment.apiUrl}/loans/${loanId}/repayment-history/over-90?page=${page}&size=${size}`
+  );
+}
 
   getLoanById(id: number): Observable<SMELoan> {
     return this.http.get<ApiResponse<SMELoan>>(`${this.apiUrl}/getBy/${id}`)

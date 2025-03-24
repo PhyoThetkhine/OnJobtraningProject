@@ -27,6 +27,43 @@ export class UserService {
       );
   }
 
+  getUsersByStatus(status:String,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<User>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+    return this.http.get<ApiResponse<PagedResponse<User>>>(`${this.apiUrl}/allUsers/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
+
+  getUsersByBranch(branchid:number,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<User>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+    return this.http.get<ApiResponse<PagedResponse<User>>>(`${this.apiUrl}/allUsers/branch/${branchid}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  getUsersByBranchAndStatus(status:String,branchid:number,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<User>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+    return this.http.get<ApiResponse<PagedResponse<User>>>(`${this.apiUrl}/allUsers/branch/${branchid}/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
+
   getUserById(id: number): Observable<User> {
     return this.http.get<ApiResponse<User>>(`${this.apiUrl}/findUser/${id}`)
       .pipe(

@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs';
+import { AUTHORITY } from 'src/app/models/role.model';
 import { SMELoan } from 'src/app/models/sme-loan.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { SmeLoanService } from 'src/app/services/sme-loan.service';
 
 @Component({
@@ -14,6 +17,7 @@ export class SmeLoanListComponent implements OnInit {
   loading = true;
   error: string | null = null;
   Math = Math;
+  selectedStatus: string | null = null;
 
   // Pagination
   currentPage = 0;
@@ -24,22 +28,83 @@ export class SmeLoanListComponent implements OnInit {
 
   constructor(
     private smeLoanService: SmeLoanService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.loadLoans();
   }
-
-  loadLoans(page: number = 0): void {
+  onStatusChange(): void {
+    this.currentPage = 0;
+    this.loadLoans();
+  }
+  // loadLoans(page: number = 0): void {
+  //   this.loading = true;
+  //   this.error = null;
+  //   this.smeLoanService.getAllLoans(page, this.pageSize).subscribe({
+  //     next: (response) => {
+  //       this.loans = response.content;
+  //       this.totalElements = response.totalElements;
+  //       this.totalPages = response.totalPages;
+  //       this.currentPage = page;
+  //       this.calculatePages();
+  //       this.loading = false;
+  //     },
+  //     error: (error) => {
+  //       this.error = 'Failed to load loans. Please try again later.';
+  //       this.loading = false;
+  //       console.error('Error loading loans:', error);
+  //     }
+  //   });
+  // }
+  loadLoans(): void {
     this.loading = true;
     this.error = null;
-    this.smeLoanService.getAllLoans(page, this.pageSize).subscribe({
+
+    this.authService.getCurrentUser().pipe(
+      switchMap(currentUser => {
+        if (currentUser.role.authority === AUTHORITY.MainBranchLevel) {
+          if (this.selectedStatus) {
+            return this.smeLoanService.getAllLoansByStatus(
+              this.selectedStatus,
+              this.currentPage,
+              this.pageSize,
+              'id'
+            );
+          } else {
+            return this.smeLoanService.getAllLoans(
+              this.currentPage,
+              this.pageSize,
+              'id'
+            );
+          }
+        } else {
+          const branchId = currentUser.branch.id;
+          if (this.selectedStatus) {
+            return this.smeLoanService.getAllLoansByBranchAndStatus(
+              branchId,
+              this.selectedStatus,
+              this.currentPage,
+              this.pageSize,
+              'id'
+            );
+          } else {
+            return this.smeLoanService.getAllLoansByBranch(
+              branchId,
+              this.currentPage,
+              this.pageSize,
+              'id'
+            );
+          }
+        }
+      })
+    ).subscribe({
       next: (response) => {
         this.loans = response.content;
         this.totalElements = response.totalElements;
         this.totalPages = response.totalPages;
-        this.currentPage = page;
+        this.currentPage = response.number;
         this.calculatePages();
         this.loading = false;
       },
@@ -54,13 +119,12 @@ export class SmeLoanListComponent implements OnInit {
   calculatePages(): void {
     this.pages = Array.from({length: this.totalPages}, (_, i) => i);
   }
-
   onPageChange(page: number): void {
     if (page >= 0 && page < this.totalPages) {
-      this.loadLoans(page);
+      this.currentPage = page;
+      this.loadLoans();
     }
   }
-
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'under_review':

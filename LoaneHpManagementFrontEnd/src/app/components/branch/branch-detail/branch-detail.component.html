@@ -66,7 +66,7 @@
               <h5 class="card-title mb-1">Branch Information</h5>
               <small class="text-muted">Branch Details and Status</small>
             </div>
-            <button class="btn btn-primary" (click)="openUpdateModal()">
+            <button *ngIf="hasPermission('Update Branch Info')" class="btn btn-primary" (click)="openUpdateModal()">
               <i class="bi bi-pencil me-2"></i>Update Branch
             </button>
           </div>
@@ -95,7 +95,8 @@
                 <label class="text-muted">Status</label>
               </div>
               <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm" 
+                <button *ngIf="hasPermission('Update Branch Info')"
+                class="btn btn-outline-secondary btn-sm" 
                         type="button" 
                         data-bs-toggle="dropdown"
                         [disabled]="loading">
@@ -298,7 +299,7 @@
                                 'bg-success': transaction.toAccountId === branchAccount?.id,
                                 'bg-danger': transaction.fromAccountId === branchAccount?.id
                               }">
-                                {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                                {{ transaction.fromAccountId === branchAccount?.id ? 'Debit' : 'Credit' }}
                               </span>
                             </td>
                             <!-- <td>
@@ -636,7 +637,7 @@
                             'bg-success': transaction.toAccountId === branchAccount?.id,
                             'bg-danger': transaction.fromAccountId === branchAccount?.id
                           }">
-                            {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                            {{ transaction.fromAccountId === branchAccount?.id ? 'Debit' : 'Credit' }}
                           </span>
                         </td>
                         <!-- <td>

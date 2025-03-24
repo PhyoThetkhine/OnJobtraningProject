@@ -4,17 +4,22 @@ import { RouterModule } from '@angular/router';
 import { UserService } from '../../../services/user.service';
 import { User } from '../../../models/user.model';
 import { PagedResponse } from '../../../models/common.types';
+import { AuthService } from 'src/app/services/auth.service';
+import { AUTHORITY } from 'src/app/models/role.model';
+import { switchMap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, FormsModule ]
 })
 export class UserListComponent implements OnInit {
   users: User[] = [];
   loading = false;
+  selectedStatus: string | null = null;
   error: string | null = null;
   
   // Pagination
@@ -24,9 +29,16 @@ export class UserListComponent implements OnInit {
   totalPages = 0;
   sortBy = 'id';
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService
+    ,    private authService: AuthService
+  ) {}
 
   ngOnInit() {
+    this.loadUsers();
+  }
+
+  onStatusChange() {
+    this.currentPage = 0; // Reset to first page when filter changes
     this.loadUsers();
   }
 
@@ -34,7 +46,44 @@ export class UserListComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.userService.getUsers(this.currentPage, this.pageSize, this.sortBy).subscribe({
+    this.authService.getCurrentUser().pipe(
+      switchMap(currentUser => {
+        if (currentUser.role.authority === AUTHORITY.MainBranchLevel) {
+          if (this.selectedStatus) {
+            return this.userService.getUsersByStatus(
+              this.selectedStatus,
+              this.currentPage,
+              this.pageSize,
+              this.sortBy
+            );
+          } else {
+            return this.userService.getUsers(
+              this.currentPage,
+              this.pageSize,
+              this.sortBy
+            );
+          }
+        } else {
+          const branchId = currentUser.branch.id;
+          if (this.selectedStatus) {
+            return this.userService.getUsersByBranchAndStatus(
+              this.selectedStatus,
+              branchId,
+              this.currentPage,
+              this.pageSize,
+              this.sortBy
+            );
+          } else {
+            return this.userService.getUsersByBranch(
+              branchId,
+              this.currentPage,
+              this.pageSize,
+              this.sortBy
+            );
+          }
+        }
+      })
+    ).subscribe({
       next: (response: PagedResponse<User>) => {
         this.users = response.content;
         this.totalElements = response.totalElements;
@@ -48,6 +97,7 @@ export class UserListComponent implements OnInit {
       }
     });
   }
+
 
   onPageChange(page: number) {
     this.currentPage = page;

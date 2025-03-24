@@ -87,33 +87,47 @@ public class HPLoanController {
         return ResponseEntity.ok(ApiResponse.success(200, "Loan created successfully", loan));
     }
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> getLoans(
+    public ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> getHpLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
 
         Page<HpLoan> loans = hpLoanService.getLoans(page, size, sortBy);
+        return buildPagedResponse(loans, "HP Loans retrieved successfully");
+    }
 
-        // Map Page<HpLoan> to PagedResponse<HpLoan>
-        PagedResponse<HpLoan> pagedResponse = new PagedResponse<>(
-                loans.getContent(),          // List of loans
-                loans.getTotalPages(),      // Total number of pages
-                loans.getTotalElements(),    // Total number of elements
-                loans.getSize(),            // Size of the current page
-                loans.getNumber(),          // Current page number
-                loans.getNumberOfElements(), // Number of elements in the current page
-                loans.isFirst(),            // Is this the first page?
-                loans.isLast(),             // Is this the last page?
-                loans.isEmpty()             // Is this page empty?
-        );
+    @GetMapping("/all/status/{status}")
+    public ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> getHpLoansByStatus(
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
 
-        ApiResponse<PagedResponse<HpLoan>> response = ApiResponse.success(
-                200,
-                "Loans retrieved successfully",
-                pagedResponse
-        );
+        Page<HpLoan> loans = hpLoanService.getHpLoansByStatus(page, size, sortBy, status);
+        return buildPagedResponse(loans, "HP Loans retrieved successfully");
+    }
 
-        return ResponseEntity.ok(response);
+    @GetMapping("/all/branch/{branchId}")
+    public ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> getHpLoansByBranch(
+            @PathVariable Integer branchId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Page<HpLoan> loans = hpLoanService.getHpLoansByBranch(page, size, sortBy, branchId);
+        return buildPagedResponse(loans, "HP Loans retrieved successfully");
+    }
+
+    @GetMapping("/all/branch/{branchId}/status/{status}")
+    public ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> getHpLoansByBranchAndStatus(
+            @PathVariable Integer branchId,
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Page<HpLoan> loans = hpLoanService.getHpLoansByBranchAndStatus(page, size, sortBy, branchId, status);
+        return buildPagedResponse(loans, "HP Loans retrieved successfully");
     }
     @GetMapping("/getBy/{id}")
     public ResponseEntity<ApiResponse<HpLoan>> getLoanById(@PathVariable int id) {
@@ -161,5 +175,25 @@ public class HPLoanController {
     }
 
 
+    private ResponseEntity<ApiResponse<PagedResponse<HpLoan>>> buildPagedResponse(Page<HpLoan> loans, String message) {
+        PagedResponse<HpLoan> pagedResponse = new PagedResponse<>(
+                loans.getContent(),
+                loans.getTotalPages(),
+                loans.getTotalElements(),
+                loans.getSize(),
+                loans.getNumber(),
+                loans.getNumberOfElements(),
+                loans.isFirst(),
+                loans.isLast(),
+                loans.isEmpty()
+        );
 
+        ApiResponse<PagedResponse<HpLoan>> response = ApiResponse.success(
+                200,
+                message,
+                pagedResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

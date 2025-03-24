@@ -114,6 +114,39 @@ export class CIFService {
         map(response => response.data)
       );
   }
+  getCIFsByBranch(branchid:number,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<CIF>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+    return this.http.get<ApiResponse<PagedResponse<CIF>>>(`${this.apiUrl}/allCIF/branch/${branchid}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  getCIFsByStatus(status:string,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<CIF>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+    return this.http.get<ApiResponse<PagedResponse<CIF>>>(`${this.apiUrl}/allCIF/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+  getCIFsByBranchAdStatus(status:string,branchid:number,page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<CIF>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+    
+      return this.http.get<ApiResponse<PagedResponse<CIF>>>(`${this.apiUrl}/allCIF/branch/${branchid}/status/${status}`, { params })
+      .pipe(
+        map(response => response.data)
+      );
+  }
   getCIFsToSellect(currentUserId: number, searchTerm: string = ''): Observable<CIF[]> {
     const params = { searchTerm };
     return this.http.get<ApiResponse<CIF[]>>(`${this.apiUrl}/allCIFToSelect/${currentUserId}`, { params })
@@ -157,8 +190,8 @@ export class CIFService {
     );
   }
 
-  changeClientStatus(id: number, status: 'active' | 'terminated' | 'retired'): Observable<CIF> {
-    return this.http.put<ApiResponse<CIF>>(`${this.apiUrl}/status/${id}`, { status })
+  changeClientStatus(cifid: number, status: string): Observable<CIF> {
+    return this.http.put<ApiResponse<CIF>>(`${this.apiUrl}/status/${cifid}`, { status })
       .pipe(
         map(response => response.data)
       );

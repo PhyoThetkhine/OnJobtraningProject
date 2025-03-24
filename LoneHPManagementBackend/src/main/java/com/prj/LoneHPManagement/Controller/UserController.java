@@ -118,6 +118,85 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/allUsers/status/{status}") //GET http://localhost:8080/api/user/users?page=0&size=20&sortBy=id
+    public ResponseEntity<?> getUserByStatusPagination(
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<User> users = userService.getUsersByStatus(status,pageable);
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("content", users.getContent());
+        responseData.put("totalPages", users.getTotalPages());
+        responseData.put("totalElements", users.getTotalElements());
+        responseData.put("size", users.getSize());
+        responseData.put("number", users.getNumber());
+        responseData.put("numberOfElements", users.getNumberOfElements());
+        responseData.put("first", users.isFirst());
+        responseData.put("last", users.isLast());
+        responseData.put("empty", users.isEmpty());
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("user    List");
+        response.setData(responseData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/allUsers/branch/{branchId}") //GET http://localhost:8080/api/user/users?page=0&size=20&sortBy=id
+    public ResponseEntity<?> getUserByBrachPagination(
+            @PathVariable Integer branchId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<User> users = userService.getUsersByBranchId(branchId,pageable);
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("content", users.getContent());
+        responseData.put("totalPages", users.getTotalPages());
+        responseData.put("totalElements", users.getTotalElements());
+        responseData.put("size", users.getSize());
+        responseData.put("number", users.getNumber());
+        responseData.put("numberOfElements", users.getNumberOfElements());
+        responseData.put("first", users.isFirst());
+        responseData.put("last", users.isLast());
+        responseData.put("empty", users.isEmpty());
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("user    List");
+        response.setData(responseData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/allUsers/branch/{branchid}/status/{status}") //GET http://localhost:8080/api/user/users?page=0&size=20&sortBy=id
+    public ResponseEntity<?> getUserByBrachAndStatusPagination(
+            @PathVariable Integer branchid,
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<User> users = userService.getUsersByBranchIdAndStatus(branchid,status,pageable);
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("content", users.getContent());
+        responseData.put("totalPages", users.getTotalPages());
+        responseData.put("totalElements", users.getTotalElements());
+        responseData.put("size", users.getSize());
+        responseData.put("number", users.getNumber());
+        responseData.put("numberOfElements", users.getNumberOfElements());
+        responseData.put("first", users.isFirst());
+        responseData.put("last", users.isLast());
+        responseData.put("empty", users.isEmpty());
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("user    List");
+        response.setData(responseData);
+        return ResponseEntity.ok(response);
+    }
+
 
     @Autowired
     private UserRepository userRepository;

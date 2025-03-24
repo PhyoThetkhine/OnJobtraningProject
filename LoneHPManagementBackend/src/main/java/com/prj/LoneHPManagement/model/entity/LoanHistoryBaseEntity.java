@@ -31,12 +31,12 @@ public abstract class LoanHistoryBaseEntity {
     private BigDecimal iodPaid; // Interest on overdue
     @Column(name = "interest_late_fee_paid", precision = 32, scale = 2, nullable = false)
     private BigDecimal interestLateFeePaid;
-    @Column(name = "principal_late_fee_paid", precision = 32, scale = 2, nullable = false)
-    private BigDecimal principalLateFeePaid;
+
     @Column(name = "total_paid", precision = 32, scale = 2, nullable = false)
     private BigDecimal totalPaid; // principal + interest + late fee + IOD
-    @Column(name = "term_status", nullable = false)
-    private int termStatus;
+    @Column(name = "interest_late_day", nullable = false)
+    private int interestLateDays;
+
 
     public BigDecimal getPaidAmount() {
         return paidAmount;
@@ -94,13 +94,7 @@ public abstract class LoanHistoryBaseEntity {
         this.interestLateFeePaid = interestLateFeePaid;
     }
 
-    public BigDecimal getPrincipalLateFeePaid() {
-        return principalLateFeePaid;
-    }
 
-    public void setPrincipalLateFeePaid(BigDecimal principalLateFeePaid) {
-        this.principalLateFeePaid = principalLateFeePaid;
-    }
 
     public BigDecimal getTotalPaid() {
         return totalPaid;
@@ -110,13 +104,6 @@ public abstract class LoanHistoryBaseEntity {
         this.totalPaid = totalPaid;
     }
 
-    public int getTermStatus() {
-        return termStatus;
-    }
-
-    public void setTermStatus(int termStatus) {
-        this.termStatus = termStatus;
-    }
 
     @PrePersist
     protected void prePersist() {
@@ -126,8 +113,7 @@ public abstract class LoanHistoryBaseEntity {
         if (principalPaid == null) principalPaid = BigDecimal.ZERO;
         if (interestPaid == null) interestPaid = BigDecimal.ZERO;
         if (iodPaid == null) iodPaid = BigDecimal.ZERO;
-        if (interestLateFeePaid == null) interestLateFeePaid = BigDecimal.ZERO;
-        if (principalLateFeePaid == null) principalLateFeePaid = BigDecimal.ZERO;
+
         if (totalPaid == null) totalPaid = BigDecimal.ZERO;
     }
 }

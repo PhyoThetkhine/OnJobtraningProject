@@ -47,21 +47,21 @@
           </div>
 
           <!-- Created By section -->
-          <div class="info-item mb-3" *ngIf="loan.createdUser">
+          <div class="info-item mb-3" *ngIf="createdUser">
             <div class="d-flex align-items-center">
               <i class="bi bi-person-fill text-primary me-2"></i>
               <label class="text-muted">Created By</label>
             </div>
             <div class="created-user-info ms-4 d-flex align-items-center">
               <div class="created-user-photo me-3">
-                <img [src]="loan.createdUser.photo || 'assets/images/user-placeholder.jpg'"
-                     [alt]="loan.createdUser.name"
+                <img [src]="createdUser.photo || 'assets/images/user-placeholder.jpg'"
+                     [alt]="createdUser.name"
                      class="rounded-circle"
                      style="width: 40px; height: 40px; object-fit: cover;">
               </div>
               <div>
-                <p class="mb-0 fw-medium">{{ loan.createdUser.name }}</p>
-                <small class="text-muted">{{ loan.createdUser.userCode }}</small>
+                <p class="mb-0 fw-medium">{{ createdUser.name }}</p>
+                <small class="text-muted">{{ createdUser.userCode }}</small>
               </div>
             </div>
           </div>
@@ -364,7 +364,109 @@
 
           <!-- Repayment History Tab -->
           <div *ngIf="activeTab === 'repayment-history'">
-            <p class="text-muted text-center">Repayment history will be available after loan disbursement.</p>
+            <div *ngIf="activeTab === 'repayment-history'">
+              <!-- Under 90 Days Table -->
+              <div class="mb-5">
+                <h5 class="text-primary mb-3">
+                  <i class="bi bi-clock-history me-2"></i>Under 90 Days Late
+                  <span *ngIf="loadingUnder" class="spinner-border spinner-border-sm"></span>
+                </h5>
+                
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Term Number</th>
+                        <th>Paid Date</th>
+                        <th>Principal Paid</th>
+                        <th>Interest Paid</th>
+                        <th>IOD Paid</th>
+                        <th>Late Fee Paid</th>
+                        <th>Late Days</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let hist of under90History">
+                 
+                        <td>Term {{ hist.termNumber ?? 'N/A' }}</td>
+                        <td>{{ hist.paidDate | date:'mediumDate' }}</td>
+                        <td>{{ hist.principalPaid | currency:'MMK ' }}</td>
+                        <td>{{ hist.interestPaid | currency:'MMK ' }}</td>
+                        <td>{{ hist.iodPaid | currency:'MMK ' }}</td>
+                        <td>{{ hist.interestLateFeePaid | currency:'MMK ' }}</td>
+                        <td>{{ hist.interestLateDays }}</td>
+                      </tr>
+                      <tr *ngIf="!loadingUnder && under90History.length === 0">
+                        <td colspan="10" class="text-center text-muted">No under 90 days late payments</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <div>Showing {{ under90History.length }} of {{ under90Total }}</div>
+                  <nav>
+                    <ul class="pagination">
+                      <li class="page-item" [class.disabled]="under90CurrentPage === 0">
+                        <a class="page-link" (click)="onUnderPageChange(under90CurrentPage - 1)">Previous</a>
+                      </li>
+                      <li class="page-item" [class.disabled]="(under90CurrentPage + 1) * pageSize >= under90Total">
+                        <a class="page-link" (click)="onUnderPageChange(under90CurrentPage + 1)">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            
+              <!-- Over 90 Days Table -->
+              <div class="mb-4">
+                <h5 class="text-danger mb-3">
+                  <i class="bi bi-exclamation-triangle me-2"></i>90+ Days Late
+                  <span *ngIf="loadingOver" class="spinner-border spinner-border-sm"></span>
+                </h5>
+                
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Paid Date</th>
+                        <th>Amount</th>
+                        <th>Late Days</th>
+                        <th>Late Fee</th>
+                        <th>Outstanding</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let hist of over90History">
+                        <td>{{ hist.paidDate | date:'mediumDate' }}</td>
+                        <td>{{ hist.paidAmount | currency:'MMK ' }}</td>
+                        <td>{{ hist.lateDays }}</td>
+                        <td>{{ hist.lateFeeAmount | currency:'MMK ' }}</td>
+                        <td>{{ hist.outstandingAmount | currency:'MMK ' }}</td>
+                      </tr>
+                      <tr *ngIf="!loadingOver && over90History.length === 0">
+                        <td colspan="5" class="text-center text-muted">No over 90 days late payments</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <div>Showing {{ over90History.length }} of {{ over90Total }}</div>
+                  <nav>
+                    <ul class="pagination">
+                      <li class="page-item" [class.disabled]="over90CurrentPage === 0">
+                        <a class="page-link" (click)="onOverPageChange(over90CurrentPage - 1)">Previous</a>
+                      </li>
+                      <li class="page-item" [class.disabled]="(over90CurrentPage + 1) * pageSize >= over90Total">
+                        <a class="page-link" (click)="onOverPageChange(over90CurrentPage + 1)">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+
+            </div>
           </div>
 
           <!-- Collateral Tab -->

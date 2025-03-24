@@ -41,41 +41,87 @@
               <div class="card-body">
                 <h5 class="card-title mb-4">Basic Information</h5>
                 
+             
                 <div class="mb-3">
                   <label class="form-label">Name</label>
-                  <input type="text" class="form-control" formControlName="name">
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Email</label>
-                  <input type="email" class="form-control" formControlName="email">
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Phone Number</label>
-                  <input type="text" 
-                         class="form-control" 
-                         formControlName="phoneNumber"
-                         [class.is-invalid]="isFieldInvalid('phoneNumber')"
-                         placeholder="09xxxxxxxxx">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber')">
-                    {{ getErrorMessage('phoneNumber') }}
+                  <input type="text" class="form-control" formControlName="name"
+                         [class.is-invalid]="isFieldInvalid('name')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                    {{ getErrorMessage('name') }}
                   </div>
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Date of Birth</label>
-                  <input type="date" class="form-control" formControlName="dateOfBirth">
+                  <label class="form-label">Email</label>
+                  <div class="input-group">
+                    <input type="email" class="form-control" formControlName="email"
+                           [class.is-invalid]="isFieldInvalid('email')">
+                    <div class="input-group-append" *ngIf="userForm.get('email')?.pending">
+                      <span class="input-group-text">
+                        <i class="bi bi-hourglass-split"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+                    <!-- Update this part -->
+                    <span *ngIf="userForm.get('email')?.errors?.['required']">
+                      Email is required
+                    </span>
+                    <span *ngIf="userForm.get('email')?.errors?.['email']">
+                      Invalid email format
+                    </span>
+                    <span *ngIf="userForm.get('email')?.errors?.['duplicateEmail']">
+                      Email already exists
+                    </span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Phone Number</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" formControlName="phoneNumber"
+                           [class.is-invalid]="isFieldInvalid('phoneNumber')">
+                    <div class="input-group-append" *ngIf="userForm.get('phoneNumber')?.pending">
+                      <span class="input-group-text">
+                        <i class="bi bi-hourglass-split"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber')">
+                    <!-- Update this part -->
+                    <span *ngIf="userForm.get('phoneNumber')?.errors?.['required']">
+                      Phone number is required
+                    </span>
+                    <span *ngIf="userForm.get('phoneNumber')?.errors?.['duplicatePhone']">
+                      Phone number already exists
+                    </span>
+                    <span *ngIf="userForm.get('phoneNumber')?.errors?.['pattern']">
+                      Invalid phone number format
+                    </span>
+                  </div>
                 </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Gender</label>
-                  <select class="form-select" formControlName="gender">
-                    <option value="">Select Gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                  </select>
-                </div>
+                  <div class="mb-3">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" formControlName="dateOfBirth"
+                           [class.is-invalid]="isFieldInvalid('dateOfBirth')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
+                      {{ getErrorMessage('dateOfBirth') }}
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select" formControlName="gender"
+                            [class.is-invalid]="isFieldInvalid('gender')">
+                      <option value="">Select Gender</option>
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('gender')">
+                      {{ getErrorMessage('gender') }}
+                    </div>
+                  </div>
+  
 
                 <div class="mb-3">
                   <label class="form-label">Branch</label>
@@ -146,7 +192,7 @@
                               [class.is-invalid]="isFieldInvalid('nrcTownship')">
                         <option value="">Select Township</option>
                         <option *ngFor="let township of filteredTownships" [value]="township.name_en">
-                          {{ township.name_en }} ({{ township.name_mm }}) - [{{ township.nrc_code }}]
+                          {{ township.name_en }} 
                         </option>
                       </select>
                       <div class="invalid-feedback" *ngIf="isFieldInvalid('nrcTownship')">

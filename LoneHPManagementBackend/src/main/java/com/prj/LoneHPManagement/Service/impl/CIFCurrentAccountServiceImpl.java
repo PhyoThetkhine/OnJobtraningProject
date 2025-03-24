@@ -1,13 +1,13 @@
 package com.prj.LoneHPManagement.Service.impl;
-import com.prj.LoneHPManagement.model.entity.CIFCurrentAccount;
+import com.prj.LoneHPManagement.model.entity.*;
 
 import com.prj.LoneHPManagement.Service.CIFCurrentAccountService;
 
-import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
-import com.prj.LoneHPManagement.model.entity.UserCurrentAccount;
 import com.prj.LoneHPManagement.model.exception.AccountNotFoundException;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
+import com.prj.LoneHPManagement.model.exception.UserNotFoundException;
 import com.prj.LoneHPManagement.model.repo.CIFCurrentAccountRepository;
+import com.prj.LoneHPManagement.model.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +20,8 @@ public class CIFCurrentAccountServiceImpl implements CIFCurrentAccountService {
 
     @Autowired
     private CIFCurrentAccountRepository cifCurrentAccountRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public CIFCurrentAccount changeFreezeStatus(int accountId, String status) {
@@ -78,8 +80,17 @@ public class CIFCurrentAccountServiceImpl implements CIFCurrentAccountService {
         return cifCurrentAccountRepository.findByBranchCode(branchCode, pageable);
     }
     @Override
-    public List<CIFCurrentAccount> getByBranchCode(String branchCode){
-        return cifCurrentAccountRepository.findByBranchCode(branchCode);
+    public List<CIFCurrentAccount> getByBranchCode(String branchCode, int userid) {
+        User user = userRepository.findById(userid)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Role.AUTHORITY authority = user.getRole().getAuthority();
+        if (authority == Role.AUTHORITY.MainBranchLevel) {
+            return cifCurrentAccountRepository.findAll();
+        } else {
+
+            return cifCurrentAccountRepository.findByBranchCode(branchCode);
+        }
     }
 
 //    @Override

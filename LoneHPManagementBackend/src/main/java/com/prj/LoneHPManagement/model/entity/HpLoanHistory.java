@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Setter
 @Getter
 @AllArgsConstructor
@@ -20,6 +22,12 @@ public class HpLoanHistory extends LoanHistoryBaseEntity {
     @ManyToOne
     @JoinColumn(name = "hp_term_id", nullable = false)
     private HpTerm hpTerm;
+    @Column(name = "principal_late_fee_paid", precision = 32, scale = 2, nullable = false)
+    private BigDecimal principalLateFeePaid;
+    @Column(name = "pod_paid", precision = 32, scale = 2, nullable = false)
+    private BigDecimal iodPaid; // Interest on overdue
+    @Column(name = "principa_late_day", nullable = false)
+    private int principalLateDays;
 
     public int getId() {
         return id;

@@ -22,12 +22,12 @@ export class TransactionService {
     return this.http.get<TransactionResponse>(`${this.apiUrl}/user/${userId}`, { params });
   }
 
-  getTransactionsByCifId(cifId: number, page: number, pageSize: number, sortBy: string = 'transactionDate'): Observable<TransactionResponse> {
+  getTransactionsByCifaccountId(accountId: number, page: number, pageSize: number, sortBy: string = 'transactionDate'): Observable<TransactionResponse> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', pageSize.toString())
       .set('sortBy', sortBy);
-    return this.http.get<TransactionResponse>(`${this.apiUrl}/cif/${cifId}`, { params });
+    return this.http.get<TransactionResponse>(`${this.apiUrl}/account/cif/${accountId}`, { params });
   }
 
   getTransactionsByAccountId(accountId: number, page: number, pageSize: number, sortBy: string = 'transactionDate'):Observable<ApiResponse<{ content: Transaction[], totalElements: number, totalPages: number, number: number, size: number }>> {
@@ -36,6 +36,13 @@ export class TransactionService {
       .set('size', pageSize.toString())
       .set('sortBy', sortBy);
     return this.http.get<ApiResponse<{ content: Transaction[], totalElements: number, totalPages: number, number: number, size: number }>>(`${this.apiUrl}/account/${accountId}`, { params });
+  }
+  getTransactionsByBranchAccountId(accountId: number, page: number, pageSize: number, sortBy: string = 'transactionDate'):Observable<ApiResponse<{ content: Transaction[], totalElements: number, totalPages: number, number: number, size: number }>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', pageSize.toString())
+      .set('sortBy', sortBy);
+    return this.http.get<ApiResponse<{ content: Transaction[], totalElements: number, totalPages: number, number: number, size: number }>>(`${this.apiUrl}/account/branch/${accountId}`, { params });
   }
  
 

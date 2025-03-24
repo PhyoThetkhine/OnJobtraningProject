@@ -34,8 +34,8 @@ export class CIFCurrentAccountService {
     );
   }
 
-  getBranchCIFAccounts(branchCode: string): Observable<CIFCurrentAccount[]> {
-    return this.http.get<ApiResponse<CIFCurrentAccount[]>>(`${this.apiUrl}/getByBranchCode/${branchCode}`)
+  getBranchCIFAccounts(branchCode: string, userid: number): Observable<CIFCurrentAccount[]> {
+    return this.http.get<ApiResponse<CIFCurrentAccount[]>>(`${this.apiUrl}/getByBranchCode/${branchCode}/${userid}`)
       .pipe(
         map(response => response.data)
       );

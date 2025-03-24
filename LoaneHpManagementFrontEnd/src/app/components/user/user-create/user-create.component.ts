@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule, AsyncValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { forkJoin, firstValueFrom, Subject, Observable, map } from 'rxjs';
 import { UserService } from '../../../services/user.service';
 import { NrcService, NrcTownship } from '../../../services/nrc.service';
 import { CloudinaryService } from '../../../services/cloudinary.service';
@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth.service';
 import { AUTHORITY } from 'src/app/models/role.model';
+import { CIFService } from 'src/app/services/cif.service';
 
 @Component({
   selector: 'app-user-create',
@@ -44,7 +45,10 @@ export class UserCreateComponent implements OnInit {
   profileImagePreview: string | null = null;
   nrcFrontPreview: string | null = null;
   nrcBackPreview: string | null = null;
-
+  
+private destroy$ = new Subject<void>();
+  private existingEmails: Set<string> = new Set();
+  private existingPhoneNumbers: Set<string> = new Set();
   // Custom validators
   private phoneNumberPattern = /^(09|959|\+959)\d{7,9}$/;
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -60,6 +64,7 @@ export class UserCreateComponent implements OnInit {
     private roleService: RoleService,
     private toastr: ToastrService,
     private authService:AuthService,
+        private cifService: CIFService,
   ) {
     this.createForm();
   }
@@ -74,8 +79,16 @@ export class UserCreateComponent implements OnInit {
         id: [this.currentUser?.id || 0] // Initialize with current user ID
       }),
       name: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.pattern(this.emailPattern)]],
-      phoneNumber: ['', [Validators.required, Validators.pattern(this.phoneNumberPattern)]],
+      email: ['', {
+        validators: [Validators.required, Validators.email],
+        asyncValidators: [this.duplicateEmailValidator()],
+        updateOn: 'blur'
+      }],
+      phoneNumber: ['', {
+        validators: [Validators.required],
+        asyncValidators: [this.duplicatePhoneValidator()],
+        updateOn: 'blur'
+      }],
       photo: [''],
       photoFile: [''],
       nrcState: ['', Validators.required],
@@ -106,6 +119,27 @@ export class UserCreateComponent implements OnInit {
     });
   }
 
+  private duplicateEmailValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      return this.cifService.getAllUniqueEmails().pipe(
+        map(emails => {
+          const isDuplicate = emails.has(control.value);
+          return isDuplicate ? { duplicateEmail: true } : null;
+        })
+      );
+    };
+  }
+
+  private duplicatePhoneValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      return this.cifService.getAllUniquePhoneNumbers().pipe(
+        map(phones => {
+          const isDuplicate = phones.has(control.value);
+          return isDuplicate ? { duplicatePhone: true } : null;
+        })
+      );
+    };
+  }
   private loadInitialData() {
     this.loading = true;
     
@@ -284,13 +318,13 @@ export class UserCreateComponent implements OnInit {
       next: (branches) => {
         console.log('Branches loaded:', branches);
         this.branches = branches;
-        
-        // Set default branch if user is not from Main Branch
-        if (this.currentUser && this.currentUser.branchName !== 'Main Branch') {
+  
+        // Set default branch if user is RegularBranchLevel
+        if (this.isRegularBranchUser()) {
           const userBranch = this.branches.find(
-            branch => branch.branchName === this.currentUser?.branchName
+            branch => branch.id === this.currentUser?.branch?.id
           );
-          
+  
           if (userBranch) {
             console.log('Setting branch:', userBranch);
             const branchControl = this.userForm.get('branchId');
@@ -307,7 +341,6 @@ export class UserCreateComponent implements OnInit {
       }
     });
   }
-
   // Image preview handlers
   onProfilePhotoSelected(event: any) {
     const file = event.target.files[0];
@@ -448,7 +481,6 @@ export class UserCreateComponent implements OnInit {
     const field = this.userForm.get(fieldName);
     return field ? (field.invalid && (field.dirty || field.touched)) : false;
   }
-
   getErrorMessage(fieldName: string): string {
     const control = this.userForm.get(fieldName);
     if (control?.errors) {
@@ -458,14 +490,17 @@ export class UserCreateComponent implements OnInit {
       if (control.errors['email']) {
         return 'Please enter a valid email address';
       }
+      if (control.errors['duplicateEmail']) {
+        return 'This email is already registered';
+      }
+      if (control.errors['duplicatePhone']) {
+        return 'This phone number is already registered';
+      }
       if (control.errors['pattern']) {
         if (fieldName === 'phoneNumber') {
-          return 'Please enter a valid Myanmar phone number (e.g., 09123456789)';
+          return 'Please enter a valid Myanmar phone number (09xxxxxxxx)';
         }
-        if (fieldName === 'nrcNumber') {
-          return 'Please enter 6 digits';
-        }
-        return 'Please enter a valid format';
+        return 'Invalid format';
       }
     }
     return '';
@@ -520,5 +555,15 @@ export class UserCreateComponent implements OnInit {
     return this.isRegularBranchUser() 
       ? 'You can only assign regular branch level roles' 
       : 'You can assign any role';
+  }
+  private loadExistingData() {
+    // Load existing emails and phone numbers
+    this.cifService.getAllUniqueEmails().subscribe(emails => {
+      this.existingEmails = emails;
+    });
+
+    this.cifService.getAllUniquePhoneNumbers().subscribe(phones => {
+      this.existingPhoneNumbers = phones;
+    });
   }
 }

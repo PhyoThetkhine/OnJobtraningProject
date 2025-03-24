@@ -56,34 +56,12 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.findTransactionsByUserId(userId, pageable);
     }
     @Override
-    public Page<Transaction> getTransactionsByCifId(
-            int userId,
-            int page,
-            int size,
-            String sortBy
-    ) {
-        // Sort by transactionDate in descending order
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(Sort.Direction.DESC, "transactionDate")
-        );
-        return transactionRepository.findTransactionByCifId(userId, pageable);
+    public Page<Transaction> getCifTransactions(int cifAccountId, Pageable pageable) {
+        return transactionRepository.findCifTransactions(cifAccountId, pageable);
     }
     @Override
-    public Page<Transaction> getTransactionsByBranchId(
-            int branchId,
-            int page,
-            int size,
-            String sortBy
-    ) {
-        // Sort by transactionDate in descending order
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(Sort.Direction.DESC, "transactionDate")
-        );
-        return transactionRepository.findTransactionByBranchId(branchId, pageable);
+    public Page<Transaction> getBranchTransactions(int branchAccountId, Pageable pageable) {
+        return transactionRepository.findBranchTransactions(branchAccountId, pageable);
     }
     @Override
     public Page<Transaction> getTransactionsByAccount(int accountId, Pageable pageable) {
@@ -132,28 +110,32 @@ public class TransactionServiceImpl implements TransactionService {
         }else if (request.getFromAccountType() == Transaction.AccountType.BRANCH &&
                 request.getToAccountType() == Transaction.AccountType.BRANCH) {
 
-            // Retrieve the source branch account
-            BranchCurrentAccount sourceBranchAccount = branchCurrentAccountRepository
-                    .findByBranch_Id(request.getFromAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("Source branch account not found"));
-
-            // Validate sufficient funds in the source account (assuming validateBranchSender exists, or you can perform inline validation)
-            if (sourceBranchAccount.getBalance().compareTo(request.getAmount()) < 0) {
-                throw new ServiceException("Insufficient funds in source branch account");
+            // 1. Prevent same account transfer
+            if (request.getFromAccountId() == request.getToAccountId()) {
+                throw new ServiceException("Cannot transfer to the same account");
             }
 
-            // Debit source branch account
-            sourceBranchAccount.setBalance(sourceBranchAccount.getBalance().subtract(request.getAmount()));
-            branchCurrentAccountRepository.save(sourceBranchAccount);
+            // 2. Get source ACCOUNT (using account ID)
+            BranchCurrentAccount sourceAccount = branchCurrentAccountRepository
+                    .findById(request.getFromAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("Source branch account not found"));
 
-            // Retrieve the destination branch account
-            BranchCurrentAccount destinationBranchAccount = branchCurrentAccountRepository
+            // 3. Validate source balance
+            if (sourceAccount.getBalance().compareTo(request.getAmount()) < 0) {
+                throw new ServiceException("Insufficient funds in source account");
+            }
+
+            // 4. Get destination ACCOUNT (using account ID)
+            BranchCurrentAccount destAccount = branchCurrentAccountRepository
                     .findById(request.getToAccountId())
                     .orElseThrow(() -> new AccountNotFoundException("Destination branch account not found"));
 
-            // Credit destination branch account
-            destinationBranchAccount.setBalance(destinationBranchAccount.getBalance().add(request.getAmount()));
-            branchCurrentAccountRepository.save(destinationBranchAccount);
+            // 5. Perform transfer
+            sourceAccount.setBalance(sourceAccount.getBalance().subtract(request.getAmount()));
+            destAccount.setBalance(destAccount.getBalance().add(request.getAmount()));
+
+            // 6. Save both accounts
+            branchCurrentAccountRepository.saveAll(List.of(sourceAccount, destAccount));
         }
 
 

@@ -19,6 +19,14 @@
     </button>
     <div class="d-flex">
       <div class="input-group">
+        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+          <option [ngValue]="null">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="terminated">Terminated</option>
+          <option value="retired">Retired</option>
+        </select>
+      </div>
+      <div class="input-group">
         <input type="text" class="form-control" placeholder="Search...">
         <button class="btn btn-outline-secondary" type="button">
           <i class="bi bi-search"></i>

@@ -591,7 +591,7 @@ public class HPAutoPaymentServiceImpl {
 //        history.setInterestLateFee(term.getInterestLateFee());
 //        history.setPrincipalLateFee(term.getPrincipalLateFee());
         history.setTotalPaid(totalPaid);
-        history.setTermStatus(term.getStatus());
+
 
         hpLoanHistoryRepository.save(history);
     }

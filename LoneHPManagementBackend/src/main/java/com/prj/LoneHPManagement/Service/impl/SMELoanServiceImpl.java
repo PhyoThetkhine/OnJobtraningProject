@@ -60,6 +60,8 @@ public class SMELoanServiceImpl implements SMELoanService {
     private CodeGenerateService codeGenerateService;
     @Autowired
     private LoanCollateralRepository loanCollateralRepository;
+    @Autowired
+    private BranchRepository branchRepository;
 
     @Override
     public Page<SMELoan> getSMELoansByCif(int cifId, int page, int size, String sortBy) {
@@ -143,6 +145,58 @@ public class SMELoanServiceImpl implements SMELoanService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return smeLoanRepository.findAllSortedByApplicationDate(pageable);
     }
+
+    @Override
+    public Page<SMELoan> getSMELoansByBranch(int page, int size, String sortBy, Integer branchId) {
+        Branch branch = branchRepository.findById(branchId) .orElseThrow(() -> new ServiceException("User not found with ID: " +branchId ));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return smeLoanRepository.findByBranchCode(branch.getBranchCode(),pageable);
+    }
+    @Override
+    public Page<SMELoan> getSMELoansByBranchAndStatus(int page, int size, String sortBy, Integer branchId,String status) {
+        Branch branch = branchRepository.findById(branchId) .orElseThrow(() -> new ServiceException("User not found with ID: " +branchId ));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "under_review":
+                statusCode = ConstraintEnum.UNDER_REVIEW.getCode();
+                break;
+            case "rejected":
+                statusCode = ConstraintEnum.REJECTED.getCode();
+                break;
+            case "paid_off":
+                statusCode = ConstraintEnum.PAID_OFF.getCode();
+                break;
+            case "under_schedule":
+                statusCode = ConstraintEnum.UNDER_SCHEDULE.getCode();
+                break;
+            default:
+        }
+        return smeLoanRepository.findByBranchCodeAndStatus(branch.getBranchCode(),pageable,statusCode);
+    }
+
+    @Override
+    public Page<SMELoan> getSMELoansByStatus(int page, int size, String sortBy, String status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "under_review":
+                statusCode = ConstraintEnum.UNDER_REVIEW.getCode();
+                break;
+            case "rejected":
+                statusCode = ConstraintEnum.REJECTED.getCode();
+                break;
+            case "paid_off":
+                statusCode = ConstraintEnum.PAID_OFF.getCode();
+                break;
+            case "under_schedule":
+                statusCode = ConstraintEnum.UNDER_SCHEDULE.getCode();
+                break;
+            default:
+        }
+        return smeLoanRepository.findByStatus(statusCode,pageable);
+    }
+
 
     @Override
     public void confirmLoan(Integer loanId) {

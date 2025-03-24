@@ -100,7 +100,9 @@ export class UserDetailComponent implements OnInit {
     });
   }
 
- 
+  public hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
+  }
 
   loadRoles() {
     this.loading = true;

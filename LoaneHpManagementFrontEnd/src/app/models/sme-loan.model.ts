@@ -20,6 +20,7 @@ export interface SMETerm {
   lastRepayment: number;
   lastRepayDate: Date | null;
   status: string;
+  termNumber: number; 
 }
 
 export interface SMELoan {

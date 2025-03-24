@@ -6,10 +6,7 @@ import com.prj.LoneHPManagement.model.dto.AddressDTO;
 import com.prj.LoneHPManagement.model.dto.ClientRegistrationDTO;
 import com.prj.LoneHPManagement.model.dto.UpdatedCifDTO;
 import com.prj.LoneHPManagement.model.entity.*;
-import com.prj.LoneHPManagement.model.exception.AddressNotFoundException;
-import com.prj.LoneHPManagement.model.exception.CifNotFoundException;
-import com.prj.LoneHPManagement.model.exception.ServiceException;
-import com.prj.LoneHPManagement.model.exception.UserNotFoundException;
+import com.prj.LoneHPManagement.model.exception.*;
 import com.prj.LoneHPManagement.model.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +24,7 @@ import java.util.Set;
 
 @Service
 public class CIFService {
+
 
     @Autowired
     private CIFRepository cifRepository;
@@ -160,6 +158,18 @@ public class CIFService {
 
         return savedCIF;
     }
+    public CIF changeUserStatus(int userId, int statusCode) {
+        // Retrieve user from repository
+        CIF cif = cifRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("CIF not found"));
+        // Set the new status code
+        cif.setStatus(statusCode);
+        cif.setUpdatedDate(LocalDateTime.now());
+        // Save changes
+        cifRepository.save(cif);
+        // Convert the updated entity to a DTO (using your conversion logic)
+        return cif;
+    }
     public CIF updateCIF(int id, UpdatedCifDTO updatedCifDTO) {
         // Find the existing CIF record or throw an exception if not found
         CIF existingCif = cifRepository.findById(id)
@@ -206,6 +216,37 @@ public class CIFService {
     public Page<CIF> getAllCIFs(Pageable pageable){
         return cifRepository.findAll(pageable);
     }
+    public Page<CIF> getAllBystatus(String status,Pageable pageable){
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "active":
+                statusCode = ConstraintEnum.ACTIVE.getCode();
+                break;
+            case "terminated":
+                statusCode = ConstraintEnum.TERMINATED.getCode();
+                break;
+
+            default:
+
+        }
+        return cifRepository.findByStatus(statusCode,pageable);
+    }
+    public Page<CIF> getAllByBranchAndstatus(Integer branchId,String status,Pageable pageable){
+        int statusCode = 0;
+        switch(status.toLowerCase()) {
+            case "active":
+                statusCode = ConstraintEnum.ACTIVE.getCode();
+                break;
+            case "terminated":
+                statusCode = ConstraintEnum.TERMINATED.getCode();
+                break;
+
+            default:
+
+        }
+        Branch branch = branchRepository.findById(branchId) .orElseThrow(() -> new ServiceException("branch not found"));
+        return cifRepository.findByBranchCodeAndStatus(branch.getBranchCode(),statusCode,pageable);
+    }
 
     public CIF registerCIF(CIF cif, int addressId, int createdUserId) {
 
@@ -242,6 +283,10 @@ public class CIFService {
     public Page<CIF> getCIFsByBranchCode(String branchCode, Pageable pageable) {
         return cifRepository.findByBranchCode(branchCode, pageable);
 
+    }
+    public Page<CIF> getByBranch(Integer branchid, Pageable pageable){
+        Branch branch = branchRepository.findById(branchid) .orElseThrow(() -> new UserNotFoundException("Branch not found with id: " + branchid));
+        return cifRepository.findByBranchCode(branch.getBranchCode(), pageable);
     }
     public List<CIF> getCIFForSelect(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {

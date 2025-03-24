@@ -18,6 +18,15 @@
       <i class="bi bi-plus"></i> Create HP Loan
     </button>
     <div class="d-flex">
+      <div class="input-group ms-2">
+        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+          <option [ngValue]="null">All Statuses</option>
+          <option value="under_review">Under Review</option>
+          <option value="rejected">Rejected</option>
+          <option value="paid_off">Paid Off</option>
+          <option value="under_schedule">Under Schedule</option>
+        </select>
+      </div>
       <div class="input-group">
         <input type="text" class="form-control" placeholder="Search...">
         <button class="btn btn-outline-secondary" type="button">

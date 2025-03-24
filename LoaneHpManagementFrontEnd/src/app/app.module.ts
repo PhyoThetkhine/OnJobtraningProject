@@ -64,7 +64,7 @@ import { ClientDetailComponent } from './components/client/client-detail/client-
     HpLoanCreateComponent,
     ReportsComponent,
     RoleListComponent,
-    TransactionsComponent,
+   
     
     PaymentMethodListComponent,
     PaymentMethodCreateComponent,

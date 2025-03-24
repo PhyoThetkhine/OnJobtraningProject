@@ -26,46 +26,6 @@ public class Role {
     @Column(name = "authority", nullable = false)
     private AUTHORITY authority;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public LocalDateTime getUpdatedDate() {
-        return updatedDate;
-    }
-
-    public void setUpdatedDate(LocalDateTime updatedDate) {
-        this.updatedDate = updatedDate;
-    }
-
-    public AUTHORITY getAuthority() {
-        return authority;
-    }
-
-    public void setAuthority(AUTHORITY authority) {
-        this.authority = authority;
-    }
-
     public enum AUTHORITY {
         MainBranchLevel, RegularBranchLevel
     }

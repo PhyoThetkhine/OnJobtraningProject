@@ -20,6 +20,7 @@ import { Transaction } from '../../../models/transaction.model';
 import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { CIFCurrentAccount } from 'src/app/models/cif-current-account.model';
 import { CIFCurrentAccountService } from 'src/app/services/cif-current-account.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-branch-detail',
@@ -83,6 +84,7 @@ export class BranchDetailComponent implements OnInit {
     private transactionService: TransactionService,
     private cashInOutService: CashInOutService,
     private cifService : CIFCurrentAccountService,
+      private authService: AuthService,
   ) {}
 
   ngOnInit() {
@@ -192,7 +194,7 @@ export class BranchDetailComponent implements OnInit {
     if (!this.branchAccount?.id) return;
     
     this.transactionLoading = true;
-    this.transactionService.getTransactionsByAccountId(this.branchAccount.id, page, this.pageSize)
+    this.transactionService.getTransactionsByBranchAccountId(this.branchAccount.id, page, this.pageSize)
       .subscribe({
         next: (response) => {
           this.transactions = response.data.content;
@@ -212,7 +214,9 @@ export class BranchDetailComponent implements OnInit {
       });
   }
 
-
+  public hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
+  }
   loadCashTransactions(page: number) {
     if (!this.branchAccount?.id) return;
     

@@ -7,7 +7,7 @@ export interface Collateral {
   propertyType: string;
   documentUrl: string;
   estimatedValue: number;
-  loan: SMELoan;
+ // loan: SMELoan;
   createdUser: User;
   createdDate: string;
   updatedDate: string;

@@ -16,10 +16,15 @@ import java.util.List;
 
 @Repository
 public interface SMELoanRepository extends JpaRepository<SMELoan,Integer> {
-    @Query("SELECT l FROM SMELoan l WHERE l.cif.id = :cifId AND l.status = :status")
+    @Query("SELECT l FROM SMELoan l WHERE l.cif.id = :cifId AND l.status = :status ORDER BY l.applicationDate DESC")
     List<SMELoan> findByCifIdAndStatus(@Param("cifId") int cifId, @Param("status") int status);
+    Page<SMELoan> findByStatus(int status,Pageable pageable);
     @Query("SELECT s FROM SMELoan s ORDER BY s.applicationDate DESC")
     Page<SMELoan> findAllSortedByApplicationDate(Pageable pageable);
+    @Query("SELECT s FROM SMELoan s WHERE s.smeLoanCode LIKE CONCAT(:branchCode, '%') ORDER BY s.applicationDate DESC")
+    Page<SMELoan> findByBranchCode(String branchCode, Pageable pageable);
+    @Query("SELECT s FROM SMELoan s WHERE s.smeLoanCode LIKE CONCAT(:branchCode, '%') AND s.status = :status ORDER BY s.applicationDate DESC")
+    Page<SMELoan> findByBranchCodeAndStatus(String branchCode, Pageable pageable,int status);
     SMELoan findLoanBySmeLoanCode(String smeLoanCode);
     @Modifying
     @Transactional

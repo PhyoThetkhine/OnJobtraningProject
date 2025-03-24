@@ -4,10 +4,7 @@ package com.prj.LoneHPManagement.Service.impl;
 import com.prj.LoneHPManagement.Service.CodeGenerateService;
 import com.prj.LoneHPManagement.model.dto.BranchDTO;
 import com.prj.LoneHPManagement.model.dto.BranchUpdateDTO;
-import com.prj.LoneHPManagement.model.entity.Address;
-import com.prj.LoneHPManagement.model.entity.Branch;
-import com.prj.LoneHPManagement.model.entity.BranchCurrentAccount;
-import com.prj.LoneHPManagement.model.entity.User;
+import com.prj.LoneHPManagement.model.entity.*;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
 import com.prj.LoneHPManagement.model.repo.AddressRepository;
 import com.prj.LoneHPManagement.model.repo.BranchCurrentAccountRepository;
@@ -57,7 +54,7 @@ public class BranchService {
 //    }
 
     public List<Branch> getAllBranches() {
-        return branchRepository.findAll();
+        return branchRepository.findByStatus(ConstraintEnum.ACTIVE.getCode());
     }
     public Page<Branch> getAllbranches(Pageable pageable) {
         return branchRepository.findAll(pageable);

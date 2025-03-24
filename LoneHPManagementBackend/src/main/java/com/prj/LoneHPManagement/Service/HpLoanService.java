@@ -16,6 +16,9 @@ public interface HpLoanService {
     List<HpTerm> getTermsByLoanId(int loanId);
     void confirmLoan(int loanId);
     Page<HpLoan> getLoans(int page, int size, String sortBy);
+    Page<HpLoan> getHpLoansByBranch(int page, int size, String sortBy, Integer branchId);
+    Page<HpLoan> getHpLoansByBranchAndStatus(int page, int size, String sortBy, Integer branchId, String status);
+    Page<HpLoan> getHpLoansByStatus(int page, int size, String sortBy, String status);
     LocalDate calculateEndDate(LocalDate startDate, int duration);
     List<HpTerm> generateTerms(HpLoan loan, LocalDate startDate, int duration);
     HpLoan save(HpLoan hpLoan);

@@ -200,7 +200,18 @@
 
                     <hr>
 
-                    <div class="d-flex gap-2">
+                    <!-- <div class="d-flex gap-2">
+                      <button class="btn btn-primary" (click)="openTransferModal()">
+                        <i class="bi bi-arrow-left-right me-2"></i>Transfer
+                      </button>
+                      <button class="btn btn-success" (click)="openCashInModal()">
+                        <i class="bi bi-cash-stack me-2"></i>Cash In
+                      </button>
+                      <button class="btn btn-danger" (click)="openCashOutModal()">
+                        <i class="bi bi-cash me-2"></i>Cash Out
+                      </button>
+                    </div> -->
+                    <div class="d-flex gap-2" *ngIf="hasPermission('Money Transformation')">
                       <button class="btn btn-primary" (click)="openTransferModal()">
                         <i class="bi bi-arrow-left-right me-2"></i>Transfer
                       </button>
@@ -245,17 +256,25 @@
                        
                           <tr *ngFor="let transaction of transactions.slice(0, 5)">
                             <td>{{ transaction.transactionDate | date:'medium' }}</td>
-                            <td> 
-                          
-
+                            <td>
                               <span class="badge" [ngClass]="{
-                                'bg-success': transaction.toAccountId === branchAccount?.id,
-                                'bg-danger': transaction.fromAccountId === branchAccount?.id
+                                'bg-success': isCredit(transaction),
+                                'bg-danger': isDebit(transaction)
                               }">
-                                {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                                {{ isDebit(transaction) ? 'Debit' : 'Credit' }}
                               </span>
                             </td>
-                            <td>
+                          
+                            <!-- <td> 
+                          
+                              <span class="badge" [ngClass]="{
+                                'bg-success': transaction.toAccountId === branchAccount?.id && transaction.toAccountType === 'BRANCH',
+                                'bg-danger': transaction.fromAccountId === branchAccount?.id && transaction.fromAccountType ==='BRANCH'
+                              }">
+                                {{ (transaction.fromAccountId === branchAccount?.id && transaction.fromAccountType === 'BRANCH') ? 'Debit' : 'Credit' }}
+                              </span>
+                            </td> -->
+                            <!-- <td>
                               <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
                                 To: 
                                 <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
@@ -275,19 +294,64 @@
                                   <span class="text-muted">Loading...</span>
                                 </ng-template>
                               </ng-container>
-                            </td>
-                            <!-- <td>
-                              <div *ngIf="transaction.fromAccountId === branchAccount?.id">
-                                To: {{ transaction.toAccountType }}
-                              </div>
-                              <div *ngIf="transaction.toAccountId === branchAccount?.id">
-                                From: {{ transaction.fromAccountType }}
-                              </div>
                             </td> -->
-                            <td>{{ transaction.paymentMethod.paymentType }}</td>
-                            <td [ngClass]="{
+                           <!-- Updated From/To section -->
+<!-- <td>
+  <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id && transaction.fromAccountType === 'BRANCH'">
+    To: 
+    <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+      {{ code }}
+    </ng-container>
+  
+  </ng-container>
+
+  <ng-container *ngIf="transaction.toAccountId === branchAccount?.id && transaction.toAccountType ==='BRANCH'">
+    From: 
+    <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+      {{ code }}
+    </ng-container>
+    <ng-template #loading>
+      <span class="text-muted">Loading...</span>
+    </ng-template>
+  </ng-container>
+</td>-->
+<td>
+  <!-- Debit Transaction (Branch is Sender) -->
+  <ng-container *ngIf="isDebit(transaction)">
+    To: 
+    <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+      {{ code }} ({{ transaction.toAccountType }})
+    </ng-container>
+  </ng-container>
+
+  <!-- Credit Transaction (Branch is Receiver) -->
+  <ng-container *ngIf="isCredit(transaction)">
+  
+    From: 
+    <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+      {{ code }} ({{ transaction.fromAccountType }})
+    </ng-container>
+  </ng-container>
+
+  <!-- External Transaction Fallback -->
+  <ng-container *ngIf="!isDebit(transaction) && !isCredit(transaction)">
+    <span class="text-muted">External Transaction</span>
+  </ng-container>
+
+  <ng-template #loading>
+    <span class="text-muted">Loading...</span>
+  </ng-template>
+</td>
+                            <td>{{ transaction.paymentMethod.paymentType }}</td> 
+                            <!-- <td [ngClass]="{
                               'text-success': transaction.toAccountId === branchAccount?.id,
                               'text-danger': transaction.fromAccountId === branchAccount?.id
+                            }">
+                              {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                            </td> -->
+                            <td [ngClass]="{
+                              'text-success': isCredit(transaction),
+                              'text-danger': isDebit(transaction)
                             }">
                               {{ transaction.amount?.toLocaleString() || 0 }} MMK
                             </td>
@@ -303,6 +367,10 @@
                     </div>
                   </div>
                 </div>
+
+                <ng-template #loading>
+                  <span class="text-muted">Loading...</span>
+                </ng-template>
 
                 <!-- Recent Cash Operations -->
                 <div class="card mt-4">
@@ -593,6 +661,7 @@
               </div>
               <div class="card-body">
                 <div class="table-responsive">
+
                   <table class="table">
                     <thead>
                       <tr>
@@ -616,10 +685,10 @@
                         <td>{{ transaction.transactionDate | date:'medium' }}</td>
                         <td>
                           <span class="badge" [ngClass]="{
-                            'bg-success': transaction.toAccountId === branchAccount?.id,
-                            'bg-danger': transaction.fromAccountId === branchAccount?.id
+                            'bg-success': isCredit(transaction),
+                            'bg-danger': isDebit(transaction)
                           }">
-                            {{ transaction.fromAccountId === branchAccount?.id ? 'Sent' : 'Received' }}
+                            {{ isDebit(transaction) ? 'Debit' : 'Credit' }}
                           </span>
                         </td>
                         <!-- <td>
@@ -631,30 +700,35 @@
                           </div>
                         </td> -->
                         <td>
-                          <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                          <!-- Debit Transaction (Branch is Sender) -->
+                          <ng-container *ngIf="isDebit(transaction)">
                             To: 
                             <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
-                              {{ code }}
+                              {{ code }} ({{ transaction.toAccountType }})
                             </ng-container>
-                            <ng-template #loading>
-                              <span class="text-muted">Loading...</span>
-                            </ng-template>
                           </ng-container>
                         
-                          <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                          <!-- Credit Transaction (Branch is Receiver) -->
+                          <ng-container *ngIf="isCredit(transaction)">
                             From: 
                             <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
-                              {{ code }}
+                              {{ code }} ({{ transaction.fromAccountType }})
                             </ng-container>
-                            <ng-template #loading>
-                              <span class="text-muted">Loading...</span>
-                            </ng-template>
                           </ng-container>
+                        
+                          <!-- External Transaction Fallback -->
+                          <ng-container *ngIf="!isDebit(transaction) && !isCredit(transaction)">
+                            <span class="text-muted">External Transaction</span>
+                          </ng-container>
+                        
+                          <ng-template #loading>
+                            <span class="text-muted">Loading...</span>
+                          </ng-template>
                         </td>
                         <td>{{ transaction.paymentMethod.paymentType }}</td>
                         <td [ngClass]="{
-                          'text-success': transaction.toAccountId === branchAccount?.id,
-                          'text-danger': transaction.fromAccountId === branchAccount?.id
+                          'text-success': isCredit(transaction),
+                          'text-danger': isDebit(transaction)
                         }">
                           {{ transaction.amount?.toLocaleString() || 0 }} MMK
                         </td>
@@ -688,6 +762,7 @@
                       </button>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -699,6 +774,7 @@
               </div>
               <div class="card-body">
                 <div class="table-responsive">
+
                   <table class="table">
                     <thead>
                       <tr>
@@ -764,6 +840,7 @@
                       </button>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>

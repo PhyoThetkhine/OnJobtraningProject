@@ -22,18 +22,8 @@ public interface TransactionService {
             int size,
             String sortBy
     );
-    Page<Transaction> getTransactionsByCifId(
-            int userId,
-            int page,
-            int size,
-            String sortBy
-    );
-    Page<Transaction> getTransactionsByBranchId(
-            int branchId,
-            int page,
-            int size,
-            String sortBy
-    );
+    Page<Transaction> getCifTransactions(int cifAccountId, Pageable pageable);
+    Page<Transaction> getBranchTransactions(int branchAccountId, Pageable pageable) ;
 
 
 }

@@ -51,6 +51,8 @@ public class HpLoanServiceImpl implements HpLoanService {
     private HpTermRepository hpTermRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BranchRepository branchRepository;
 
     @Override
     public Page<HpLoan> getHPLoansByCif(int cifId, int page, int size, String sortBy) {
@@ -368,9 +370,45 @@ public class HpLoanServiceImpl implements HpLoanService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return hpLoanRepository.findAllSortedByApplicationDate(pageable);
     }
+
+    @Override
+    public Page<HpLoan> getHpLoansByBranch(int page, int size, String sortBy, Integer branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ServiceException("Branch not found with ID: " + branchId));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return hpLoanRepository.findByBranchCode(branch.getBranchCode(), pageable);
+    }
+    @Override
+    public Page<HpLoan> getHpLoansByBranchAndStatus(int page, int size, String sortBy, Integer branchId, String status) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ServiceException("Branch not found with ID: " + branchId));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        int statusCode = convertStatusToCode(status);
+        return hpLoanRepository.findByBranchCodeAndStatus(branch.getBranchCode(), pageable, statusCode);
+    }
+    @Override
+    public Page<HpLoan> getHpLoansByStatus(int page, int size, String sortBy, String status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        int statusCode = convertStatusToCode(status);
+        return hpLoanRepository.findByStatus(statusCode, pageable);
+    }
     @Override
     public HpLoan findByHpLoanCode(String hpLoanCode) {
         return hpLoanRepository.findByHpLoanCode(hpLoanCode);
     }
 
+    private int convertStatusToCode(String status) {
+        switch (status.toLowerCase()) {
+            case "under_review":
+                return ConstraintEnum.UNDER_REVIEW.getCode();
+            case "rejected":
+                return ConstraintEnum.REJECTED.getCode();
+            case "paid_off":
+                return ConstraintEnum.PAID_OFF.getCode();
+            case "under_schedule":
+                return ConstraintEnum.UNDER_SCHEDULE.getCode();
+            default:
+                throw new ServiceException("Invalid status: " + status);
+        }
+    }
 }

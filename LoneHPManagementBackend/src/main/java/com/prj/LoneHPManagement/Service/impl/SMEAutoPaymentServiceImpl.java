@@ -534,7 +534,7 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
         history.setInterestPaid(term.getInterest());
         history.setIodPaid(term.getInterestOfOverdue());
         history.setTotalPaid(totalPaid);
-        history.setTermStatus(term.getStatus());
+
         
         smeLoanHistoryRepository.save(history);
     }

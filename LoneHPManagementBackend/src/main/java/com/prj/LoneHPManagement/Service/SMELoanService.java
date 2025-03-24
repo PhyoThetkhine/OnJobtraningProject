@@ -11,11 +11,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface SMELoanService {
+    Page<SMELoan> getSMELoansByBranchAndStatus(int page, int size, String sortBy, Integer branchId,String status);
+    Page<SMELoan> getSMELoansByStatus(int page, int size, String sortBy,String status);
     Page<SMELoan> getSMELoansByCif(int cifId, int page, int size, String sortBy);
+
     void updatePrincipalStatus(int loanId, String status);
     void confirm_Loan(int loanId, ConfirmLoanData confirmData);
      List<SMETerm> getTermsByLoanId(int loanId) ;
     Page<SMELoan> getSMELoans(int page, int size, String sortBy);
+    Page<SMELoan> getSMELoansByBranch(int page, int size, String sortBy,Integer branchId);
     void confirmLoan(Integer loanId);
      LocalDate calculateEndDate(LocalDate startDate, SMELoan.FREQUENCY frequency, int duration);
     List<SMETerm> generateTerms(SMELoan loan, LocalDate startDate,

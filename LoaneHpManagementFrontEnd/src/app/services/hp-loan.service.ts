@@ -5,6 +5,8 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { HpLoan, HpLoanResponse, CreateHpLoanDto, HpTerm } from '../models/hp-loan.model';
 import { ApiResponse, PagedResponse } from '../models/common.types';
+import { HpLoanHistory } from '../models/hp-loan-history';
+import { HpLongOverPaidHistory } from '../models/hp-long-over-paid-history';
 
 interface ConfirmLoanData {
   disbursementAmount: number;
@@ -38,6 +40,61 @@ export class HpLoanService {
         catchError(this.handleError)
       );
   }
+
+  getAllLoans(page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<HpLoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<HpLoan>>>(`${this.apiUrl}/all`, { params })
+      .pipe(map(response => response.data));
+  }
+
+  getAllLoansByStatus(status: string, page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<HpLoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<HpLoan>>>(`${this.apiUrl}/all/status/${status}`, { params })
+      .pipe(map(response => response.data));
+  }
+
+  getAllLoansByBranch(branchId: number, page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<HpLoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<HpLoan>>>(`${this.apiUrl}/all/branch/${branchId}`, { params })
+      .pipe(map(response => response.data));
+  }
+
+  getAllLoansByBranchAndStatus(branchId: number, status: string, page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<HpLoan>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy);
+
+    return this.http.get<ApiResponse<PagedResponse<HpLoan>>>(`${this.apiUrl}/all/branch/${branchId}/status/${status}`, { params })
+      .pipe(map(response => response.data));
+  }
+   getUnder90History(loanId: number, page: number, size: number): 
+    Observable<ApiResponse<PagedResponse<HpLoanHistory>>> {
+    return this.http.get<ApiResponse<PagedResponse<HpLoanHistory>>>(
+      `${environment.apiUrl}/loans/${loanId}/hp-repayment-history/under-90?page=${page}&size=${size}`
+    );
+  }
+  
+  
+  getOver90History(loanId: number, page: number, size: number): 
+    Observable<ApiResponse<PagedResponse<HpLongOverPaidHistory>>> {
+    return this.http.get<ApiResponse<PagedResponse<HpLongOverPaidHistory>>>(
+      `${environment.apiUrl}/loans/${loanId}/hp-repayment-history/over-90?page=${page}&size=${size}`
+    );
+  }
+  
 
   getLoanById(id: number): Observable<HpLoan> {
     return this.http.get<ApiResponse<HpLoan>>(`${this.apiUrl}/getBy/${id}`)

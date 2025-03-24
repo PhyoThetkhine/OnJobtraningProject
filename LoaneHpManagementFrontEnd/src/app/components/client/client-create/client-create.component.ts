@@ -598,6 +598,8 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
     return field ? (field.invalid && (field.dirty || field.touched)) : false;
   }
 
+  
+
   getErrorMessage(fieldName: string, formType: 'client' | 'business' | 'account' = 'client'): string {
     let form: FormGroup;
     switch (formType) {

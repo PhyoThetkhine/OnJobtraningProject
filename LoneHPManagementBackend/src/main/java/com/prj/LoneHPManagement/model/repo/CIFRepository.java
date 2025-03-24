@@ -30,6 +30,7 @@ public interface CIFRepository extends JpaRepository<CIF, Integer> {
     CIF findByPhoneNumber(String phoneNumber);
 
     Page<CIF> findAll(Pageable pageable);
+    Page<CIF> findByStatus(int status,Pageable pageable);
 
     List<CIF> findByCifCodeContainingIgnoreCase(String cifCode);
 
@@ -42,6 +43,11 @@ public interface CIFRepository extends JpaRepository<CIF, Integer> {
                                                              @Param("searchTerm") String searchTerm);
     @Query("SELECT c FROM CIF c WHERE c.cifCode LIKE CONCAT(:branchCode, '%')")
     Page<CIF> findByBranchCode(String branchCode, Pageable pageable);
+    @Query("SELECT c FROM CIF c WHERE c.cifCode LIKE CONCAT(:branchCode, '%') AND c.status = :status")
+    Page<CIF> findByBranchCodeAndStatus(String branchCode, int status, Pageable pageable);
+
+    @Query("SELECT c FROM CIF c WHERE c.cifCode LIKE CONCAT(:branchCode, '%') AND c.status = :status")
+    List<CIF> findByBranchCodeAndStatus(String branchCode, int status);
     @Query("SELECT c FROM CIF c WHERE c.cifCode LIKE CONCAT(:branchCode, '%')")
     List<CIF> findByBranchCOde(String branchCode);
 

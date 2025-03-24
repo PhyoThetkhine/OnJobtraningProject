@@ -17,6 +17,8 @@ import { SmeLoanConfirmComponent } from '../sme-loan-confirm/sme-loan-confirm.co
 import { SmeLoanUpdateComponent } from '../sme-loan-update/sme-loan-update.component';
 import { VoucherService } from '../../../../services/voucher.service';
 import { ApiResponse } from '../../../../models/user.model';
+import { SMELoanHistory } from 'src/app/models/sme-loan-history.interface';
+import { LongOverPaidHistory } from 'src/app/models/long-over-paid-history.interface';
 
 @Component({
   selector: 'app-sme-loan-detail',
@@ -45,6 +47,7 @@ import { ApiResponse } from '../../../../models/user.model';
 export class SmeLoanDetailComponent implements OnInit {
   loanId: number = 0;
   loan: SMELoan | null = null;
+  createdUser:User | null = null;
   loading: boolean = true;
   confirmUser: User | null = null;
   collaterals: Collateral[] = [];
@@ -55,6 +58,18 @@ export class SmeLoanDetailComponent implements OnInit {
   collateralsTotalElements = 0;
   collateralsTotalPages = 0;
   activeTab: 'loan-info' | 'repayment-schedule' | 'repayment-history' | 'collateral' = 'loan-info';
+
+   // Add these properties
+   under90History: SMELoanHistory[] = [];
+   over90History: LongOverPaidHistory[] = [];
+   under90CurrentPage = 0;
+   over90CurrentPage = 0;
+   pageSize = 5;
+   under90Total = 0;
+   over90Total = 0;
+   loadingUnder = false;
+   loadingOver = false;
+
 
   constructor(
     private route: ActivatedRoute,
@@ -72,7 +87,6 @@ export class SmeLoanDetailComponent implements OnInit {
       this.loadLoanDetails();
     });
   }
-
   loadLoanDetails(): void {
     this.loading = true;
     this.smeLoanService.getLoanById(this.loanId).subscribe({
@@ -83,8 +97,17 @@ export class SmeLoanDetailComponent implements OnInit {
         } else if (loan.confirmUser && typeof loan.confirmUser === 'object') {
           this.confirmUser = loan.confirmUser;
         }
-        this.loadTerms();
-        this.loadCollaterals();
+        if (loan.createdUser && typeof loan.createdUser === 'number') {
+          this.loadCreatedUser(loan.createdUser);
+        } else if (loan.createdUser && typeof loan.createdUser === 'object') {
+          this.createdUser = loan.createdUser;
+        }
+        
+        this.loadTerms(() => {
+          // Load histories AFTER terms are available
+          this.loadHistories();
+        });
+        this.loadCollaterals(); // Keep this if needed
       },
       error: (error) => {
         this.loading = false;
@@ -93,6 +116,72 @@ export class SmeLoanDetailComponent implements OnInit {
       }
     });
   }
+  
+  loadHistories() {
+    this.loadUnder90();
+    this.loadOver90();
+  }
+
+  private loadUnder90(page: number = 0) {
+    this.loadingUnder = true;
+    this.smeLoanService.getUnder90History(this.loanId, page, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          this.under90History = this.mapTermNumbers(res.data.content);
+          this.under90Total = res.data.totalElements;
+          this.under90CurrentPage = page;
+          this.loadingUnder = false;
+        },
+        error: (err) => { /* error handling */ }
+      });
+  }
+  private mapTermNumbers(histories: SMELoanHistory[]): SMELoanHistory[] {
+    if (!this.loan?.terms) return histories;
+  
+    return histories.map(history => {
+      // Get the term ID from nested structure
+      const termId = history.smeTerm.id;
+  
+      // Find the index of the term in loan.terms array
+      const termIndex = this.loan!.terms!.findIndex(t => t.id === termId);
+  
+      return {
+        ...history,
+        termNumber: termIndex !== -1 ? termIndex + 1 : undefined
+      };
+    });
+  }
+  
+
+  private loadOver90(page: number = 0) {
+    this.loadingOver = true;
+    this.smeLoanService.getOver90History(this.loanId, page, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          this.over90History = res.data.content;
+          this.over90Total = res.data.totalElements;
+          this.over90CurrentPage = page;
+          this.loadingOver = false;
+        },
+        error: (err) => {
+          this.loadingOver = false;
+          this.toastr.error('Failed to load over 90 days history');
+        }
+      });
+  }
+
+  onUnderPageChange(page: number) {
+    if (page >= 0 && page < Math.ceil(this.under90Total / this.pageSize)) {
+      this.loadUnder90(page);
+    }
+  }
+
+  onOverPageChange(page: number) {
+    if (page >= 0 && page < Math.ceil(this.over90Total / this.pageSize)) {
+      this.loadOver90(page);
+    }
+  }
+
 
   loadCollaterals(page: number = 0): void {
     if (!this.loan) return;
@@ -124,23 +213,36 @@ export class SmeLoanDetailComponent implements OnInit {
     });
   }
 
-  loadTerms(): void {
-    if (!this.loan) {
-      this.loading = false;
-      return;
-    }
+  // loadTerms(): void {
+  //   if (!this.loan) {
+  //     this.loading = false;
+  //     return;
+  //   }
     
+  //   this.smeLoanService.getTermsByLoanId(this.loanId).subscribe({
+  //     next: (terms) => {
+  //       if (this.loan) {
+  //         this.loan.terms = terms;
+  //       }
+  //       this.loading = false;
+  //     },
+  //     error: (error) => {
+  //       this.loading = false;
+  //       this.toastr.error('Failed to load loan terms');
+  //       console.error('Error loading loan terms:', error);
+  //     }
+  //   });
+  // }
+  loadTerms(callback?: () => void): void {
     this.smeLoanService.getTermsByLoanId(this.loanId).subscribe({
       next: (terms) => {
-        if (this.loan) {
-          this.loan.terms = terms;
-        }
+        if (this.loan) this.loan.terms = terms;
         this.loading = false;
+        if (callback) callback();
       },
       error: (error) => {
         this.loading = false;
         this.toastr.error('Failed to load loan terms');
-        console.error('Error loading loan terms:', error);
       }
     });
   }
@@ -155,6 +257,17 @@ export class SmeLoanDetailComponent implements OnInit {
       }
     });
   }
+  loadCreatedUser(userId: number): void {
+    this.userService.getUserById(userId).subscribe({
+      next: (user: User) => {
+        this.createdUser = user;
+      },
+      error: (error) => {
+        console.error('Error loading confirm user:', error);
+      }
+    });
+  }
+
 
   setActiveTab(tab: 'loan-info' | 'repayment-schedule' | 'repayment-history' | 'collateral'): void {
     this.activeTab = tab;

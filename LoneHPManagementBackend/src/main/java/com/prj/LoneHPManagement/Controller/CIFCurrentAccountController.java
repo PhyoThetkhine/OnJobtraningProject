@@ -54,10 +54,10 @@ public class CIFCurrentAccountController {
     public ResponseEntity<Page<CIFCurrentAccount>> findByBranch(@PathVariable String branchCode, Pageable pageable) {
         return ResponseEntity.ok(cifCurrentAccountService.findByBranch(branchCode, pageable));
     }
-    @GetMapping("/getByBranchCode/{branchCode}")
-    public ResponseEntity<?> getByBranchCode(@PathVariable String branchCode){
+    @GetMapping("/getByBranchCode/{branchCode}/{userid}")
+    public ResponseEntity<?> getByBranchCode(@PathVariable String branchCode,@PathVariable int userid){
         ApiResponse<List<CIFCurrentAccount>> response = ApiResponse.success(
-                HttpStatus.OK.value(), "Account status updated successfully", cifCurrentAccountService.getByBranchCode(branchCode));
+                HttpStatus.OK.value(), "Account status updated successfully", cifCurrentAccountService.getByBranchCode(branchCode,userid));
         return ResponseEntity.ok(response);
     }
     // Create or Update CIF Current Account

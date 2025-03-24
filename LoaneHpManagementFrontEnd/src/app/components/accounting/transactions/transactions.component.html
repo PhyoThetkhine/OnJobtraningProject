@@ -1,1 +1,217 @@
-<p>transactions works!</p>
+<!-- transactions.component.html -->
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="header-section mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-0">All Transactions</h2>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
+              <li class="breadcrumb-item"><a routerLink="/accounting">Accounting</a></li>
+              <li class="breadcrumb-item active">Transactions</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Loading & Error States -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+  
+    <!-- Content -->
+    <div *ngIf="!loading && !error">
+      <!-- Regular Transactions -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Transfer Transactions</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>From/To</th>
+                    <th>Payment Method</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="transactionLoading">
+                    <td colspan="5" class="text-center">
+                      <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <tr *ngFor="let transaction of transactions">
+                    <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="{
+                        'bg-success': transaction.toAccountId === branchAccount?.id,
+                        'bg-danger': transaction.fromAccountId === branchAccount?.id
+                      }">
+                        {{ transaction.fromAccountId === branchAccount?.id ? 'Debit' : 'Credit' }}
+                      </span>
+                    </td>
+                    <!-- <td>
+                      <div *ngIf="transaction.fromAccountId === branchAccount?.id">
+                        To: {{ transaction.toAccountType }}
+                      </div>
+                      <div *ngIf="transaction.toAccountId === branchAccount?.id">
+                        From: {{ transaction.fromAccountType }}
+                      </div>
+                    </td> -->
+                    <td>
+                      <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                        To: 
+                        <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                          {{ code }}
+                        </ng-container>
+                        <ng-template #loading>
+                          <span class="text-muted">Loading...</span>
+                        </ng-template>
+                      </ng-container>
+                    
+                      <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                        From: 
+                        <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                          {{ code }}
+                        </ng-container>
+                        <ng-template #loading>
+                          <span class="text-muted">Loading...</span>
+                        </ng-template>
+                      </ng-container>
+                    </td>
+                    <td>{{ transaction.paymentMethod.paymentType }}</td>
+                    <td [ngClass]="{
+                      'text-success': transaction.toAccountId === branchAccount?.id,
+                      'text-danger': transaction.fromAccountId === branchAccount?.id
+                    }">
+                      {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                    </td>
+                  </tr>
+                  
+                  <tr *ngIf="transactions.length === 0 && !transactionLoading">
+                    <td colspan="5" class="text-center text-muted">
+                      No transactions found
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Pagination controls -->
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted">
+                  Showing {{ transactions.length ? (currentPage * pageSize) + 1 : 0 }} 
+                  to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+                  of {{ totalElements }} entries
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm" 
+                          (click)="previousPage()" 
+                          [disabled]="currentPage === 0 || transactionLoading">
+                    Previous
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" 
+                          (click)="nextPage()" 
+                          [disabled]="currentPage >= totalPages - 1 || transactionLoading">
+                    Next
+                  </button>
+                </div>
+              </div>
+              
+          </div>
+        </div>
+      </div>
+  
+      <!-- Cash Transactions -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Cash Operations</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="cashTransactionsLoading">
+                    <td colspan="4" class="text-center">
+                      <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <tr *ngFor="let transaction of cashTransactions">
+                    <td>{{ transaction.transactionDate | date:'medium' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="{
+                        'bg-success': transaction.type === 'Cash_In',
+                        'bg-danger': transaction.type === 'Cash_Out'
+                      }">
+                        {{ transaction.type === 'Cash_In' ? 'Cash In' : 'Cash Out' }}
+                      </span>
+                    </td>
+                    <td>{{ transaction.description }}</td>
+                    <td [ngClass]="{
+                      'text-success': transaction.type === 'Cash_In',
+                      'text-danger': transaction.type === 'Cash_Out'
+                    }">
+                      {{ transaction.amount?.toLocaleString() || 0 }} MMK
+                    </td>
+                  </tr>
+                  
+                  <tr *ngIf="cashTransactions?.length === 0 && !cashTransactionsLoading">
+                    <td colspan="4" class="text-center text-muted">
+                      No cash operations found
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Pagination controls -->
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted">
+                  Showing {{ cashTransactions?.length ? (cashCurrentPage * cashPageSize) + 1 : 0 }} 
+                  to {{ Math.min((cashCurrentPage + 1) * cashPageSize, cashTotalElements) }} 
+                  of {{ cashTotalElements }} entries
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm" 
+                          (click)="onCashTransactionsPageChange(cashCurrentPage - 1)" 
+                          [disabled]="cashCurrentPage === 0 || cashTransactionsLoading">
+                    Previous
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" 
+                          (click)="onCashTransactionsPageChange(cashCurrentPage + 1)" 
+                          [disabled]="cashCurrentPage >= cashTotalPages - 1 || cashTransactionsLoading">
+                    Next
+                  </button>
+                </div>
+              </div>
+              
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

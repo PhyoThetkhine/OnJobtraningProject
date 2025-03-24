@@ -22,15 +22,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             Pageable pageable
     );
 
+    // For CIF accounts
     @Query("SELECT t FROM Transaction t WHERE " +
-            "(t.fromAccountType = 'CIF' AND t.fromAccountId = :cifId) OR " +
-            "(t.toAccountType = 'CIF' AND t.toAccountId = :cifId)")
-    Page<Transaction> findTransactionByCifId(@Param("cifId") int cifId, Pageable pageable);
+            "(t.fromAccountId = :accountId AND t.fromAccountType = 'CIF') OR " +
+            "(t.toAccountId = :accountId AND t.toAccountType = 'CIF')")
+    Page<Transaction> findCifTransactions(@Param("accountId") int accountId, Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE " +
-            "(t.fromAccountType = 'BRANCH' AND t.fromAccountId = :branchId) OR " +
-            "(t.toAccountType = 'BRANCH' AND t.toAccountId = :branchId)")
-    Page<Transaction> findTransactionByBranchId(int branchId, Pageable pageable);
+            "(t.fromAccountId = :accountId AND t.fromAccountType = 'BRANCH') OR " +
+            "(t.toAccountId = :accountId AND t.toAccountType = 'BRANCH')")
+    Page<Transaction> findBranchTransactions(@Param("accountId") int accountId, Pageable pageable);
 
 
     Page<Transaction> findByFromAccountIdOrToAccountId(int fromAccountId, int toAccountId, Pageable pageable);

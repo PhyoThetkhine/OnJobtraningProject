@@ -134,6 +134,97 @@ public class SMELoanController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/all/status/{status}")
+    public ResponseEntity<ApiResponse<PagedResponse<SMELoan>>> getSMELoansByStatus(
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Page<SMELoan> loans = smeLoanService.getSMELoansByStatus(page, size, sortBy,status);
+
+        // Map Page<SMELoan> to PagedResponse<SMELoan>
+        PagedResponse<SMELoan> pagedResponse = new PagedResponse<>(
+                loans.getContent(),          // List of loans
+                loans.getTotalPages(),      // Total number of pages
+                loans.getTotalElements(),    // Total number of elements
+                loans.getSize(),            // Size of the current page
+                loans.getNumber(),          // Current page number
+                loans.getNumberOfElements(), // Number of elements in the current page
+                loans.isFirst(),            // Is this the first page?
+                loans.isLast(),             // Is this the last page?
+                loans.isEmpty()             // Is this page empty?
+        );
+
+        ApiResponse<PagedResponse<SMELoan>> response = ApiResponse.success(
+                200,
+                "SME Loans retrieved successfully",
+                pagedResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/all/branch/{branchId}")
+    public ResponseEntity<ApiResponse<PagedResponse<SMELoan>>> getSMELoansByBranch(
+            @PathVariable Integer branchId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Page<SMELoan> loans = smeLoanService.getSMELoansByBranch(page,size,sortBy,branchId);
+
+        // Map Page<SMELoan> to PagedResponse<SMELoan>
+        PagedResponse<SMELoan> pagedResponse = new PagedResponse<>(
+                loans.getContent(),          // List of loans
+                loans.getTotalPages(),      // Total number of pages
+                loans.getTotalElements(),    // Total number of elements
+                loans.getSize(),            // Size of the current page
+                loans.getNumber(),          // Current page number
+                loans.getNumberOfElements(), // Number of elements in the current page
+                loans.isFirst(),            // Is this the first page?
+                loans.isLast(),             // Is this the last page?
+                loans.isEmpty()             // Is this page empty?
+        );
+
+        ApiResponse<PagedResponse<SMELoan>> response = ApiResponse.success(
+                200,
+                "SME Loans retrieved successfully",
+                pagedResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/all/branch/{branchId}/status/{status}")
+    public ResponseEntity<ApiResponse<PagedResponse<SMELoan>>> getSMELoansByBranchAndStatus(
+            @PathVariable Integer branchId,
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Page<SMELoan> loans = smeLoanService.getSMELoansByBranchAndStatus(page,size,sortBy,branchId,status);
+
+        // Map Page<SMELoan> to PagedResponse<SMELoan>
+        PagedResponse<SMELoan> pagedResponse = new PagedResponse<>(
+                loans.getContent(),          // List of loans
+                loans.getTotalPages(),      // Total number of pages
+                loans.getTotalElements(),    // Total number of elements
+                loans.getSize(),            // Size of the current page
+                loans.getNumber(),          // Current page number
+                loans.getNumberOfElements(), // Number of elements in the current page
+                loans.isFirst(),            // Is this the first page?
+                loans.isLast(),             // Is this the last page?
+                loans.isEmpty()             // Is this page empty?
+        );
+
+        ApiResponse<PagedResponse<SMELoan>> response = ApiResponse.success(
+                200,
+                "SME Loans retrieved successfully",
+                pagedResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/getBy/{id}")
     public ResponseEntity<ApiResponse<SMELoan>> getSMELoanById(@PathVariable int id) {
         SMELoan smeLoan = smeLoanService.getLoanById(id);

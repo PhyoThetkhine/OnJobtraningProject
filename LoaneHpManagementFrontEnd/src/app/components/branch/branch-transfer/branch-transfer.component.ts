@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { BranchService } from '../../../services/branch.service';
 import { PaymentMethodService } from '../../../services/payment-method.service';
@@ -12,17 +12,22 @@ import { CIFCurrentAccount } from '../../../models/cif-current-account.model';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccountType } from '../../../models/transaction.model';
+import { CurrentUser } from 'src/app/models/user.model';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-branch-transfer',
   templateUrl: './branch-transfer.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule,  FormsModule]
 })
 export class BranchTransferComponent implements OnInit {
   @Input() branch!: Branch;
   @Input() branchAccount!: any;
 
+  searchCifTerm: string = '';
+filteredCifAccounts: CIFCurrentAccount[] = [];
+showCifDropdown: boolean = false;
   transferForm!: FormGroup;
   loading = false;
   paymentMethods: PaymentMethod[] = [];
@@ -31,6 +36,7 @@ export class BranchTransferComponent implements OnInit {
   selectedAccount: CIFCurrentAccount | null = null;
   accountTypes = Object.values(AccountType);
   protected AccountType = AccountType;
+  currentUser: CurrentUser | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -39,20 +45,21 @@ export class BranchTransferComponent implements OnInit {
     private paymentMethodService: PaymentMethodService,
     private transactionService: TransactionService,
     private cifCurrentAccountService: CIFCurrentAccountService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private authService:AuthService,
   ) {}
 
   ngOnInit() {
     this.initializeForm();
     this.loadPaymentMethods();
-    this.loadCIFAccounts();
-    // TODO: Load branch accounts when implementing branch-to-branch transfer
+    this.loadBranches();
   }
 
   private initializeForm() {
     this.transferForm = this.fb.group({
       accountType: [AccountType.CIF, Validators.required],
-      cifAccount: [''],
+      // cifAccount: [''],
+      cifAccount: [null, Validators.required],
       branchAccount: [''],
       paymentMethod: ['', Validators.required],
       amount: ['', [
@@ -60,6 +67,20 @@ export class BranchTransferComponent implements OnInit {
         Validators.min(1),
         Validators.max(this.branchAccount?.balance || 0)
       ]]
+    });
+     // Get the current user's information first
+     this.authService.getCurrentUser().subscribe({
+      next: (currentUser) => {
+        console.log('Current role level:', currentUser.roleLevel);
+        this.currentUser = currentUser;
+        this.loadCIFAccounts();
+   
+      },
+      error: (error) => {
+        console.error('Error fetching current user:', error);
+        this.toastr.error('Failed to fetch current user');
+        this.loading = false;
+      }
     });
 
     // Listen to account type changes
@@ -92,6 +113,26 @@ export class BranchTransferComponent implements OnInit {
     });
   }
 
+  // Add to BranchTransferComponent class
+private loadBranches() {
+  this.branchService.getAllBranches().subscribe({
+    next: (branches) => {
+      // Filter out current branch if needed
+      this.branchAccounts = branches
+        .filter(b => b.id !== this.branch?.id) // Exclude current branch
+        .map(branch => ({
+          id: branch.id,
+          branchName: branch.branchName,
+          branchCode: branch.branchCode
+        }));
+    },
+    error: (error) => {
+      console.error('Error loading branches:', error);
+      this.toastr.error('Failed to load branches');
+    }
+  });
+}
+
   private loadPaymentMethods() {
     this.paymentMethodService.getAllPaymentMethods().subscribe({
       next: (response) => {
@@ -105,8 +146,13 @@ export class BranchTransferComponent implements OnInit {
   }
 
   private loadCIFAccounts() {
+    this.filteredCifAccounts = [];
+    if (!this.currentUser) {
+      console.error('Current user not available');
+      return;
+    }
     if (this.branch?.branchCode) {
-      this.cifCurrentAccountService.getBranchCIFAccounts(this.branch.branchCode).subscribe({
+      this.cifCurrentAccountService.getBranchCIFAccounts(this.branch.branchCode,this.currentUser?.id).subscribe({
         next: (accounts) => {
           this.cifAccounts = accounts.filter(account => account.isFreeze !== 'is_freeze');
         },
@@ -116,6 +162,62 @@ export class BranchTransferComponent implements OnInit {
         }
       });
     }
+  }
+  
+  onSearchCifAccount() {
+    const searchTerm = this.searchCifTerm.trim();
+    console.log('Raw search term:', searchTerm); // Add this for debugging
+    
+    if (!searchTerm) {
+      this.filteredCifAccounts = [];
+      this.showCifDropdown = false;
+      return;
+    }
+  
+    // Match exact account code with case sensitivity
+    const exactMatch = this.cifAccounts.find(account => 
+      account.accCode === searchTerm // Remove .toLowerCase()
+    );
+  
+    if (exactMatch) {
+      console.log('Exact case-sensitive match found:', exactMatch);
+      this.filteredCifAccounts = [exactMatch];
+      this.showCifDropdown = true;
+      return;
+    }
+  
+    // For partial matches, use case-insensitive search
+    const searchTermLower = searchTerm.toLowerCase();
+    this.filteredCifAccounts = this.cifAccounts
+      .filter(account => {
+        const codeMatch = account.accCode.toLowerCase().includes(searchTermLower);
+        const nameMatch = account.cif.name.toLowerCase().includes(searchTermLower);
+        return codeMatch || nameMatch;
+      })
+      .sort((a, b) => {
+        const aStarts = a.accCode.toLowerCase().startsWith(searchTermLower);
+        const bStarts = b.accCode.toLowerCase().startsWith(searchTermLower);
+        
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.accCode.localeCompare(b.accCode);
+      });
+  
+    console.log('Filtered results:', this.filteredCifAccounts);
+    this.showCifDropdown = this.filteredCifAccounts.length > 0;
+  }
+
+  selectCifAccount(account: CIFCurrentAccount) {
+    this.transferForm.get('cifAccount')?.setValue(account.id);
+    this.selectedAccount = account;
+    this.searchCifTerm = account.accCode; // Show account code in input
+    this.showCifDropdown = false;
+  }
+  
+  onBlurCifInput() {
+    setTimeout(() => {
+      this.showCifDropdown = false;
+    }, 200);
   }
 
   onAccountSelect(accountId: string | number) {

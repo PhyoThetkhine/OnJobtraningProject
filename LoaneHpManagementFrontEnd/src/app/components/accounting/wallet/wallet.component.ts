@@ -14,7 +14,7 @@ import { BranchCashOperationComponent } from '../../branch/branch-cash-operation
 import { CashInOutTransaction } from '../../../models/cash-in-out-transaction.model';
 import { TransactionService } from '../../../services/transaction.service';
 import { CashInOutService } from '../../../services/cash-in-out.service';
-import { Transaction } from '../../../models/transaction.model';
+import { AccountType, Transaction } from '../../../models/transaction.model';
 import { AuthService } from '../../../services/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CIFCurrentAccountService } from 'src/app/services/cif-current-account.service';
@@ -136,6 +136,15 @@ export class WalletComponent implements OnInit {
       }
     });
   }
+  isDebit(transaction: Transaction): boolean {
+    return transaction.fromAccountId === this.branchAccount?.id && 
+           transaction.fromAccountType === AccountType.BRANCH;
+  }
+  
+  isCredit(transaction: Transaction): boolean {
+    return transaction.toAccountId === this.branchAccount?.id && 
+           transaction.toAccountType === AccountType.BRANCH;
+  }
 
   loadBranchUsers() {
     if (this.branch) {
@@ -220,7 +229,7 @@ export class WalletComponent implements OnInit {
     if (!this.branchAccount?.id) return;
     
     this.transactionLoading = true;
-    this.transactionService.getTransactionsByAccountId(this.branchAccount.id, page, this.pageSize)
+    this.transactionService.getTransactionsByBranchAccountId(this.branchAccount.id, page, this.pageSize)
       .subscribe({
         next: (response) => {
           this.transactions = response.data.content;
@@ -241,6 +250,7 @@ export class WalletComponent implements OnInit {
         }
       });
   }
+  
 
   loadCashTransactions(page: number) {
     if (!this.branchAccount?.id) return;
@@ -468,6 +478,8 @@ getAccountCode(accountId: number, accountType: string): Observable<string> {
 }
 
 private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
+  console.log("account id:"+accountId)
+  console.log("accountType:"+accountType)
   switch(accountType.toUpperCase()) {
     case 'CIF':
       return this.cifService.getAccountByCifId(accountId).pipe(
@@ -484,6 +496,9 @@ private createAccountCodeRequest(accountId: number, accountType: string): Observ
     default:
       return of('Unknown Account Type');
   }
+}
+public hasPermission(permission: string): boolean {
+  return this.authService.hasPermission(permission);
 }
   // Add cash flow chart data property
   cashFlowData: any[] = [];

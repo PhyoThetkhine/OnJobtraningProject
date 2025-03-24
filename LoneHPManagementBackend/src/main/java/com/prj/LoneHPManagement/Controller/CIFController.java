@@ -5,6 +5,8 @@ import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.ClientRegistrationDTO;
 import com.prj.LoneHPManagement.model.dto.UpdatedCifDTO;
 import com.prj.LoneHPManagement.model.entity.CIF;
+import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
+import com.prj.LoneHPManagement.model.entity.User;
 import com.prj.LoneHPManagement.model.exception.CifNotFoundException;
 import com.prj.LoneHPManagement.model.repo.AddressRepository;
 import com.prj.LoneHPManagement.model.repo.UserRepository;
@@ -169,6 +171,97 @@ public class CIFController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping ("/allCIF/status/{status}")// GET http://localhost:8080/api/cifs?page=0&size=10&sortBy=id
+    public ResponseEntity<?> getCIFByStatusPagination(
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<CIF> cifs = cifService.getAllBystatus(status,pageable);
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+
+        responseData.put("content", cifs.getContent());
+        responseData.put("totalPages", cifs.getTotalPages());
+        responseData.put("totalElements", cifs.getTotalElements());
+        responseData.put("size", cifs.getSize());
+        responseData.put("number", cifs.getNumber());
+        responseData.put("numberOfElements", cifs.getNumberOfElements());
+        responseData.put("first", cifs.isFirst());
+        responseData.put("last", cifs.isLast());
+        responseData.put("empty", cifs.isEmpty());
+
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("CIF List Retrieved Successfully");
+        response.setData(responseData);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping ("/allCIF/branch/{branchId}")// GET http://localhost:8080/api/cifs?page=0&size=10&sortBy=id
+    public ResponseEntity<?> getCIFByBranchPagination(
+            @PathVariable Integer branchId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<CIF> cifs = cifService.getByBranch(branchId,pageable);
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+
+        responseData.put("content", cifs.getContent());
+        responseData.put("totalPages", cifs.getTotalPages());
+        responseData.put("totalElements", cifs.getTotalElements());
+        responseData.put("size", cifs.getSize());
+        responseData.put("number", cifs.getNumber());
+        responseData.put("numberOfElements", cifs.getNumberOfElements());
+        responseData.put("first", cifs.isFirst());
+        responseData.put("last", cifs.isLast());
+        responseData.put("empty", cifs.isEmpty());
+
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("CIF List Retrieved Successfully");
+        response.setData(responseData);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping ("/allCIF/branch/{branchId}/status/{status}")// GET http://localhost:8080/api/cifs?page=0&size=10&sortBy=id
+    public ResponseEntity<?> getCIFByBranchAndStatusPagination(
+            @PathVariable Integer branchId,
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        sortBy = sortBy.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<CIF> cifs = cifService.getAllByBranchAndstatus(branchId,status,pageable);
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+
+        responseData.put("content", cifs.getContent());
+        responseData.put("totalPages", cifs.getTotalPages());
+        responseData.put("totalElements", cifs.getTotalElements());
+        responseData.put("size", cifs.getSize());
+        responseData.put("number", cifs.getNumber());
+        responseData.put("numberOfElements", cifs.getNumberOfElements());
+        responseData.put("first", cifs.isFirst());
+        responseData.put("last", cifs.isLast());
+        responseData.put("empty", cifs.isEmpty());
+
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("CIF List Retrieved Successfully");
+        response.setData(responseData);
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/getBy/{id}")
     public ResponseEntity<?> getCIFById(@PathVariable Integer id) {
         CIF cif = cifService.getById(id);
@@ -213,6 +306,32 @@ public class CIFController {
         } catch (CifNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+    @PutMapping("/status/{cifid}")
+    public ResponseEntity<ApiResponse<CIF>> changeCIFStatus(
+            @PathVariable int cifid,
+            @RequestBody Map<String, String> payload) {
+
+        String status = payload.get("status");
+        int statusCode;
+
+        switch(status.toLowerCase()) {
+            case "active":
+                statusCode = ConstraintEnum.ACTIVE.getCode();
+                break;
+            case "terminated":
+                statusCode = ConstraintEnum.TERMINATED.getCode();
+                break;
+
+            default:
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "Invalid status value"));
+        }
+
+        CIF updateCIF = cifService.changeUserStatus(cifid, statusCode);
+        ApiResponse<CIF> response = ApiResponse.success(
+                HttpStatus.OK.value(), "User status updated successfully", updateCIF);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/cifs/{id}")

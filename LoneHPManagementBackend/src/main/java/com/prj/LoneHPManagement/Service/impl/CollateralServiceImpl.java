@@ -1,10 +1,14 @@
 package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.CollateralService;
+import com.prj.LoneHPManagement.model.dto.CollateralRequest;
+import com.prj.LoneHPManagement.model.dto.CollateralUpdateRequest;
+import com.prj.LoneHPManagement.model.entity.CIF;
 import com.prj.LoneHPManagement.model.entity.Collateral;
 import com.prj.LoneHPManagement.model.entity.SMELoan;
 import com.prj.LoneHPManagement.model.entity.User;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
+import com.prj.LoneHPManagement.model.repo.CIFRepository;
 import com.prj.LoneHPManagement.model.repo.CollateralRepository;
 import com.prj.LoneHPManagement.model.repo.SMELoanRepository;
 import com.prj.LoneHPManagement.model.repo.UserRepository;
@@ -15,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +29,8 @@ public class CollateralServiceImpl implements CollateralService {
     private CollateralRepository collateralRepository;
     @Autowired
     private SMELoanRepository smeLoanRepository;
+    @Autowired
+    private CIFRepository cifRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -79,6 +86,41 @@ public class CollateralServiceImpl implements CollateralService {
     // Delete a Collateral by ID
     public void deleteCollateral(int id) {
         collateralRepository.deleteById(id);
+    }
+    @Override
+    public Collateral updateCollateral(int id, CollateralUpdateRequest request) {
+        Collateral collateral = collateralRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Collateral not found"));
+
+        User updatedUser = userRepository.findById(request.getUpdatedUserId())
+                .orElseThrow(() -> new ServiceException("User not found"));
+
+        collateral.setPropertyType(request.getPropertyType());
+        collateral.setEstimatedValue(request.getEstimatedValue());
+        collateral.setDocumentUrl(request.getDocumentUrl());
+
+
+        return collateralRepository.save(collateral);
+    }
+    @Override
+    public Collateral create(CollateralRequest dto) {
+        // Fetch related entities
+        CIF cif = cifRepository.findById(dto.getCifId())
+                .orElseThrow(() -> new ServiceException("CIF not found"));
+        User createdUser = userRepository.findById(dto.getCreatedUserId())
+                .orElseThrow(() -> new ServiceException("User not found"));
+
+        // Create and populate Collateral entity
+        Collateral collateral = new Collateral();
+        collateral.setPropertyType(dto.getPropertyType());
+        collateral.setEstimatedValue(dto.getEstimatedValue());
+        collateral.setDocumentUrl(dto.getDocumentUrl());
+        collateral.setCIF(cif);
+        collateral.setCreatedUser(createdUser);
+        collateral.setCreatedDate(LocalDateTime.now());
+        collateral.setUpdatedDate(LocalDateTime.now());
+
+        return collateralRepository.save(collateral);
     }
 
     @Override

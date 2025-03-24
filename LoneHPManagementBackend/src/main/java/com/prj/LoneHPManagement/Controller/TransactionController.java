@@ -65,18 +65,36 @@ public class TransactionController {
                 "transactionDate"
         );
     }
-    @GetMapping("/cif/{cifId}")
-    public Page<Transaction> getTransactionsByCIF(
-            @PathVariable int cifId,
+    @GetMapping("/account/cif/{accountId}")
+    public ResponseEntity<?> getTransactionsByCIFAccountID(
+            @PathVariable int accountId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return transactionService.getTransactionsByCifId(
-                cifId,
-                page,
-                size,
-                "transactionDate"
-        );
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy){
+
+        // Create a new Pageable object with sorting
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "transactionDate"));
+
+        Page<Transaction> transactions = transactionService.getCifTransactions(accountId, pageable);
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+
+        responseData.put("content", transactions.getContent());
+        responseData.put("totalPages", transactions.getTotalPages());
+        responseData.put("totalElements", transactions.getTotalElements());
+        responseData.put("size", transactions.getSize());
+        responseData.put("number", transactions.getNumber());
+        responseData.put("numberOfElements", transactions.getNumberOfElements());
+        responseData.put("first", transactions.isFirst());
+        responseData.put("last", transactions.isLast());
+        responseData.put("empty", transactions.isEmpty());
+
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Transaction List");
+        response.setData(responseData);
+
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/account/{accountId}")
     public ResponseEntity<?> getTransactionsByAccountId(
@@ -89,6 +107,37 @@ public class TransactionController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "transactionDate"));
 
         Page<Transaction> transactions = transactionService.getTransactionsByAccount(accountId, pageable);
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        Map<String, Object> responseData = new HashMap<>();
+
+        responseData.put("content", transactions.getContent());
+        responseData.put("totalPages", transactions.getTotalPages());
+        responseData.put("totalElements", transactions.getTotalElements());
+        responseData.put("size", transactions.getSize());
+        responseData.put("number", transactions.getNumber());
+        responseData.put("numberOfElements", transactions.getNumberOfElements());
+        responseData.put("first", transactions.isFirst());
+        responseData.put("last", transactions.isLast());
+        responseData.put("empty", transactions.isEmpty());
+
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Transaction List");
+        response.setData(responseData);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/account/branch/{accountId}")
+    public ResponseEntity<?> getTransactionsByBranchId(
+            @PathVariable int accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy){
+
+        // Create a new Pageable object with sorting
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "transactionDate"));
+
+        Page<Transaction> transactions = transactionService.getBranchTransactions(accountId, pageable);
 
         ApiResponse<Map<String, Object>> response = new ApiResponse<>();
         Map<String, Object> responseData = new HashMap<>();

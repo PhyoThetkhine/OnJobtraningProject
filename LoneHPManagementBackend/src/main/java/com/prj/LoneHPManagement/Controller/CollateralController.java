@@ -3,6 +3,8 @@ package com.prj.LoneHPManagement.Controller;
 import com.prj.LoneHPManagement.Service.CollateralService;
 import com.prj.LoneHPManagement.Service.impl.CollateralServiceImpl;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
+import com.prj.LoneHPManagement.model.dto.CollateralRequest;
+import com.prj.LoneHPManagement.model.dto.CollateralUpdateRequest;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
 import com.prj.LoneHPManagement.model.entity.Collateral;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -48,6 +50,21 @@ public class CollateralController {
                 pagedResponse
         );
 
+        return ResponseEntity.ok(response);
+    }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<Collateral>> updateCollateral(
+            @PathVariable int id,
+             @RequestBody CollateralUpdateRequest request) {
+        Collateral updatedCollateral = collateralService.updateCollateral(id, request);
+        ApiResponse<Collateral> response = ApiResponse.success(200,"Create sucessfully",updatedCollateral);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<Collateral>> create(@RequestBody CollateralRequest request){
+        System.out.println("data recive is "+ request);
+        Collateral collateral = collateralService.create(request);
+        ApiResponse<Collateral> response = ApiResponse.success(200,"Create sucessfully",collateral);
         return ResponseEntity.ok(response);
     }
 
