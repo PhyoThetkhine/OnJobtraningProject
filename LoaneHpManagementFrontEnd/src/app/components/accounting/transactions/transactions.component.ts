@@ -14,19 +14,27 @@ import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { CIFCurrentAccount } from 'src/app/models/cif-current-account.model';
 import { ApiResponse } from 'src/app/models/user.model';
 import { CIFCurrentAccountService } from 'src/app/services/cif-current-account.service';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-transactions',
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule],
+  providers: [DatePipe]
 })
 export class TransactionsComponent implements OnInit {
   loading = true;
   error: string | null = null;
   branchAccount: BranchCurrentAccount | null = null;
-  
+
+  private resolvedAccountCodes = new Map<string, string>();
+  private exportPending = false;
+private exportDataReady = new Map<string, boolean>();
   // Transaction properties
   transactionLoading = false;
   transactions: Transaction[] = [];
@@ -51,6 +59,7 @@ export class TransactionsComponent implements OnInit {
     private cashService: CashInOutService,
     private toastr: ToastrService,
     private cifService:CIFCurrentAccountService,
+    private datePipe: DatePipe
   ) {}
 
   async ngOnInit() {
@@ -168,21 +177,190 @@ export class TransactionsComponent implements OnInit {
   private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
     switch(accountType.toUpperCase()) {
       case 'CIF':
-        return this.cifService.getAccountByCifId(accountId).pipe(
+        return this.cifService.getAccountById(accountId).pipe(
           map((response: CIFCurrentAccount) => response.accCode),
           catchError(() => of('CIF Not Found'))
         );
   
       case 'BRANCH':
-        return this.branchService.getBranchAccount(accountId).pipe(
+        return this.branchService.getBranchAccountById(accountId).pipe(
           map((response: ApiResponse<BranchCurrentAccount>) => response.data.accCode),
-          catchError(() => of('Branch Not Found'))
+          catchError(() => of('account Not Found'))
         );
   
       default:
         return of('Unknown Account Type');
     }
   }
+// Add this new method to preload account codes
+private async preloadAccountCodes(transactions: any[]) {
+  const promises: Promise<void>[] = [];
+  const seen = new Set<string>();
 
+  transactions.forEach(transaction => {
+    // For outgoing transactions
+    if (transaction.fromAccountId === this.branchAccount?.id) {
+      const cacheKey = `${transaction.toAccountType}_${transaction.toAccountId}`;
+     if (!seen.has(cacheKey)){
+        seen.add(cacheKey);
+        promises.push(this.cacheAccountCode(transaction.toAccountId, transaction.toAccountType));
+      }
+    }
+    
+    // For incoming transactions
+    if (transaction.toAccountId === this.branchAccount?.id) {
+      const cacheKey = `${transaction.fromAccountType}_${transaction.fromAccountId}`;
+      if (!seen.has(cacheKey)) {
+        seen.add(cacheKey);
+        promises.push(this.cacheAccountCode(transaction.fromAccountId, transaction.fromAccountType));
+      }
+    }
+  });
+
+  await Promise.all(promises);
+}
+  async exportTransactions(type: 'pdf' | 'excel', section: 'transfers' | 'cash') {
+    if (this.exportPending) return;
+    
+    try {
+      this.exportPending = true;
+      const data = section === 'transfers' ? this.transactions : this.cashTransactions;
+      
+      if (data.length === 0) {
+        this.toastr.warning('No data to export');
+        return;
+      }
+  
+      // Preload all required account codes
+      if (section === 'transfers') {
+        await this.preloadAccountCodes(data);
+      }
+  
+      const fileName = `${section}-transactions-${new Date().toISOString().slice(0,10)}`;
+      
+      if (type === 'pdf') {
+        this.exportToPDF(data, fileName, section);
+      } else {
+        this.exportToExcel(data, fileName, section);
+      }
+    } catch (error) {
+      this.toastr.error('Failed to prepare export data');
+    } finally {
+      this.exportPending = false;
+    }
+  }
+  // Add this helper method to cache account codes
+private async cacheAccountCode(accountId: number, accountType: string): Promise<void> {
+  return new Promise((resolve) => {
+    this.getAccountCode(accountId, accountType).subscribe({
+      next: (code) => {
+        const cacheKey = `${accountType.toUpperCase()}_${accountId}`;
+        this.resolvedAccountCodes.set(cacheKey, code);
+        resolve();
+      },
+      error: () => resolve()
+    });
+  });
+}
+private getFormattedAccountCode(accountId: number, accountType: string): string {
+  const cacheKey = `${accountType.toUpperCase()}_${accountId}`;
+  return this.resolvedAccountCodes.get(cacheKey) || 'N/A'; // Show N/A instead of Loading
+}
+
+  private exportToPDF(data: any[], fileName: string, section: string) {
+    const doc = new jsPDF();
+    const columns = this.getPDFColumns(section);
+    const rows = this.getPDFRows(data, section);
+  
+    doc.setFontSize(18);
+    doc.text(`${section.toUpperCase()} Transactions Report`, 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+  
+    autoTable(doc, {
+      head: [columns],
+      body: rows,
+      theme: 'striped',
+      startY: 30,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      columnStyles: { 0: { cellWidth: 30 } }
+    });
+  
+    doc.save(`${fileName}.pdf`);
+  }
+  
+  private exportToExcel(data: any[], fileName: string, section: string) {
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
+      data.map(item => this.formatExcelRow(item, section))
+    );
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  }
+  
+  private getPDFColumns(section: string): string[] {
+    return section === 'transfers' ? 
+      ['Date', 'Type', 'From/To', 'Payment Method', 'Amount'] : 
+      ['Date', 'Type', 'Description', 'Amount'];
+  }
+  
+  private getPDFRows(data: any[], section: string): any[] {
+    return data.map(item => {
+      const date = this.datePipe.transform(item.transactionDate, 'medium');
+      const amount = `${Number(item.amount).toLocaleString()} MMK`;
+  
+      if (section === 'transfers') {
+        const direction = this.getTransactionDirection(item);
+        return [
+          date,
+          item.fromAccountId === this.branchAccount?.id ? 'Debit' : 'Credit',
+          direction,
+          item.paymentMethod?.paymentType,
+          amount
+        ];
+      }
+      
+      return [
+        date,
+        item.type === 'Cash_In' ? 'Cash In' : 'Cash Out',
+        item.description,
+        amount
+      ];
+    });
+  }
+  
+  private formatExcelRow(item: any, section: string): any {
+    const base = {
+      Date: this.datePipe.transform(item.transactionDate, 'medium'),
+      Amount: `${Number(item.amount).toLocaleString()} MMK`
+    };
+  
+    if (section === 'transfers') {
+      return {
+        ...base,
+        Type: item.fromAccountId === this.branchAccount?.id ? 'Debit' : 'Credit',
+        'From/To': this.getTransactionDirection(item),
+        'Payment Method': item.paymentMethod?.paymentType
+      };
+    }
+  
+    return {
+      ...base,
+      Type: item.type === 'Cash_In' ? 'Cash In' : 'Cash Out',
+      Description: item.description
+    };
+  }
+  private getTransactionDirection(transaction: any): string {
+    if (transaction.fromAccountId === this.branchAccount?.id) {
+      const toCode = this.getFormattedAccountCode(transaction.toAccountId, transaction.toAccountType);
+      return `To: ${toCode}`;
+    }
+    if (transaction.toAccountId === this.branchAccount?.id) {
+      const fromCode = this.getFormattedAccountCode(transaction.fromAccountId, transaction.fromAccountType);
+      return `From: ${fromCode}`;
+    }
+    return 'External Transaction';
+  }
   
 }

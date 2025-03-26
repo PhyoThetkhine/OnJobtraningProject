@@ -98,7 +98,9 @@
                 <div class="mb-3">
                   <label class="form-label">Date of Birth</label>
                   <input type="date" class="form-control" formControlName="dateOfBirth"
+                  [max]="maxDate | date: 'yyyy-MM-dd'"
                          [class.is-invalid]="isFieldInvalid('dateOfBirth')">
+                        
                   <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
                     {{ getErrorMessage('dateOfBirth') }}
                   </div>

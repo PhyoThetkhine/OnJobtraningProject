@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,22 +34,25 @@ public class HPAutoPaymentServiceImpl {
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
     @Autowired
+    private HpLongOverPaidHistoryRepository hpLongOverPaidHistoryRepository;
+    @Autowired
     private BranchCurrentAccountRepository branchCurrentAccountRepository;
-    // ... other repositories
-
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *") // Run at midnight daily
     @Transactional
-    public void processAutoPayments() {
+
+    public void processHpAutoPayments() {
+        // Get all CIF accounts with balance
         List<CIFCurrentAccount> accountsWithBalance = cifCurrentAccountRepository.findAll().stream()
                 .filter(acc -> acc.getBalance().compareTo(BigDecimal.ZERO) > 0)
                 .collect(Collectors.toList());
 
         for (CIFCurrentAccount cifAccount : accountsWithBalance) {
-            processAccountPayments(cifAccount);
+            processHpAccountPayments(cifAccount);
         }
     }
-    private void processAccountPayments(CIFCurrentAccount cifAccount) {
-        // Get all under schedule SME loans for this CIF
+
+    private void processHpAccountPayments(CIFCurrentAccount cifAccount) {
+        // Get all under schedule HP loans for this CIF
         List<HpLoan> activeLoans = hpLoanRepository.findByCifIdAndStatus(
                 cifAccount.getCif().getId(),
                 ConstraintEnum.UNDER_SCHEDULE.getCode()
@@ -56,356 +60,459 @@ public class HPAutoPaymentServiceImpl {
 
         for (HpLoan loan : activeLoans) {
             if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                break; // Stop if no more funds available
+                break; // Stop if no funds
             }
-            processLoanPayment(loan, cifAccount);
+            processHpLoanPayment(loan, cifAccount);
         }
     }
 
-    private void processLoanPayment(HpLoan loan, CIFCurrentAccount cifAccount) {
+    private void processHpLoanPayment(HpLoan loan, CIFCurrentAccount cifAccount) {
         List<HpTerm> allTerms = hpTermRepository.findByHpLoan_Id(loan.getId());
 
-        // Get both past due and grace period terms
         List<HpTerm> termsToProcess = allTerms.stream()
                 .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
                         || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
                 .collect(Collectors.toList());
 
-        if (termsToProcess.isEmpty()) {
-            return;
-        }
+        if (termsToProcess.isEmpty()) return;
 
-        // Find max late days (considering both interest and principal late days)
-        long maxLateDays = termsToProcess.stream()
-                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
-                .mapToLong(term -> Math.max(
-                        term.getInterestLateDays(),
-                        term.getLatePrincipalDays()
-                ))
-                .max()
-                .orElse(0);
+        long maxLateDays = getHpMaxLateDays(termsToProcess);
 
         if (maxLateDays > 180) {
-            processLongTermOverdue(loan, allTerms, cifAccount);
+            processHpLongTermOverdue(loan, allTerms, cifAccount);
         } else if (maxLateDays > 90) {
-            processDefaultedLoan(loan, allTerms, cifAccount);
+            processHpDefaultedLoan(loan, allTerms, cifAccount);
         } else {
-            processNormalOverdue(loan, termsToProcess, cifAccount);
+            processHpNormalOverdue(loan, termsToProcess, cifAccount);
         }
     }
-
-    private void processNormalOverdue(HpLoan loan, List<HpTerm> termsToProcess, CIFCurrentAccount cifAccount) {
+    private void processHpNormalOverdue(HpLoan loan, List<HpTerm> termsToProcess, CIFCurrentAccount cifAccount) {
         // Sort terms by due date
-        termsToProcess.sort((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()));
+        termsToProcess.sort(Comparator.comparing(HpTerm::getDueDate));
 
-        // First pass: Process late fees for all terms
-        for (HpTerm term : termsToProcess) {
-            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                return;
-            }
-            processTermLateFees(term, cifAccount);
-        }
+        // Map to track payment history per term
+        Map<HpTerm, HpLoanHistory> paymentHistoryMap = new LinkedHashMap<>();
 
-        // Second pass: Process IOD and POD for all terms
-        for (HpTerm term : termsToProcess) {
-            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                return;
-            }
-            processTermIOD(term, cifAccount);
-            processTermPOD(term, cifAccount);
-        }
+        // Initialize history entries
+        termsToProcess.forEach(term -> {
+            HpLoanHistory history = new HpLoanHistory();
+            history.setHpTerm(term);
+            history.setPaidDate(LocalDateTime.now());
+            history.setIodPaid(BigDecimal.ZERO);
+            history.setInterestPaid(BigDecimal.ZERO);
+            history.setPrincipalPaid(BigDecimal.ZERO);
+            history.setPrincipalLateFeePaid(BigDecimal.ZERO);
+            history.setPodPaid(BigDecimal.ZERO);
+            paymentHistoryMap.put(term, history);
+        });
 
-        // Third pass: Process interest and principal for all terms
-        for (HpTerm term : termsToProcess) {
-            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                return;
-            }
-            processTermInterest(term, cifAccount);
-            processTermPrincipal(term, cifAccount);
-            updateTermStatus(term);
-        }
+        // 1. Process Interest Late Fees
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpInterestLateFee(term, cifAccount);
+                    history.setInterestLateFeePaid(paid);
+                    return paid;
+                });
+
+        // 2. Process Principal Late Fees
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpPrincipalLateFee(term, cifAccount);
+                    history.setPrincipalLateFeePaid(paid);
+                    return paid;
+                });
+
+        // 3. Process IOD
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpIOD(term, cifAccount);
+                    history.setIodPaid(paid);
+                    return paid;
+                });
+
+        // 4. Process POD
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpPOD(term, cifAccount);
+                    history.setPodPaid(paid);
+                    return paid;
+                });
+
+        // 5. Process Interest
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpTermInterest(term, cifAccount);
+                    history.setInterestPaid(paid);
+                    return paid;
+                });
+
+        // 6. Process Principal
+        processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+                (term, history) -> {
+                    BigDecimal paid = processHpPrincipal(term, cifAccount);
+                    history.setPrincipalPaid(paid);
+                    return paid;
+                });
+
+        // Save histories and update totals
+        paymentHistoryMap.values().forEach(history -> {
+            history.setTotalPaid(history.getIodPaid()
+                    .add(history.getInterestPaid())
+                    .add(history.getPrincipalPaid())
+                    .add(history.getPrincipalLateFeePaid())
+                    .add(history.getPodPaid()));
+            hpLoanHistoryRepository.save(history);
+        });
+
+        // Update term statuses
+        termsToProcess.forEach(term -> updateHpTermStatus(term, loan));
     }
 
-    private void processDefaultedLoan(HpLoan loan, List<HpTerm> allTerms, CIFCurrentAccount cifAccount) {
-        // Calculate total outstanding including principal and POD for each term
-        BigDecimal totalOutstanding = calculateTotalOutstandingWithLateFees(allTerms);
-        
-        // Get the maximum late days
-        long maxLateDays = Math.max(
-            getMaxInterestLateDays(allTerms),
-            getMaxPrincipalLateDays(allTerms)
-        );
-        
-        // Calculate and process default late fee
-        BigDecimal defaultLateFee = calculateLateFee(totalOutstanding, BigDecimal.valueOf(loan.getDefaultedRate()))
-                .multiply(BigDecimal.valueOf(maxLateDays));
-        
-        if (processLateFeePayment(defaultLateFee, cifAccount)) {
-            // Reset late days after default late fee payment
-            resetLateDaysForAllTerms(allTerms);
+    private void processHpLongTermOverdue(HpLoan loan, List<HpTerm> allTerms, CIFCurrentAccount cifAccount) {
+        BigDecimal totalOutstanding = calculateHpTotalOutstanding(allTerms);
+        long maxLateDays = getHpMaxLateDays(allTerms);
+
+        BigDecimal lateFee = totalOutstanding
+                .multiply(BigDecimal.valueOf(loan.getLongTermOverdueRate()))
+                .multiply(BigDecimal.valueOf(maxLateDays))
+                .divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
+
+        if (processHpLateFeePayment(lateFee, cifAccount, allTerms, maxLateDays)) {
+            resetHpLateDays(allTerms);
         }
 
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            List<HpTerm> termsToProcess = getTermsToProcess(allTerms);
-            
-            // First: Process late fees for all terms
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                processTermLateFees(term, cifAccount);
-            }
-
-            // Second: Process IOD and POD for all terms
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                processTermIOD(term, cifAccount);
-                processTermPOD(term, cifAccount);
-            }
-
-            // Third: Process interest and principal for all terms except last
-            HpTerm lastTerm = findLastTerm(termsToProcess);
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                if (!term.equals(lastTerm)) {
-                    processTermInterest(term, cifAccount);
-                    processTermPrincipal(term, cifAccount);
-                    updateTermStatus(term);
-                }
-            }
-
-            // Finally: Process last term with forced principal payment
-            if (lastTerm != null && getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) > 0) {
-                processTermInterest(lastTerm, cifAccount);
-                processLastTermPrincipal(lastTerm, cifAccount, loan);
-                updateTermStatus(lastTerm);
-            }
-
-            // Check if loan is complete
-            if (isAllTermsPaid(allTerms)) {
-                loan.setStatus(ConstraintEnum.PAID_OFF.getCode());
-                hpLoanRepository.save(loan);
-            }
+            processHpRemainingPayments(allTerms, cifAccount, loan);
         }
     }
 
-    private void processLongTermOverdue(HpLoan loan, List<HpTerm> allTerms, CIFCurrentAccount cifAccount) {
-        // Similar structure to processDefaultedLoan but with long term rate
-        BigDecimal totalOutstanding = calculateTotalOutstandingWithLateFees(allTerms);
-        
-        long maxLateDays = Math.max(
-            getMaxInterestLateDays(allTerms),
-            getMaxPrincipalLateDays(allTerms)
-        );
-        
-        BigDecimal longTermLateFee = calculateLateFee(totalOutstanding, BigDecimal.valueOf(loan.getLongTermOverdueRate()))
-                .multiply(BigDecimal.valueOf(maxLateDays));
-        
-        if (processLateFeePayment(longTermLateFee, cifAccount)) {
-            resetLateDaysForAllTerms(allTerms);
+    private void processHpDefaultedLoan(HpLoan loan, List<HpTerm> allTerms, CIFCurrentAccount cifAccount) {
+        BigDecimal totalOutstanding = calculateHpTotalOutstanding(allTerms);
+        long maxLateDays = getHpMaxLateDays(allTerms);
+
+        BigDecimal lateFee = totalOutstanding
+                .multiply(BigDecimal.valueOf(loan.getDefaultedRate()))
+                .multiply(BigDecimal.valueOf(maxLateDays))
+                .divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
+
+        if (processHpLateFeePayment(lateFee, cifAccount, allTerms, maxLateDays)) {
+            resetHpLateDays(allTerms);
         }
 
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            List<HpTerm> termsToProcess = getTermsToProcess(allTerms);
-            
-            // Process payments in the same order as defaulted loan
-            // First: Late fees for all terms
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                processTermLateFees(term, cifAccount);
-            }
+            processHpRemainingPayments(allTerms, cifAccount, loan);
+        }
+    }
 
-            // Second: IOD and POD for all terms
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                processTermIOD(term, cifAccount);
-                processTermPOD(term, cifAccount);
-            }
 
-            // Third: Interest and principal for all terms except last
-            HpTerm lastTerm = findLastTerm(termsToProcess);
-            for (HpTerm term : termsToProcess) {
-                if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                    return;
-                }
-                if (!term.equals(lastTerm)) {
-                    processTermInterest(term, cifAccount);
-                    processTermPrincipal(term, cifAccount);
-                    updateTermStatus(term);
+    private boolean processHpLateFeePayment(BigDecimal lateFee, CIFCurrentAccount cifAccount,
+                                            List<HpTerm> terms, long maxLateDays) {
+        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
+        BigDecimal totalOutstanding = calculateHpTotalOutstanding(terms);
+        BigDecimal paidAmount = BigDecimal.ZERO;
+        HpLoan loan = terms.get(0).getHpLoan();
+        if (totalAvailable.compareTo(lateFee) >= 0) {
+            paidAmount = lateFee;
+            // Deduct from hold amount first
+            BigDecimal remainingLateFee = lateFee;
+            BigDecimal holdAmount = cifAccount.getHoldAmount();
+            if (holdAmount.compareTo(BigDecimal.ZERO) > 0) {
+                if (holdAmount.compareTo(remainingLateFee) >= 0) {
+                    cifAccount.setHoldAmount(holdAmount.subtract(remainingLateFee));
+                    remainingLateFee = BigDecimal.ZERO;
+                } else {
+                    remainingLateFee = remainingLateFee.subtract(holdAmount);
+                    cifAccount.setHoldAmount(BigDecimal.ZERO);
                 }
             }
+            // Use balance for any remaining amount
+            if (remainingLateFee.compareTo(BigDecimal.ZERO) > 0) {
+                cifAccount.setBalance(cifAccount.getBalance().subtract(remainingLateFee));
+            }
+            // Save payment history
+            HpLongOverPaidHistory history = new HpLongOverPaidHistory();
+            history.setLoan(loan);
+            history.setLateFeeAmount(lateFee);
+            history.setOutstandingAmount(totalOutstanding);
+            history.setPaidAmount(lateFee);
+            history.setLateDays((int)maxLateDays);
+            hpLongOverPaidHistoryRepository.save(history);
+            return true;
+        } else {
+            cifAccount.setHoldAmount(totalAvailable);
+            cifAccount.setBalance(BigDecimal.ZERO);
+            return false;
+        }
+    }
 
-            // Finally: Process last term
-            if (lastTerm != null && getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) > 0) {
-                processTermInterest(lastTerm, cifAccount);
-                processLastTermPrincipal(lastTerm, cifAccount, loan);
-                updateTermStatus(lastTerm);
+    private void processHpRemainingPayments(List<HpTerm> terms, CIFCurrentAccount cifAccount, HpLoan loan) {
+        List<HpTerm> sortedTerms = terms.stream()
+                .sorted(Comparator.comparing(HpTerm::getDueDate))
+                .collect(Collectors.toList());
+
+        Map<HpTerm, HpLoanHistory> historyMap = new LinkedHashMap<>();
+        sortedTerms.forEach(term -> historyMap.put(term, new HpLoanHistory()));
+
+//        // 1. Process Interest Late Fees
+//        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+//                (term, history) -> processHpInterestLateFee(term, cifAccount, history));
+//
+//        // 2. Process Principal Late Fees
+//        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+//                (term, history) -> processHpPrincipalLateFee(term, cifAccount, history));
+
+        // 3. Process IOD
+        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+
+        (term, history) -> {
+            BigDecimal paid = processHpIOD(term, cifAccount);
+            history.setIodPaid(paid);
+            return paid;
+        });
+        // 4. Process POD (Principal Overdue)
+        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+               // (term, history) -> processHpPOD(term, cifAccount, history));
+        (term, history) -> {
+            BigDecimal paid = processHpPOD(term, cifAccount);
+            history.setPodPaid(paid);
+            return paid;
+        });
+
+        // 5. Process Interest
+        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+              //  (term, history) -> processHpTermInterest(term, cifAccount));
+        (term, history) -> {
+            BigDecimal paid = processHpTermInterest(term, cifAccount);
+            history.setInterestPaid(paid);
+            return paid;
+        });
+        // 6. Process Principal
+        processPaymentComponent(sortedTerms, cifAccount, historyMap,
+                //(term, history) -> processHpPrincipal(term, cifAccount, loan));
+        (term, history) -> {
+            BigDecimal paid = processHpPrincipal(term, cifAccount);
+            history.setPrincipalPaid(paid);
+            return paid;
+        });
+        // Save histories and update terms
+        historyMap.forEach((term, history) -> {
+            history.setHpTerm(term);
+            history.setTotalPaid(history.getPrincipalLateFeePaid()
+                    .add(history.getIodPaid())
+                    .add(history.getInterestLateFeePaid())
+                    .add(history.getInterestPaid())
+                    .add(history.getPrincipalPaid()));
+            hpLoanHistoryRepository.save(history);
+            updateHpTermStatus(term, loan);
+        });
+    }
+    private void processPaymentComponent(List<HpTerm> terms,
+                                         CIFCurrentAccount cifAccount,
+                                         Map<HpTerm, HpLoanHistory> historyMap,
+                                         BiFunction<HpTerm, HpLoanHistory, BigDecimal> paymentProcessor) {
+        for (HpTerm term : terms) {
+            // Check available balance first
+            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
+                break;
             }
 
-            if (isAllTermsPaid(allTerms)) {
-                loan.setStatus(ConstraintEnum.PAID_OFF.getCode());
-                hpLoanRepository.save(loan);
+            HpLoanHistory history = historyMap.get(term);
+            if (history != null) {
+                paymentProcessor.apply(term, history);
             }
         }
+    }
+    private BigDecimal processHpTermInterest(HpTerm term, CIFCurrentAccount cifAccount) {
+        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
+        BigDecimal interestDue = term.getInterest();
+
+        if (interestDue.compareTo(BigDecimal.ZERO) <= 0 || totalAvailable.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // Pay as much as possible
+        BigDecimal interestPaid = interestDue.min(totalAvailable);
+        term.setInterest(interestDue.subtract(interestPaid));
+
+        // Update account balances (same logic as SME but might need HP-specific history tracking)
+        updateAccountBalances(cifAccount, interestPaid);
+
+        // Update HP-specific fields
+        term.setOutstandingAmount(term.getOutstandingAmount().subtract(interestPaid));
+        term.setTotalRepaymentAmount(term.getTotalRepaymentAmount().add(interestPaid));
+        term.setLastRepayment(interestPaid);
+        term.setLastRepayDate(new Date(System.currentTimeMillis()));
+
+        hpTermRepository.save(term);
+
+        return interestPaid;
+    }
+
+    // HP-specific payment components
+    private BigDecimal processHpInterestLateFee(HpTerm term, CIFCurrentAccount cifAccount) {
+        if (term.getInterestLateDays() <= 0) {
+            return null;
+        }
+
+        // Calculate interest late fee
+        BigDecimal lateFee = term.getInterestOfOverdue()
+                .multiply(BigDecimal.valueOf(term.getHpLoan().getLateFeeRate()))
+                .multiply(BigDecimal.valueOf(term.getInterestLateDays()))
+                .divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
+
+        BigDecimal availableBalance = getTotalAvailableAmount(cifAccount);
+        if (availableBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+
+        if (availableBalance.compareTo(lateFee) >= 0) {
+            updateAccountBalances(cifAccount, lateFee);
+            term.setInterestLateDays(0);
+            term.setInterestLateFee(BigDecimal.ZERO); // Clear accumulated fee
+            hpTermRepository.save(term);
+            return lateFee;
+        } else {
+            cifAccount.setHoldAmount(cifAccount.getHoldAmount().add(availableBalance));
+            cifAccount.setBalance(BigDecimal.ZERO);
+            cifCurrentAccountRepository.save(cifAccount);
+            return null;
+        }
+    }
+    private BigDecimal processHpPrincipalLateFee(HpTerm term, CIFCurrentAccount cifAccount) {
+        if (term.getLatePrincipalDays() <= 0) {
+            return null;
+        }
+
+        // Calculate principal late fee
+        BigDecimal lateFee = term.getPrincipalOfOverdue()
+                .multiply(BigDecimal.valueOf(term.getHpLoan().getLateFeeRate()))
+                .multiply(BigDecimal.valueOf(term.getLatePrincipalDays()))
+                .divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
+
+        BigDecimal availableBalance = getTotalAvailableAmount(cifAccount);
+        if (availableBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+
+        if (availableBalance.compareTo(lateFee) >= 0) {
+            updateAccountBalances(cifAccount, lateFee);
+            term.setLatePrincipalDays(0);
+            term.setPrincipalLateFee(BigDecimal.ZERO); // Clear accumulated fee
+            hpTermRepository.save(term);
+            return lateFee;
+        } else {
+            cifAccount.setHoldAmount(cifAccount.getHoldAmount().add(availableBalance));
+            cifAccount.setBalance(BigDecimal.ZERO);
+            cifCurrentAccountRepository.save(cifAccount);
+            return null;
+        }
+    }
+
+    private BigDecimal processHpPOD(HpTerm term, CIFCurrentAccount account) {
+        BigDecimal totalAvailable = getTotalAvailableAmount(account);
+        BigDecimal podDue = term.getPrincipalOfOverdue();
+//        BigDecimal paid = payFromAccount(term.getPrincipalOfOverdue(), account);
+        if (podDue.compareTo(BigDecimal.ZERO) <= 0 || totalAvailable.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal podPaid = podDue.min(totalAvailable);
+        term.setPrincipalOfOverdue(podDue.subtract(podPaid));
+        updateAccountBalances(account, podPaid);
+        return podPaid;
+    }
+    private BigDecimal processHpIOD(HpTerm term, CIFCurrentAccount account) {
+        BigDecimal totalAvailable = getTotalAvailableAmount(account);
+        BigDecimal iodDue = term.getInterestOfOverdue();
+//        BigDecimal paid = payFromAccount(term.getPrincipalOfOverdue(), account);
+        if (iodDue.compareTo(BigDecimal.ZERO) <= 0 || totalAvailable.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal iodPaid = iodDue.min(totalAvailable);
+        term.setInterestOfOverdue(iodDue.subtract(iodPaid));
+        updateAccountBalances(account, iodPaid);
+        hpTermRepository.save(term);
+        return iodPaid;
+    }
+
+
+    private BigDecimal processHpPrincipal(HpTerm term, CIFCurrentAccount account) {
+        BigDecimal totalAvailable = getTotalAvailableAmount(account);
+        BigDecimal prinDue = term.getPrincipal();
+
+        if (prinDue.compareTo(BigDecimal.ZERO) <= 0 || totalAvailable.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // Pay as much as possible
+        BigDecimal prinPaid = prinDue.min(totalAvailable);
+        term.setPrincipal(prinDue.subtract(prinPaid)); // Track remaining IOD
+        updateAccountBalances(account, prinPaid);
+        hpTermRepository.save(term);
+
+        return prinPaid;
     }
 
     // Helper methods
-    private List<HpTerm> getTermsToProcess(List<HpTerm> allTerms) {
-        return allTerms.stream()
-                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
-                        || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
-                .sorted((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
-                .collect(Collectors.toList());
+    private BigDecimal calculateHpTotalOutstanding(List<HpTerm> terms) {
+        return terms.stream()
+                .map(t -> t.getInterest()
+                        .add(t.getInterestOfOverdue())
+                        .add(t.getPrincipalOfOverdue())
+                        .add(t.getPrincipal()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private HpTerm findLastTerm(List<HpTerm> terms) {
+    private long getHpMaxLateDays(List<HpTerm> terms) {
         return terms.stream()
+                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
+                .mapToLong(term -> ChronoUnit.DAYS.between(
+                        term.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime(),
+                        LocalDateTime.now()
+                ))
+                .max()
+                .orElse(0);
+    }
+
+    private void resetHpLateDays(List<HpTerm> terms) {
+        terms.forEach(t -> {
+            t.setInterestLateDays(0);
+            t.setLatePrincipalDays(0);
+        });
+        hpTermRepository.saveAll(terms);
+    }
+
+    private void updateHpTermStatus(HpTerm term, HpLoan loan) {
+        if (term.getPrincipal().add(term.getInterest())
+                .add(term.getInterestOfOverdue()).add(term.getPrincipalOfOverdue())
+                .compareTo(BigDecimal.ZERO) == 0) {
+            term.setStatus(ConstraintEnum.PAID_OFF.getCode());
+            if (isLastHpTerm(term, loan)) {
+                loan.setStatus(ConstraintEnum.PAID_OFF.getCode());
+                hpLoanRepository.save(loan);
+            }
+        }
+        hpTermRepository.save(term);
+    }
+    private boolean isLastHpTerm(HpTerm currentTerm, HpLoan loan) {
+        // Get all terms for this loan
+        List<HpTerm> allTerms = hpTermRepository.findByHpLoan_Id(loan.getId());
+
+        // Find the term with the latest due date
+        HpTerm lastTerm = allTerms.stream()
                 .max((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
                 .orElse(null);
+
+        // Check if current term is the last term
+        return lastTerm != null && lastTerm.getId() == currentTerm.getId();
     }
-
-    private void resetLateDaysForAllTerms(List<HpTerm> terms) {
-        for (HpTerm term : terms) {
-            if (term.getInterestLateDays() > 0 || term.getLatePrincipalDays() > 0) {
-                term.setInterestLateDays(0);
-                term.setLatePrincipalDays(0);
-                hpTermRepository.save(term);
-            }
-        }
+    private BigDecimal getTotalAvailableAmount(CIFCurrentAccount cifAccount) {
+        return cifAccount.getBalance().add(cifAccount.getHoldAmount());
     }
-
-    private void processTermLateFees(HpTerm term, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-
-        // Process interest late fee payment
-        if (term.getInterestLateFee().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal interestLateFee = term.getInterestLateFee();
-            if (totalAvailable.compareTo(interestLateFee) >= 0) {
-                // Full payment
-                totalAvailable = totalAvailable.subtract(interestLateFee);
-                term.setInterestLateFee(BigDecimal.ZERO);
-                totalPaid = totalPaid.add(interestLateFee);
-            } else {
-                // Move all available amount to hold
-                cifAccount.setHoldAmount(cifAccount.getHoldAmount().add(totalAvailable));
-                cifAccount.setBalance(BigDecimal.ZERO);
-                cifCurrentAccountRepository.save(cifAccount);
-                return;
-            }
-        }
-
-        // Process principal late fee payment
-        if (term.getPrincipalLateFee().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal principalLateFee = term.getPrincipalLateFee();
-            if (totalAvailable.compareTo(principalLateFee) >= 0) {
-                // Full payment
-                totalAvailable = totalAvailable.subtract(principalLateFee);
-                term.setPrincipalLateFee(BigDecimal.ZERO);
-                totalPaid = totalPaid.add(principalLateFee);
-            } else {
-                // Move all available amount to hold
-                cifAccount.setHoldAmount(cifAccount.getHoldAmount().add(totalAvailable));
-                cifAccount.setBalance(BigDecimal.ZERO);
-                cifCurrentAccountRepository.save(cifAccount);
-                return;
-            }
-        }
-
-        if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-            updateAccountBalances(cifAccount, totalPaid);
-            createPaymentHistory(term, totalPaid);
-            returnMoneyToBranch(cifAccount, totalPaid, term.getHpLoan());
-            hpTermRepository.save(term);
-        }
-    }
-
-    private void processTermIOD(HpTerm term, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-        
-        if (term.getInterestOfOverdue().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            // Pay as much as possible
-            BigDecimal iodPaid = processPayment(term.getInterestOfOverdue(), totalAvailable);
-            term.setInterestOfOverdue(term.getInterestOfOverdue().subtract(iodPaid));
-            totalPaid = totalPaid.add(iodPaid);
-            
-            updateTermOutstanding(term);
-            
-            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-                updateAccountBalances(cifAccount, totalPaid);
-                createPaymentHistory(term, totalPaid);
-                returnMoneyToBranch(cifAccount, totalPaid, term.getHpLoan());
-                hpTermRepository.save(term);
-            }
-        }
-    }
-
-    private void processTermInterest(HpTerm term, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-        
-        if (term.getInterest().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            // Pay as much as possible
-            BigDecimal interestPaid = processPayment(term.getInterest(), totalAvailable);
-            term.setInterest(term.getInterest().subtract(interestPaid));
-            totalPaid = totalPaid.add(interestPaid);
-            
-            updateTermOutstanding(term);
-            
-            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-                updateAccountBalances(cifAccount, totalPaid);
-                createPaymentHistory(term, totalPaid);
-                returnMoneyToBranch(cifAccount, totalPaid, term.getHpLoan());
-                hpTermRepository.save(term);
-            }
-        }
-    }
-
-    private void processTermPrincipal(HpTerm term, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-
-        if (term.getPrincipal().compareTo(BigDecimal.ZERO) > 0 &&
-                totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            // Pay as much as possible
-            BigDecimal principalPaid = processPayment(term.getPrincipal(), totalAvailable);
-            term.setPrincipal(term.getPrincipal().subtract(principalPaid));
-            totalPaid = totalPaid.add(principalPaid);
-
-            updateTermOutstanding(term);
-
-            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-                updateAccountBalances(cifAccount, totalPaid);
-                createPaymentHistory(term, totalPaid);
-                returnMoneyToBranch(cifAccount, totalPaid, term.getHpLoan());
-                hpTermRepository.save(term);
-            }
-        }
-    }
-
-    private void processLastTermPrincipal(HpTerm lastTerm, CIFCurrentAccount cifAccount, HpLoan loan) {
-        // Simply process the principal payment with available balance
-        BigDecimal available = getTotalAvailableAmount(cifAccount);
-        if (available.compareTo(BigDecimal.ZERO) > 0) {
-            processTermPrincipal(lastTerm, cifAccount);
-        }
-    }
-
     private void updateAccountBalances(CIFCurrentAccount cifAccount, BigDecimal amountPaid) {
         BigDecimal remainingAmount = amountPaid;
         BigDecimal holdAmount = cifAccount.getHoldAmount();
-        
+
+        // Deduct from holdAmount first
         if (holdAmount.compareTo(BigDecimal.ZERO) > 0) {
             if (holdAmount.compareTo(remainingAmount) >= 0) {
                 cifAccount.setHoldAmount(holdAmount.subtract(remainingAmount));
@@ -415,258 +522,14 @@ public class HPAutoPaymentServiceImpl {
                 cifAccount.setHoldAmount(BigDecimal.ZERO);
             }
         }
-        
+
+        // Deduct remaining amount from balance
         if (remainingAmount.compareTo(BigDecimal.ZERO) > 0) {
             cifAccount.setBalance(cifAccount.getBalance().subtract(remainingAmount));
         }
-        
+
+        // Save the updated account
         cifCurrentAccountRepository.save(cifAccount);
     }
 
-    private void returnMoneyToBranch(CIFCurrentAccount cifAccount, BigDecimal amount, HpLoan loan) {
-        try {
-            String cifCode = loan.getCif().getCifCode();
-            String branchCode = extractBranchCode(cifCode);
-            
-            Transaction transaction = new Transaction();
-            transaction.setFromAccountId(cifAccount.getId());
-            transaction.setFromAccountType(Transaction.AccountType.CIF);
-            transaction.setToAccountType(Transaction.AccountType.BRANCH);
-            transaction.setAmount(amount);
-            
-            int branchAccountId = getBranchAccountIdByCode(branchCode);
-            transaction.setToAccountId(branchAccountId);
-            
-            transaction.setPaymentMethod(paymentMethodRepository.findById(1)
-                .orElseThrow(() -> new RuntimeException("Payment Method not found")));
-            
-          //  transactionService.processTransaction(transaction);
-        } catch (Exception e) {
-            System.err.println("Failed to return money to branch: " + e.getMessage());
-        }
-    }
-
-    private String extractBranchCode(String cifCode) {
-        return cifCode.substring(0, 3);
-    }
-
-    private int getBranchAccountIdByCode(String branchCode) {
-        return branchCurrentAccountRepository.findByBranchCode(branchCode)
-            .orElseThrow(() -> new RuntimeException("Branch account not found for code: " + branchCode))
-            .getId();
-    }
-
-    private BigDecimal processPayment(BigDecimal amount, BigDecimal availableBalance) {
-        return availableBalance.compareTo(amount) >= 0 ? amount : availableBalance;
-    }
-
-    private boolean processLateFeePayment(BigDecimal lateFee, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        
-        if (totalAvailable.compareTo(lateFee) >= 0) {
-            // Full payment
-            updateAccountBalances(cifAccount, lateFee);
-            
-//            hpTermRepository.save(cifAccount);
-            return true;
-        }
-        return false;
-    }
-
-    private BigDecimal calculateLateFee(BigDecimal amount, BigDecimal rate) {
-        return amount.multiply(rate)
-                .divide(BigDecimal.valueOf(36500), 2, RoundingMode.HALF_UP);
-    }
-
-    private void processRemainingPayments(List<HpTerm> terms, CIFCurrentAccount cifAccount, HpLoan loan) {
-        // Filter and sort terms that need processing (PAST_DUE or GRACE_PERIOD)
-        List<HpTerm> termsToProcess = terms.stream()
-                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
-                        || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
-                .sorted((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
-                .collect(Collectors.toList());
-
-        for (HpTerm term : termsToProcess) {
-            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-                break;
-            }
-            if (term.getStatus() != ConstraintEnum.PAID_OFF.getCode()) {
-                processTermPayment(term, cifAccount, loan);
-            }
-        }
-    }
-
-    private void processTermPayment(HpTerm term, CIFCurrentAccount cifAccount, HpLoan loan) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-
-        // 1. Process late fees first
-        if (term.getInterestLateFee().compareTo(BigDecimal.ZERO) > 0 || 
-            term.getPrincipalLateFee().compareTo(BigDecimal.ZERO) > 0) {
-            processTermLateFees(term, cifAccount);
-            totalAvailable = getTotalAvailableAmount(cifAccount);
-        }
-
-        // 2. Process IOD
-        if (term.getInterestOfOverdue().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            processTermIOD(term, cifAccount);
-            totalAvailable = getTotalAvailableAmount(cifAccount);
-        }
-
-        // 3. Process POD
-        if (term.getPrincipalOfOverdue().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            processTermPOD(term, cifAccount);
-            totalAvailable = getTotalAvailableAmount(cifAccount);
-        }
-
-        // 4. Process interest
-        if (term.getInterest().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            processTermInterest(term, cifAccount);
-            totalAvailable = getTotalAvailableAmount(cifAccount);
-        }
-
-        // 5. Process principal
-        if (term.getPrincipal().compareTo(BigDecimal.ZERO) > 0 && 
-            totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            processTermPrincipal(term, cifAccount);
-        }
-
-        // Update term status after all payments
-        updateTermStatus(term);
-    }
-
-    private void processTermPOD(HpTerm term, CIFCurrentAccount cifAccount) {
-        BigDecimal totalAvailable = getTotalAvailableAmount(cifAccount);
-        BigDecimal totalPaid = BigDecimal.ZERO;
-
-        if (term.getPrincipalOfOverdue().compareTo(BigDecimal.ZERO) > 0 &&
-                totalAvailable.compareTo(BigDecimal.ZERO) > 0) {
-            // Pay as much as possible
-            BigDecimal podPaid = processPayment(term.getPrincipalOfOverdue(), totalAvailable);
-            term.setPrincipalOfOverdue(term.getPrincipalOfOverdue().subtract(podPaid));
-            totalPaid = totalPaid.add(podPaid);
-
-            updateTermOutstanding(term);
-
-            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-                updateAccountBalances(cifAccount, totalPaid);
-                createPaymentHistory(term, totalPaid);
-                returnMoneyToBranch(cifAccount, totalPaid, term.getHpLoan());
-                hpTermRepository.save(term);
-            }
-        }
-    }
-
-    private void updateTermOutstanding(HpTerm term) {
-        term.setOutstandingAmount(
-                term.getPrincipal()
-                        .add(term.getInterest())
-                        .add(term.getInterestOfOverdue())
-                        .add(term.getPrincipalOfOverdue())
-        );
-    }
-
-    private BigDecimal calculateTotalOutstanding(List<HpTerm> terms) {
-        return terms.stream()
-                .map(term -> term.getPrincipal()
-                        .add(term.getInterest())
-                        .add(term.getInterestOfOverdue())
-                        .add(term.getPrincipalOfOverdue()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private void createPaymentHistory(HpTerm term, BigDecimal totalPaid) {
-        HpLoanHistory history = new HpLoanHistory();
-        history.setHpTerm(term);
-        history.setPaidAmount(totalPaid);
-        history.setPaidDate(LocalDateTime.now());
-        history.setOutstanding(term.getOutstandingAmount());
-        history.setPrincipalPaid(term.getPrincipal());
-        history.setInterestPaid(term.getInterest());
-        history.setIodPaid(term.getInterestOfOverdue());
-//        history.setPodPaid(term.getPrincipalOfOverdue());
-//        history.setInterestLateFee(term.getInterestLateFee());
-//        history.setPrincipalLateFee(term.getPrincipalLateFee());
-        history.setTotalPaid(totalPaid);
-
-
-        hpLoanHistoryRepository.save(history);
-    }
-
-    private BigDecimal getTotalAvailableAmount(CIFCurrentAccount cifAccount) {
-        return cifAccount.getBalance().add(cifAccount.getHoldAmount());
-    }
-
-    private long getMaxInterestLateDays(List<HpTerm> terms) {
-        return terms.stream()
-                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
-                .mapToLong(HpTerm::getInterestLateDays)
-                .max()
-                .orElse(0);
-    }
-
-    private long getMaxPrincipalLateDays(List<HpTerm> terms) {
-        return terms.stream()
-                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
-                .mapToLong(HpTerm::getLatePrincipalDays)
-                .max()
-                .orElse(0);
-    }
-
-    private void updateTermStatus(HpTerm term) {
-        // Check if term is fully paid
-        if (term.getPrincipal().add(term.getInterest())
-                .add(term.getInterestOfOverdue())
-                .add(term.getPrincipalOfOverdue())
-                .add(term.getInterestLateFee())
-                .add(term.getPrincipalLateFee())
-                .compareTo(BigDecimal.ZERO) == 0) {
-            term.setStatus(ConstraintEnum.PAID_OFF.getCode());
-            
-            // If this was the last term and it's fully paid, update loan status
-            if (isLastTerm(term)) {
-                HpLoan loan = term.getHpLoan();
-                loan.setStatus(ConstraintEnum.PAID_OFF.getCode());
-                hpLoanRepository.save(loan);
-            }
-            hpTermRepository.save(term);
-        }
-    }
-
-    private boolean isLastTerm(HpTerm currentTerm) {
-        // Get all terms for this loan
-        List<HpTerm> allTerms = hpTermRepository.findByHpLoan_Id(currentTerm.getHpLoan().getId());
-        
-        // Find the term with the latest due date
-        HpTerm lastTerm = allTerms.stream()
-                .max((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
-                .orElse(null);
-        
-        // Check if current term is the last term
-        return lastTerm != null && lastTerm.getId() == currentTerm.getId();
-    }
-
-    private BigDecimal calculateTotalOutstandingWithLateFees(List<HpTerm> terms) {
-        return terms.stream()
-                .map(term -> term.getPrincipal()
-                        .add(term.getInterest())
-                        .add(term.getInterestOfOverdue())
-                        .add(term.getPrincipalOfOverdue())
-                        .add(term.getInterestLateFee())
-                        .add(term.getPrincipalLateFee()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private boolean isAllTermsPaid(List<HpTerm> terms) {
-        return terms.stream().allMatch(term -> 
-            term.getPrincipal().add(term.getInterest())
-                .add(term.getInterestOfOverdue())
-                .add(term.getPrincipalOfOverdue())
-                .add(term.getInterestLateFee())
-                .add(term.getPrincipalLateFee())
-                .compareTo(BigDecimal.ZERO) == 0);
-    }
 }

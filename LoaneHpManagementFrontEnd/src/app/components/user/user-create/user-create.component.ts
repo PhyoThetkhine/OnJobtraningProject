@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule, AsyncValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule, AsyncValidatorFn, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, firstValueFrom, Subject, Observable, map } from 'rxjs';
 import { UserService } from '../../../services/user.service';
@@ -52,7 +52,7 @@ private destroy$ = new Subject<void>();
   // Custom validators
   private phoneNumberPattern = /^(09|959|\+959)\d{7,9}$/;
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+  maxDate: Date;
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
@@ -65,12 +65,20 @@ private destroy$ = new Subject<void>();
     private toastr: ToastrService,
     private authService:AuthService,
         private cifService: CIFService,
+        
   ) {
     this.createForm();
+    const today = new Date();
+  this.maxDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
   }
 
   ngOnInit() {
     this.loadInitialData();
+    
   }
 
   private createForm() {
@@ -97,9 +105,9 @@ private destroy$ = new Subject<void>();
       nrcNumber: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]],
       nrcFrontPhoto: [''],  // Not required in form validation
       nrcBackPhoto: [''],   // Not required in form validation
-      dateOfBirth: ['', Validators.required],
+      dateOfBirth: ['', Validators.required,this.minAgeValidator(18)],
       gender: ['', Validators.required],
-      branchId: ['', Validators.required],
+      branchId: ['', Validators.required,],
       roleId: ['', Validators.required],
       address: this.fb.group({
         state: ['', Validators.required],
@@ -110,14 +118,30 @@ private destroy$ = new Subject<void>();
       
     });
 
-    // Debug form state changes
-    this.userForm.valueChanges.subscribe(() => {
-      console.log('Form Valid:', this.userForm.valid);
-      if (!this.userForm.valid) {
-        this.debugFormValidation();
-      }
-    });
+   
   }
+  // Add this method to your component class
+private minAgeValidator(minAge: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    
+    const birthDate = new Date(control.value);
+    const today = new Date();
+    
+    // Set hours to 0 to compare dates without time influence
+    today.setHours(0, 0, 0, 0);
+    
+    const minDate = new Date(
+      today.getFullYear() - minAge,
+      today.getMonth(),
+      today.getDate()
+    );
+
+    return birthDate > minDate ? { minAge: true } : null;
+  };
+}
 
   private duplicateEmailValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
@@ -502,49 +526,15 @@ private destroy$ = new Subject<void>();
         }
         return 'Invalid format';
       }
+      if (control.errors['minAge']) {
+        return 'Must be at least 18 years old';
+      }
     }
     return '';
   }
 
-  // Add this method to debug address data
-  private debugAddressData() {
-    console.log('Current Address Data:', {
-      states: this.states,
-      selectedState: this.userForm.get('address.state')?.value,
-      townships: this.townships,
-      selectedTownship: this.userForm.get('address.township')?.value,
-      cities: this.cities,
-      selectedCity: this.userForm.get('address.city')?.value,
-      townshipData: this.townshipData
-    });
-  }
-
-  // Add this method to debug form validation
-  public debugFormValidation() {
-    console.log('Form Validation State:', {
-      formValid: this.userForm.valid,
-      formErrors: this.userForm.errors,
-      formValue: this.userForm.value,
-      controls: {
-        name: this.userForm.get('name')?.errors,
-        email: this.userForm.get('email')?.errors,
-        phoneNumber: this.userForm.get('phoneNumber')?.errors,
-        nrcState: this.userForm.get('nrcState')?.errors,
-        nrcTownship: this.userForm.get('nrcTownship')?.errors,
-        nrcType: this.userForm.get('nrcType')?.errors,
-        nrcNumber: this.userForm.get('nrcNumber')?.errors,
-        dateOfBirth: this.userForm.get('dateOfBirth')?.errors,
-        gender: this.userForm.get('gender')?.errors,
-        branchId: this.userForm.get('branchId')?.errors,
-        roleId: this.userForm.get('roleId')?.errors,
-        address: {
-          state: this.userForm.get('address.state')?.errors,
-          township: this.userForm.get('address.township')?.errors,
-          city: this.userForm.get('address.city')?.errors
-        }
-      }
-    });
-  }
+ 
+ 
 
   private isRegularBranchUser(): boolean {
     return this.currentUser?.role?.authority === AUTHORITY.RegularBranchLevel;

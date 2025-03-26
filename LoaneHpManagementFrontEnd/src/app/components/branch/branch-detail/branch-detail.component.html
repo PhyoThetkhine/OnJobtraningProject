@@ -311,25 +311,28 @@
                               </div>
                             </td> -->
                             <td>
-                              <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id">
+                              <!-- Unified check for transaction direction -->
+                              <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id; else creditSection">
+                                <!-- Debit Transaction -->
                                 To: 
                                 <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
                                   {{ code }}
                                 </ng-container>
-                                <ng-template #loading>
-                                  <span class="text-muted">Loading...</span>
-                                </ng-template>
                               </ng-container>
                             
-                              <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
-                                From: 
-                                <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
-                                  {{ code }}
+                              <ng-template #creditSection>
+                                <!-- Credit Transaction -->
+                                <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                                  From: 
+                                  <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                                    {{ code }}
+                                  </ng-container>
                                 </ng-container>
-                                <ng-template #loading>
-                                  <span class="text-muted">Loading...</span>
-                                </ng-template>
-                              </ng-container>
+                              </ng-template>
+                            
+                              <ng-template #loading>
+                                <span class="text-muted">Loading...</span>
+                              </ng-template>
                             </td>
                             <td>{{ transaction.paymentMethod.paymentType }}</td>
                             <td [ngClass]="{

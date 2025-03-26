@@ -29,9 +29,15 @@
                      formControlName="roleName"
                      [class.is-invalid]="isFieldInvalid('roleName')">
               <div class="invalid-feedback" *ngIf="isFieldInvalid('roleName')">
-                Role name is required and must be at least 3 characters
+                <div *ngIf="roleForm.get('roleName')?.errors?.['required'] || roleForm.get('roleName')?.errors?.['minlength']">
+                  Role name is required and must be at least 3 characters
+                </div>
+                <div *ngIf="roleForm.get('roleName')?.errors?.['duplicateRole']">
+                  Role name already exists
+                </div>
               </div>
             </div>
+            
 
             <div class="mb-4">
               <label class="form-label">Authority Level</label>

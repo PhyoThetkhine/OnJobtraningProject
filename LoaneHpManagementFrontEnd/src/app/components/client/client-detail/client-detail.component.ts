@@ -37,6 +37,7 @@ import { ApiResponse } from 'src/app/models/user.model';
 import { BranchCurrentAccount } from 'src/app/models/branch-account.model';
 import { BranchService } from 'src/app/services/branch.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { CifTransferComponent } from '../cif-transfer/cif-transfer.component';
 
 @Component({
   selector: 'app-client-detail',
@@ -612,13 +613,13 @@ getAccountCode(accountId: number, accountType: string): Observable<string> {
 private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
   switch(accountType.toUpperCase()) {
     case 'CIF':
-      return this.cifAccountService.getAccountByCifId(accountId).pipe(
+      return this.cifAccountService.getAccountById(accountId).pipe(
         map((response: any) => response?.data?.accCode || 'N/A'),
         catchError(() => of('CIF Not Found'))
       );
 
     case 'BRANCH':
-      return this.branchService.getBranchAccount(accountId).pipe(
+      return this.branchService.getBranchAccountById(accountId).pipe(
         map((response: any) => response?.data?.accCode || 'N/A'),
         catchError(() => of('Branch Not Found'))
       );
@@ -778,30 +779,28 @@ isCredit(transaction: Transaction): boolean {
       () => {} // Modal dismissed
     );
   }
-  //  openTransferModal() {
-  //     if (!this.branch || !this.branchAccount) return;
+  openCifTransferModal() {
+    if (!this.cifAccount) return;
   
-  //     const modalRef = this.modalService.open(BranchTransferComponent, {
-  //       size: 'lg',
-  //       centered: true,
-  //       backdrop: 'static'
-  //     });
+    const modalRef = this.modalService.open(CifTransferComponent, {
+      size: 'lg',
+      centered: true,
+      backdrop: 'static'
+    });
   
-  //     modalRef.componentInstance.branch = this.branch;
-  //     modalRef.componentInstance.branchAccount = this.branchAccount;
+    modalRef.componentInstance.cifAccount = this.cifAccount;
   
-  //     modalRef.result.then(
-  //       (result) => {
-  //         if (result) {
-  //           this.loadBranchAccount();
-  //           this.loadCashTransactions(0);
-  //           this.loadTransactions(0);
-  //           this.toastr.success('Transfer completed successfully');
-  //         }
-  //       },
-  //       () => {} // Modal dismissed
-  //     );
-  //   }
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          this.loadCIFAccount();
+          this.loadTransactions(0);
+          this.toastr.success('Transfer completed successfully');
+        }
+      },
+      () => {} // Dismissed
+    );
+  }
 
   openUpdateFinancialModal() {
     if (!this.selectedCompany || !this.financial) {

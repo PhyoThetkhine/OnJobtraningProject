@@ -53,6 +53,19 @@
             {{ loading ? 'Signing in...' : 'Sign In' }}
           </button>
         </form>
+        <div class="modal-overlay" *ngIf="showLockoutModal">
+          <div class="modal-box">
+            <div class="modal-header">
+              <h3>Account Locked</h3>
+            </div>
+            <div class="modal-content">
+              <i class="bi bi-shield-lock warning-icon"></i>
+              <p>Too many failed login attempts. Please try again after:</p>
+              <div class="countdown-timer">{{ remainingTime }}</div>
+              <p class="small-text">For security reasons, your account has been temporarily locked.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -18,4 +18,12 @@ public class BranchCurrentAccountServiceImpl implements BranchCurrentAccountServ
                         "Account not found for branch ID: " + branchId
                 ));
     }
+
+    @Override
+    public BranchCurrentAccount getAccountById(int accountId) {
+        return branchCurrentAccountRepository.findById(accountId)
+                .orElseThrow(() -> new ServiceException(
+                        "Account not found for branch ID: " + accountId
+                ));
+    }
 }

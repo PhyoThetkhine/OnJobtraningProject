@@ -76,6 +76,7 @@
             <input type="date" 
                    class="form-control" 
                    formControlName="dateOfBirth"
+                   [max]="maxDate | date: 'yyyy-MM-dd'"
                    [class.is-invalid]="isPersonalFieldInvalid('dateOfBirth')">
             <div class="invalid-feedback" *ngIf="isPersonalFieldInvalid('dateOfBirth')">
               {{ getPersonalErrorMessage('dateOfBirth') }}

@@ -14,6 +14,64 @@
   font-weight: 500;
   color: #495057;
 }
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-header h3 {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.warning-icon {
+  font-size: 3rem;
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.countdown-timer {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #343a40;
+  margin: 1rem 0;
+}
+
+.small-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 1rem;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 .form-control {
   padding: 0.75rem 1rem;

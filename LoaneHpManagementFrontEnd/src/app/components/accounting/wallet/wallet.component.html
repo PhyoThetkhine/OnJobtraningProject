@@ -699,8 +699,8 @@
                             From: {{ transaction.fromAccountType }}
                           </div>
                         </td> -->
-                        <td>
-                          <!-- Debit Transaction (Branch is Sender) -->
+                        <!-- <td>
+                         
                           <ng-container *ngIf="isDebit(transaction)">
                             To: 
                             <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
@@ -708,7 +708,7 @@
                             </ng-container>
                           </ng-container>
                         
-                          <!-- Credit Transaction (Branch is Receiver) -->
+                         
                           <ng-container *ngIf="isCredit(transaction)">
                             From: 
                             <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
@@ -716,10 +716,34 @@
                             </ng-container>
                           </ng-container>
                         
-                          <!-- External Transaction Fallback -->
+                        
                           <ng-container *ngIf="!isDebit(transaction) && !isCredit(transaction)">
                             <span class="text-muted">External Transaction</span>
                           </ng-container>
+                        
+                          <ng-template #loading>
+                            <span class="text-muted">Loading...</span>
+                          </ng-template>
+                        </td> -->
+                        <td>
+                          <!-- Unified check for transaction direction -->
+                          <ng-container *ngIf="transaction.fromAccountId === branchAccount?.id; else creditSection">
+                            <!-- Debit Transaction -->
+                            To: 
+                            <ng-container *ngIf="getAccountCode(transaction.toAccountId, transaction.toAccountType) | async as code; else loading">
+                              {{ code }}
+                            </ng-container>
+                          </ng-container>
+                        
+                          <ng-template #creditSection>
+                            <!-- Credit Transaction -->
+                            <ng-container *ngIf="transaction.toAccountId === branchAccount?.id">
+                              From: 
+                              <ng-container *ngIf="getAccountCode(transaction.fromAccountId, transaction.fromAccountType) | async as code; else loading">
+                                {{ code }}
+                              </ng-container>
+                            </ng-container>
+                          </ng-template>
                         
                           <ng-template #loading>
                             <span class="text-muted">Loading...</span>

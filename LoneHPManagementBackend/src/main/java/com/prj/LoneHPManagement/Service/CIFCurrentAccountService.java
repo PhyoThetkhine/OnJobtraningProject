@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface CIFCurrentAccountService {
     List<CIFCurrentAccount> getByBranchCode(String branchCode,int userid);
     CIFCurrentAccount getAccountByCifId(int id);
+    CIFCurrentAccount getAccountById(int id);
     CIFCurrentAccount changeFreezeStatus(int accountId, String status);
 
     CIFCurrentAccount saveCIFCurrentAccount(Integer cifId, CIFCurrentAccount account);

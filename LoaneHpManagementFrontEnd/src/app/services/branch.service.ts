@@ -66,6 +66,10 @@ export class BranchService {
     return this.http.get<ApiResponse<BranchCurrentAccount>>(`${environment.apiUrl}/branchAccounts/branch/${branchId}`);
   }
 
+  getBranchAccountById(accountId: number): Observable<ApiResponse<BranchCurrentAccount>> {
+    return this.http.get<ApiResponse<BranchCurrentAccount>>(`${environment.apiUrl}/branchAccounts/account/${accountId}`);
+  }
+
   changeBranchStatus(branchId: number, status: BranchStatus): Observable<Branch> {
     return this.http.patch<Branch>(`${this.apiUrl}/${branchId}/status`, { status });
   }

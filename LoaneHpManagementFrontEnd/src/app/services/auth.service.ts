@@ -27,11 +27,38 @@ export class AuthService {
   private userPermissions = new BehaviorSubject<string[]>([]);
   permissions$ = this.userPermissions.asObservable();
 
+  public readonly MAX_ATTEMPTS = 3;
+ // private readonly LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+ private readonly LOCKOUT_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds
+
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
     this.loadStoredPermissions();
+  }
+
+  getRemainingLockTime(): number {
+    const blockedUntil = localStorage.getItem('blockedUntil');
+    return blockedUntil ? parseInt(blockedUntil, 10) - Date.now() : 0;
+  }
+
+  isAccountBlocked(): boolean {
+    return this.getRemainingLockTime() > 0;
+  }
+  recordFailedAttempt() {
+    let attempts = parseInt(localStorage.getItem('failedAttempts') || '0', 10) + 1;
+    localStorage.setItem('failedAttempts', attempts.toString());
+
+    if (attempts >= this.MAX_ATTEMPTS) {
+      const blockedUntil = Date.now() + this.LOCKOUT_DURATION;
+      localStorage.setItem('blockedUntil', blockedUntil.toString());
+    }
+  }
+
+  resetAttempts() {
+    localStorage.removeItem('failedAttempts');
+    localStorage.removeItem('blockedUntil');
   }
 
   private loadStoredPermissions(): void {

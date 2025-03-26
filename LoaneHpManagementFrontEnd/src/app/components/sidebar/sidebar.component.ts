@@ -80,7 +80,7 @@ export class SidebarComponent implements OnInit {
           permission: 'SME Menu',
           submenu: [
             { title: 'View Loans', route: '/loans/sme', permission: 'Loan Management Menu' },
-            { title: 'View Applications', route: '/loans/sme/applications', permission: 'Loan Management Menu' },
+         
             { title: 'Create Loan', route: '/loans/sme/create', permission: 'Loan Management Menu' }
           ]
         },
@@ -89,7 +89,7 @@ export class SidebarComponent implements OnInit {
           permission: 'HP Menu',
           submenu: [
             { title: 'View Loans', route: '/loans/hp', permission: 'Loan Management Menu' },
-            { title: 'View Applications', route: '/loans/hp/applications', permission: 'Loan Management Menu' },
+          
             { title: 'Create Loan', route: '/loans/hp/create', permission: 'Loan Management Menu' }
           ]
         }

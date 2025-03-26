@@ -27,4 +27,15 @@ public class BranchCurrentAccountController {
         response.setData(account);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/account/{accountID}")
+    public ResponseEntity<ApiResponse<BranchCurrentAccount>> getAccountById(
+            @PathVariable int accountID) {
+
+        BranchCurrentAccount account = accountService.getAccountById(accountID);
+        ApiResponse<BranchCurrentAccount> response = new ApiResponse<>();
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Account found for branch ID: " + accountID);
+        response.setData(account);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -37,6 +37,12 @@ public class CIFCurrentAccountServiceImpl implements CIFCurrentAccountService {
     }
 
     @Override
+    public CIFCurrentAccount getAccountById(int id) {
+        return cifCurrentAccountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+    }
+
+    @Override
     public CIFCurrentAccount saveCIFCurrentAccount(Integer cifId, CIFCurrentAccount account) {
         return null;
     }

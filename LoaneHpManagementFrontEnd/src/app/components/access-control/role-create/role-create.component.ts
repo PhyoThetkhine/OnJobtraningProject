@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AsyncValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Role, AUTHORITY } from '../../../models/role.model';
 import { Permission } from '../../../models/permission.model';
 import { RoleService } from '../../../services/role.service';
+import { catchError, map, Observable, of, switchMap, timer } from 'rxjs';
 
 @Component({
   selector: 'app-role-create',
@@ -27,7 +28,10 @@ export class RoleCreateComponent implements OnInit {
     private toastr: ToastrService
   ) {
     this.roleForm = this.fb.group({
-      roleName: ['', [Validators.required, Validators.minLength(3)]],
+      roleName: ['', 
+        [Validators.required, Validators.minLength(3)],
+        [this.duplicateRoleValidator()]
+      ],
       authority: [AUTHORITY.RegularBranchLevel, Validators.required],
       permissions: [[], Validators.required]
     });
@@ -35,6 +39,25 @@ export class RoleCreateComponent implements OnInit {
 
   ngOnInit() {
     this.loadPermissions();
+  }
+
+  private duplicateRoleValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value || control.value.length < 3) {
+        return of(null);
+      }
+      return timer(500).pipe(
+        switchMap(() => this.roleService.getRoles()),
+        map((roles: Role[]) => {
+          const inputName = this.normalizeRoleName(control.value);
+          const isDuplicate = roles.some(role => 
+            this.normalizeRoleName(role.roleName) === inputName
+          );
+          return isDuplicate ? { duplicateRole: true } : null;
+        }),
+        catchError(() => of(null))
+      );
+    };
   }
 
   loadPermissions() {
@@ -98,6 +121,9 @@ export class RoleCreateComponent implements OnInit {
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.roleForm.get(fieldName);
-    return field ? (field.invalid && (field.dirty || field.touched)) : false;
+    return field ? (field.invalid && (field.dirty || field.touched) && !field.pending) : false;
+  }
+  private normalizeRoleName(name: string): string {
+    return name.replace(/\s+/g, '').toLowerCase();
   }
 }

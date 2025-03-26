@@ -261,15 +261,15 @@ getAccountCode(accountId: number, accountType: string): Observable<string> {
 private createAccountCodeRequest(accountId: number, accountType: string): Observable<string> {
   switch(accountType.toUpperCase()) {
     case 'CIF':
-      return this.cifService.getAccountByCifId(accountId).pipe(
+      return this.cifService.getAccountById(accountId).pipe(
         map((response: CIFCurrentAccount) => response.accCode),
         catchError(() => of('CIF Not Found'))
       );
 
     case 'BRANCH':
-      return this.branchService.getBranchAccount(accountId).pipe(
+      return this.branchService.getBranchAccountById(accountId).pipe(
         map((response: ApiResponse<BranchCurrentAccount>) => response.data.accCode),
-        catchError(() => of('Branch Not Found'))
+        catchError(() => of('Account Not Found'))
       );
 
     default:

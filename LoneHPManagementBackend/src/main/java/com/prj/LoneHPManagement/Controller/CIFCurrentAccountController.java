@@ -32,6 +32,17 @@ public class CIFCurrentAccountController {
                 HttpStatus.OK.value(), "Account fetched successfully", account);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/getByaccount/{accountId}")
+    public ResponseEntity<ApiResponse<CIFCurrentAccount>> getAccountById(@PathVariable int accountId) {
+        CIFCurrentAccount account = cifCurrentAccountService.getAccountById(accountId);
+        if (account == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "Account not found"));
+        }
+        ApiResponse<CIFCurrentAccount> response = ApiResponse.success(
+                HttpStatus.OK.value(), "Account fetched successfully", account);
+        return ResponseEntity.ok(response);
+    }
     @PutMapping("/changeFreezeStatus/{accountId}/{status}")
     public ResponseEntity<ApiResponse<CIFCurrentAccount>> changeFreezeStatus(
             @PathVariable int accountId,

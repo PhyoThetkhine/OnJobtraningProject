@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { UserService } from '../../../services/user.service';
 import { ToastrService } from 'ngx-toastr';
@@ -30,7 +30,7 @@ export class UserUpdateComponent implements OnInit, OnDestroy {
   states: string[] = [];
   townships: string[] = [];
   cities: string[] = [];
-  
+  maxDate: Date;
   
   // NRC related properties
   nrcStateNumbers: string[] = [];
@@ -59,7 +59,12 @@ export class UserUpdateComponent implements OnInit, OnDestroy {
     private cloudinaryService: CloudinaryService,
     private nrcService: NrcService,
  
-  ) {}
+  ) {  const today = new Date();
+    this.maxDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );}
 
   ngOnInit() {
     if (this.user) {
@@ -83,6 +88,28 @@ export class UserUpdateComponent implements OnInit, OnDestroy {
     // Then patch the forms with user data
     this.patchFormsWithUserData();
   }
+    // Add this method to your component class
+private minAgeValidator(minAge: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    
+    const birthDate = new Date(control.value);
+    const today = new Date();
+    
+    // Set hours to 0 to compare dates without time influence
+    today.setHours(0, 0, 0, 0);
+    
+    const minDate = new Date(
+      today.getFullYear() - minAge,
+      today.getMonth(),
+      today.getDate()
+    );
+
+    return birthDate > minDate ? { minAge: true } : null;
+  };
+}
 
   private parseNrcString(nrcString: string): { stateNumber: string, townshipCode: string, type: string, number: string } {
     console.log('Parsing NRC string:', nrcString);

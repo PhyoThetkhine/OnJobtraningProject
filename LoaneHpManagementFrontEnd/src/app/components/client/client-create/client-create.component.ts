@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 import { NrcService, NrcTownship } from '../../../services/nrc.service';
 import { CloudinaryService } from '../../../services/cloudinary.service';
 import { BranchService } from '../../../services/branch.service';
@@ -29,6 +29,7 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
   nrcTypes: string[] = [];
   filteredTownships: NrcTownship[] = [];
  
+  maxDate: Date;
   loading = false;
   error: string | null = null;
   townshipData: any = {};
@@ -69,6 +70,12 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
   ) {
     this.loadExistingData();
     this.createForms();
+    const today = new Date();
+    this.maxDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
   }
 
   ngOnInit() {
@@ -85,6 +92,7 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
       this.existingPhoneNumbers = phones;
     });
   }
+  
 
   private createForms() {
     // Client Information Form with async validators
@@ -105,7 +113,7 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
       nrcType: ['', Validators.required],
       nrcNumber: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]],
       dateOfBirth: ['', Validators.required],
-      gender: ['', Validators.required],
+      gender: ['', Validators.required,this.minAgeValidator(18)],
       cifType: ['', Validators.required],
       photo: ['', Validators.required],
       address: this.fb.group({
@@ -171,7 +179,28 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
     
     });
   }
-
+  // Add this method to your component class
+  private minAgeValidator(minAge: number): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+      
+      const birthDate = new Date(control.value);
+      const today = new Date();
+      
+      // Set hours to 0 to compare dates without time influence
+      today.setHours(0, 0, 0, 0);
+      
+      const minDate = new Date(
+        today.getFullYear() - minAge,
+        today.getMonth(),
+        today.getDate()
+      );
+  
+      return birthDate > minDate ? { minAge: true } : null;
+  };
+}  
   private loadInitialData() {
     this.loading = true;
     

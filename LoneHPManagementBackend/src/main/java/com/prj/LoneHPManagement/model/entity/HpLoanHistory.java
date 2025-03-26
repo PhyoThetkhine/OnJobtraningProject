@@ -25,7 +25,7 @@ public class HpLoanHistory extends LoanHistoryBaseEntity {
     @Column(name = "principal_late_fee_paid", precision = 32, scale = 2, nullable = false)
     private BigDecimal principalLateFeePaid;
     @Column(name = "pod_paid", precision = 32, scale = 2, nullable = false)
-    private BigDecimal iodPaid; // Interest on overdue
+    private BigDecimal podPaid; // Interest on overdue
     @Column(name = "principa_late_day", nullable = false)
     private int principalLateDays;
 

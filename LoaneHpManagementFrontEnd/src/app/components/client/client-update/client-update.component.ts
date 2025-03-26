@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CIFService } from '../../../services/cif.service';
 import { ToastrService } from 'ngx-toastr';
@@ -49,6 +49,7 @@ export class ClientUpdateComponent implements OnInit, OnDestroy {
   private existingEmails: Set<string> = new Set();
   private existingPhoneNumbers: Set<string> = new Set();
 
+  maxDate: Date;
   constructor(
     private fb: FormBuilder,
     private activeModal: NgbActiveModal,
@@ -57,7 +58,12 @@ export class ClientUpdateComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private cloudinaryService: CloudinaryService,
     private nrcService: NrcService
-  ) {}
+  ) { const today = new Date();
+    this.maxDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );}
 
   ngOnInit() {
     this.initializeForms();
@@ -65,6 +71,27 @@ export class ClientUpdateComponent implements OnInit, OnDestroy {
     this.loadTownshipData();
     this.loadNrcData();
   }
+  private minAgeValidator(minAge: number): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+      
+      const birthDate = new Date(control.value);
+      const today = new Date();
+      
+      // Set hours to 0 to compare dates without time influence
+      today.setHours(0, 0, 0, 0);
+      
+      const minDate = new Date(
+        today.getFullYear() - minAge,
+        today.getMonth(),
+        today.getDate()
+      );
+  
+      return birthDate > minDate ? { minAge: true } : null;
+  };
+}  
 
   private parseNrcString(nrcString: string): { stateNumber: string, townshipCode: string, type: string, number: string } {
     try {

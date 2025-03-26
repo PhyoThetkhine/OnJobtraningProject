@@ -1,0 +1,98 @@
+<div class="modal-header">
+    <h5 class="modal-title">Transfer to Branch</h5>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
+  </div>
+  
+  <div class="modal-body">
+    <!-- From Account Card -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="mb-3">From Account</h6>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-bold">{{ cifAccount?.accCode }}</div>
+            <small class="text-muted">
+              Current Balance: {{ cifAccount?.balance | currency:'MMK ' }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Transfer Form -->
+    <form [formGroup]="transferForm">
+      <!-- Branch Account Selection -->
+      <div class="mb-4">
+        <label class="form-label">To Branch Account</label>
+        <select class="form-select" 
+                formControlName="branchAccount"
+                [class.is-invalid]="isFieldInvalid('branchAccount')"
+                [disabled]="currentUser?.roleLevel === 'RegularBranchLevel'">
+          <option value="">Select a branch account</option>
+          <ng-container *ngIf="!loading; else loadingBranches">
+            <option *ngFor="let account of branchAccounts" [value]="account.id">
+              {{ account.branch.branchName }} ({{ account.accCode }})
+              - Balance: {{ account.balance | currency:'MMK ' }}
+            </option>
+          </ng-container>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
+          {{ getErrorMessage('branchAccount') }}
+        </div>
+        <ng-template #loadingBranches>
+          <option value="" disabled>Loading branch accounts...</option>
+        </ng-template>
+      </div>
+  
+      <!-- Payment Method Selection -->
+      <div class="mb-4">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" 
+                formControlName="paymentMethod"
+                [class.is-invalid]="isFieldInvalid('paymentMethod')">
+          <option value="">Select payment method</option>
+          <option *ngFor="let method of paymentMethods" [value]="method.id">
+            {{ method.paymentType }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('paymentMethod')">
+          {{ getErrorMessage('paymentMethod') }}
+        </div>
+      </div>
+  
+      <!-- Amount Input -->
+      <div class="mb-4">
+        <label class="form-label">Amount</label>
+        <div class="input-group">
+          <span class="input-group-text">MMK</span>
+          <input type="number" 
+                 class="form-control" 
+                 formControlName="amount"
+                 [class.is-invalid]="isFieldInvalid('amount')"
+                 placeholder="Enter amount"
+                 step="0.01">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">
+            {{ getErrorMessage('amount') }}
+          </div>
+        </div>
+        <small class="text-muted">
+          Current Balance: {{ formatCurrency(cifAccount?.balance) }}<br>
+          Available Balance: {{ formatCurrency(calculateAvailableBalance()) }}
+          ({{ formatCurrency(cifAccount?.minAmount) }} reserved as minimum balance)
+        </small>
+      </div>
+    </form>
+  </div>
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss()">
+      Cancel
+    </button>
+    <button type="button" 
+            class="btn btn-primary" 
+            (click)="onSubmit()" 
+            [disabled]="!transferForm.valid || loading">
+      <span class="spinner-border spinner-border-sm me-1" *ngIf="loading"></span>
+      Transfer
+    </button>
+  </div>

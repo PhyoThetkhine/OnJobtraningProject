@@ -20,6 +20,14 @@ export class CIFCurrentAccountService {
         map(response => response.data)
       );
   }
+  
+  getAccountById(accountId: number): Observable<CIFCurrentAccount> {
+    return this.http.get<ApiResponse<CIFCurrentAccount>>(`${this.apiUrl}/getByaccount/${accountId}`)
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
 
   updateAccountLimits(accountId: number, data: any): Observable<CIFCurrentAccount> {
     return this.http.put<CIFCurrentAccount>(`${this.apiUrl}/${accountId}/limits`, data);

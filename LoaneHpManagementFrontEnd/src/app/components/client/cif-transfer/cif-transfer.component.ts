@@ -1,18 +1,20 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { BranchService } from '../../../services/branch.service';
 import { PaymentMethodService } from '../../../services/payment-method.service';
 import { TransactionService } from '../../../services/transaction.service';
-import { CIFCurrentAccountService } from '../../../services/cif-current-account.service';
 import { ToastrService } from 'ngx-toastr';
 import { Branch } from '../../../models/branch.model';
 import { PaymentMethod } from '../../../models/payment-method.model';
 import { CIFCurrentAccount } from '../../../models/cif-current-account.model';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { CurrentUser } from 'src/app/models/user.model';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
+import { CurrentUser } from 'src/app/models/user.model';
+import { AUTHORITY } from 'src/app/models/role.model';
+import { BranchCurrentAccount } from 'src/app/models/branch-account.model';
+import { forkJoin, map } from 'rxjs';
 
 @Component({
   selector: 'app-cif-transfer',
@@ -21,93 +23,52 @@ import { AuthService } from 'src/app/services/auth.service';
   imports: [CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class CifTransferComponent implements OnInit {
+  @Input() cifAccount!: CIFCurrentAccount;
+  
   transferForm!: FormGroup;
   loading = false;
   paymentMethods: PaymentMethod[] = [];
-  cifAccounts: CIFCurrentAccount[] = [];
-  branchAccounts: Branch[] = [];
-  selectedAccount: CIFCurrentAccount | null = null;
+  branchAccounts: BranchCurrentAccount[] = [];
   currentUser: CurrentUser | null = null;
-  searchCifTerm: string = '';
-  filteredCifAccounts: CIFCurrentAccount[] = [];
-  showCifDropdown: boolean = false;
 
   constructor(
     private fb: FormBuilder,
-    private activeModal: NgbActiveModal,
+    public activeModal: NgbActiveModal,
     private branchService: BranchService,
     private paymentMethodService: PaymentMethodService,
     private transactionService: TransactionService,
-    private cifCurrentAccountService: CIFCurrentAccountService,
     private toastr: ToastrService,
-    private authService: AuthService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.initializeForm();
     this.loadPaymentMethods();
-    this.loadBranches();
-    this.loadCurrentUser();
+    this.loadUserAndBranches();
   }
 
   private initializeForm() {
+    const availableBalance = this.calculateAvailableBalance();
     this.transferForm = this.fb.group({
-      cifAccount: [null, Validators.required],
       branchAccount: ['', Validators.required],
       paymentMethod: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.min(1)]]
+      amount: ['', [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(this.calculateAvailableBalance()),
+      this.availableBalanceValidator()
+      ]]
     });
 
-    this.transferForm.get('cifAccount')?.valueChanges.subscribe(accountId => {
-      this.updateAmountValidator(accountId);
-      this.onAccountSelect(accountId);
-    });
-  }
-
-  private loadCurrentUser() {
-    this.authService.getCurrentUser().subscribe({
-      next: (currentUser) => {
-        this.currentUser = currentUser;
-        this.loadCIFAccounts();
-      },
-      error: (error) => {
-        console.error('Error fetching current user:', error);
-        this.toastr.error('Failed to fetch current user');
+    this.transferForm.get('amount')?.valueChanges.subscribe(value => {
+      const available = this.calculateAvailableBalance();
+      if (value > available) {
+        this.transferForm.get('amount')?.setErrors({ exceedsAvailable: true });
       }
     });
   }
 
-  private loadCIFAccounts() {
-    if (this.currentUser?.branch?.branchCode) {
-      this.cifCurrentAccountService.getBranchCIFAccounts(
-        this.currentUser.branch.branchCode,
-        this.currentUser.id
-      ).subscribe({
-        next: (accounts) => {
-          this.cifAccounts = accounts.filter(account => account.isFreeze !== 'is_freeze');
-        },
-        error: (error) => {
-          console.error('Error loading CIF accounts:', error);
-          this.toastr.error('Failed to load client accounts');
-        }
-      });
-    }
-  }
-
-  private loadBranches() {
-    this.branchService.getAllBranches().subscribe({
-      next: (branches) => {
-        this.branchAccounts = branches.filter(b => 
-          b.branchCode !== this.currentUser?.branch?.branchName
-        );
-      },
-      error: (error) => {
-        console.error('Error loading branches:', error);
-        this.toastr.error('Failed to load branches');
-      }
-    });
-  }
-
+  
   private loadPaymentMethods() {
     this.paymentMethodService.getAllPaymentMethods().subscribe({
       next: (response) => {
@@ -120,62 +81,106 @@ export class CifTransferComponent implements OnInit {
     });
   }
 
-  private updateAmountValidator(accountId: number) {
-    const account = this.cifAccounts.find(acc => acc.id === accountId);
-    const amountControl = this.transferForm.get('amount');
-    
-    if (account) {
-      amountControl?.setValidators([
-        Validators.required,
-        Validators.min(1),
-        Validators.max(account.balance)
-      ]);
-    } else {
-      amountControl?.setValidators([Validators.required, Validators.min(1)]);
+  private loadUserAndBranches() {
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        this.loadBranchesBasedOnRole();
+      },
+      error: (error) => {
+        console.error('Error loading user:', error);
+        this.toastr.error('Failed to load user information');
+      }
+    });
+  }
+
+  private loadBranchesBasedOnRole() {
+    if (!this.currentUser) return;
+
+    if (this.currentUser.roleLevel === AUTHORITY.RegularBranchLevel) {
+      this.handleRegularBranchUser();
+    } else if (this.currentUser.roleLevel === AUTHORITY.MainBranchLevel) {
+      this.handleMainBranchUser();
     }
-    
-    amountControl?.updateValueAndValidity();
   }
-
-  onSearchCifAccount() {
-    const searchTerm = this.searchCifTerm.trim().toLowerCase();
-    
-    if (!searchTerm) {
-      this.filteredCifAccounts = [];
-      this.showCifDropdown = false;
-      return;
+  public calculateAvailableBalance(): number {
+    if (!this.cifAccount) return 0;
+    return Math.max(this.cifAccount.balance - this.cifAccount.minAmount, 0);
+  }
+  private availableBalanceValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const available = this.calculateAvailableBalance();
+      return control.value > available ? { exceedsAvailable: true } : null;
+    };
+  }
+  private handleRegularBranchUser() {
+    const branchId = this.currentUser?.branch?.id;
+    if (branchId) {
+      this.loading = true;
+      this.branchService.getBranchAccount(branchId).subscribe({
+        next: (response) => {
+          this.branchAccounts = [response.data];
+          this.transferForm.patchValue({
+            branchAccount: response.data.id
+          });
+          this.transferForm.get('branchAccount')?.disable();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading branch account:', error);
+          this.toastr.error('Failed to load branch account details');
+          this.loading = false;
+        }
+      });
     }
+  }
+  private handleMainBranchUser() {
+    this.loading = true;
+    this.branchService.getAllBranches().subscribe({
+      next: (branches) => {
+        // Filter branches with valid IDs and map to requests
+        const accountRequests = branches
+          .filter(branch => Boolean(branch.id)) // Ensure ID exists
+          .map(branch => {
+            // TypeScript now knows branch.id is number
+            return this.branchService.getBranchAccount(branch.id!).pipe(
+              map(accountResponse => ({
+                ...accountResponse.data,
+                branch: branch
+              }))
+            );
+          });
+        
 
-    this.filteredCifAccounts = this.cifAccounts.filter(account => 
-      account.accCode.toLowerCase().includes(searchTerm) ||
-      account.cif.name.toLowerCase().includes(searchTerm)
-    ).sort((a, b) => a.accCode.localeCompare(b.accCode));
+        forkJoin(accountRequests).subscribe({
+          next: (accounts) => {
+            this.branchAccounts = accounts;
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error loading branch accounts:', error);
+            this.toastr.error('Failed to load branch accounts');
+            this.loading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading branches:', error);
+        this.toastr.error('Failed to load branches');
+        this.loading = false;
+      }
+    });
 
-    this.showCifDropdown = this.filteredCifAccounts.length > 0;
   }
 
-  selectCifAccount(account: CIFCurrentAccount) {
-    this.transferForm.get('cifAccount')?.setValue(account.id);
-    this.selectedAccount = account;
-    this.searchCifTerm = account.accCode;
-    this.showCifDropdown = false;
-  }
-
-  onBlurCifInput() {
-    setTimeout(() => this.showCifDropdown = false, 200);
-  }
-
-  onAccountSelect(accountId: number) {
-    this.selectedAccount = this.cifAccounts.find(acc => acc.id === accountId) || null;
-  }
 
   onSubmit() {
-    if (this.transferForm.valid) {
+    if (this.transferForm.valid && this.cifAccount) {
       this.loading = true;
-      const formValue = this.transferForm.value;
-
+      //const formValue = this.transferForm.value;
+      const formValue = this.transferForm.getRawValue(); // Changed this line
       const transferData = {
-        fromAccountId: formValue.cifAccount,
+        fromAccountId: this.cifAccount.id,
         toAccountId: formValue.branchAccount,
         fromAccountType: 'CIF',
         toAccountType: 'BRANCH',
@@ -199,10 +204,6 @@ export class CifTransferComponent implements OnInit {
     }
   }
 
-  dismiss() {
-    this.activeModal.dismiss();
-  }
-
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
@@ -216,20 +217,32 @@ export class CifTransferComponent implements OnInit {
     const field = this.transferForm.get(fieldName);
     return field ? (field.invalid && (field.dirty || field.touched)) : false;
   }
+// Add this method to format currency consistently
+formatCurrency(value: number | undefined): string {
+  if (value === undefined) return 'MMK 0.00';
+  return `MMK ${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+}
 
-  getErrorMessage(fieldName: string): string {
-    const control = this.transferForm.get(fieldName);
+// Update getErrorMessage
+getErrorMessage(fieldName: string): string {
+  const control = this.transferForm.get(fieldName);
+  
+  if (control?.errors) {
+    if (control.errors['required']) {
+      return 'This field is required';
+    }
+    if (control.errors['min']) {
+      return 'Amount must be greater than 0';
+    }
+    if (control.errors['max']) {
+      return 'Amount exceeds maximum limit';
+    }
     if (control?.errors) {
-      if (control.errors['required']) {
-        return 'This field is required';
-      }
-      if (control.errors['min']) {
-        return 'Amount must be greater than 0';
-      }
-      if (control.errors['max'] || control.errors['insufficientBalance']) {
-        return 'Insufficient balance';
+      if (control.errors['exceedsAvailable']) {
+        return `Maximum transferable amount is ${this.formatCurrency(this.calculateAvailableBalance())}`;
       }
     }
-    return '';
   }
+  return '';
+}
 }

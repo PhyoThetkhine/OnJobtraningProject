@@ -63,7 +63,7 @@
                     </div>
                   </div>
                   <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
-                    <!-- Update this part -->
+<!--                    
                     <span *ngIf="userForm.get('email')?.errors?.['required']">
                       Email is required
                     </span>
@@ -72,7 +72,8 @@
                     </span>
                     <span *ngIf="userForm.get('email')?.errors?.['duplicateEmail']">
                       Email already exists
-                    </span>
+                    </span> -->
+                    {{ getErrorMessage('email') }}
                   </div>
                 </div>
                 <div class="mb-3">
@@ -97,17 +98,21 @@
                     <span *ngIf="userForm.get('phoneNumber')?.errors?.['pattern']">
                       Invalid phone number format
                     </span>
+                    {{ getErrorMessage('phoneNumber') }}
                   </div>
                 </div>
 
-                  <div class="mb-3">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" class="form-control" formControlName="dateOfBirth"
-                           [class.is-invalid]="isFieldInvalid('dateOfBirth')">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
-                      {{ getErrorMessage('dateOfBirth') }}
-                    </div>
+                <div class="mb-3">
+                  <label class="form-label">Date of Birth</label>
+                  <input type="date" 
+                         class="form-control" 
+                         formControlName="dateOfBirth"
+                         [max]="maxDate | date: 'yyyy-MM-dd'"  
+                         [class.is-invalid]="isFieldInvalid('dateOfBirth')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
+                    {{ getErrorMessage('dateOfBirth') }}
                   </div>
+                </div>
 
                   <div class="mb-3">
                     <label class="form-label">Gender</label>
@@ -331,9 +336,7 @@
           <button type="button" class="btn btn-secondary me-2" routerLink="/users">
             Cancel
           </button>
-          <button type="button" class="btn btn-info me-2" (click)="debugFormValidation()">
-            Debug Form
-          </button>
+          
           <button type="submit" 
                   class="btn btn-primary" 
                   [disabled]="!userForm.valid || loading">

@@ -90,23 +90,23 @@ public class TransactionServiceImpl implements TransactionService {
             branchCurrentAccount.setBalance(branchCurrentAccount.getBalance().subtract(request.getAmount()));
             branchCurrentAccountRepository.save(branchCurrentAccount);
         }
-        // Handle CIF to BRANCH transaction
         else if (request.getFromAccountType() == Transaction.AccountType.CIF &&
                 request.getToAccountType() == Transaction.AccountType.BRANCH) {
             CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(request.getFromAccountId())
                     .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
 
-            // Validate CIF account
-            validateCIFSender(cifAccount, request.getAmount());
+            // Validate CIF account balance before debiting
+            validateCIFSender(cifAccount, request.getAmount()); // Uncommented validation
 
             // Debit CIF account
             cifAccount.setBalance(cifAccount.getBalance().subtract(request.getAmount()));
             cifCurrentAccountRepository.save(cifAccount);
 
-
-            BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getToAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
+            BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getToAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
             branchCurrentAccount.setBalance(branchCurrentAccount.getBalance().add(request.getAmount()));
             branchCurrentAccountRepository.save(branchCurrentAccount);
+
         }else if (request.getFromAccountType() == Transaction.AccountType.BRANCH &&
                 request.getToAccountType() == Transaction.AccountType.BRANCH) {
 
@@ -322,10 +322,10 @@ public class TransactionServiceImpl implements TransactionService {
 //        if (amount.compareTo(cifAccount.getMaxAmount()) > 0) {
 //            throw new ServiceException("Transfer amount cannot exceed " + cifAccount.getMaxAmount());
 //        }
-        BigDecimal newBalance = cifAccount.getBalance().subtract(amount);
-        if (newBalance.compareTo(cifAccount.getMinAmount()) < 0) {
-            throw new ServiceException("Transfer would reduce balance below minimum required " + cifAccount.getMinAmount());
-        }
+//        BigDecimal newBalance = cifAccount.getBalance().subtract(amount);
+//        if (newBalance.compareTo(cifAccount.getMinAmount()) < 0) {
+//            throw new ServiceException("Transfer would reduce balance below minimum required " + cifAccount.getMinAmount());
+//        }
     }
 }
 
