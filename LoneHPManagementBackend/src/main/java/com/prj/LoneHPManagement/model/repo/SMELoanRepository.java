@@ -12,10 +12,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
 public interface SMELoanRepository extends JpaRepository<SMELoan,Integer> {
+    @Query("SELECT COUNT(s) FROM SMELoan s WHERE s.status = :status")
+    long countByStatus(@Param("status") int status);
+    @Query("SELECT YEAR(s.applicationDate) as year, s.status, COUNT(s) " +
+            "FROM SMELoan s " +
+            "GROUP BY YEAR(s.applicationDate), s.status")
+    List<Object[]> getLoanStatusCounts();
+    @Query("SELECT SUM(s.DisbursementAmount) FROM SMELoan s")
+    BigDecimal sumLoanAmount();
     @Query("SELECT l FROM SMELoan l WHERE l.cif.id = :cifId AND l.status = :status ORDER BY l.applicationDate DESC")
     List<SMELoan> findByCifIdAndStatus(@Param("cifId") int cifId, @Param("status") int status);
     Page<SMELoan> findByStatus(int status,Pageable pageable);

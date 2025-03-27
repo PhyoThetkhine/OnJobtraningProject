@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
@@ -46,9 +46,12 @@ import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { CloudinaryInterceptor } from './interceptors/cloudinary.interceptor';
 import { BranchDetailComponent } from './components/branch/branch-detail/branch-detail.component';
 import { ClientDetailComponent } from './components/client/client-detail/client-detail.component';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 @NgModule({
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   declarations: [
+    
     AppComponent,
     LoginComponent,
     SidebarComponent,
@@ -84,12 +87,14 @@ import { ClientDetailComponent } from './components/client/client-detail/client-
   ],
   imports: [
     BrowserModule,
+    NgxChartsModule,
     AppRoutingModule,
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
     HttpClientModule,
     CommonModule,
+    
     BrowserAnimationsModule,
     ToastrModule.forRoot({
       positionClass: 'toast-top-right',
@@ -99,12 +104,14 @@ import { ClientDetailComponent } from './components/client/client-detail/client-
     }),
     RoleCreateComponent,
     NgbModule,
-    ClientDetailComponent
+    ClientDetailComponent,
+    NgxChartsModule,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CloudinaryInterceptor, multi: true }
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent,DashboardComponent],
+  
 })
 export class AppModule { }

@@ -14,7 +14,7 @@ import java.util.List;
 public interface TransactionService {
       Page<Transaction> getTransactionsByAccount(int accountId, Pageable pageable);
     Transaction transferFunds(TransferRequest request);
-    Transaction processTransaction(Transaction transaction) ;
+
     List<TransactionHistoryResponse> getTransactionHistory(String accountType, int accountId);
      Page<Transaction> getTransactionsByUserId(
             int userId,

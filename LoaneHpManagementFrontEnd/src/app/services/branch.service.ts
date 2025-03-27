@@ -31,7 +31,9 @@ export class BranchService {
   getAllBranches(): Observable<Branch[]> {
     return this.http.get<Branch[]>(`${this.apiUrl}/allBranches`);
   }
-
+  getBranchAccount(branchId: number): Observable<ApiResponse<BranchCurrentAccount>> {
+    return this.http.get<ApiResponse<BranchCurrentAccount>>(`${environment.apiUrl}/branchAccounts/branch/${branchId}`);
+  }
   getBranchById(id: number): Observable<Branch> {
     return this.http.get<Branch>(`${this.apiUrl}/${id}`);
   }
@@ -62,9 +64,7 @@ export class BranchService {
     return this.http.get<ApiResponse<any>>(`${environment.apiUrl}/cif/branch/${branchCode}`, { params });
   }
 
-  getBranchAccount(branchId: number): Observable<ApiResponse<BranchCurrentAccount>> {
-    return this.http.get<ApiResponse<BranchCurrentAccount>>(`${environment.apiUrl}/branchAccounts/branch/${branchId}`);
-  }
+ 
 
   getBranchAccountById(accountId: number): Observable<ApiResponse<BranchCurrentAccount>> {
     return this.http.get<ApiResponse<BranchCurrentAccount>>(`${environment.apiUrl}/branchAccounts/account/${accountId}`);

@@ -32,5 +32,24 @@ public class HpLongOverPaidHistory {
     private BigDecimal lateFeeAmount;
     @Column(name = "late_days", nullable = false)
     private int lateDays;
+    @PrePersist
+    public void setDefaultValues() {
+        // Default paidDate to current time if not set
+        if (this.paidDate == null) {
+            this.paidDate = LocalDateTime.now();
+        }
 
+        // Initialize lateFeeAmount to 0 if not set
+        if (this.lateFeeAmount == null) {
+            this.lateFeeAmount = BigDecimal.ZERO;
+        }
+
+        // Initialize OutstandingAmount to 0 if not set
+        if (this.OutstandingAmount == null) {
+            this.OutstandingAmount = BigDecimal.ZERO;
+        }
+
+        // Late days default to 0 (primitives cannot be null, but explicit initialization is safe)
+        this.lateDays = Math.max(this.lateDays, 0); // Ensure non-negative
+    }
 }

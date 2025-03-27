@@ -25,10 +25,26 @@ export class PaymentMethodService {
       `${this.apiUrl}/list?page=${page}&size=${size}&sortBy=${sortBy}`
     );
   }
-
-  updateStatus(id: number, status: PaymentMethodStatus): Observable<ApiResponse<PaymentMethod>> {
-    return this.http.put<ApiResponse<PaymentMethod>>(`${this.apiUrl}/${id}/status`, { status });
+  deletePaymentMethod(id: number): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${this.apiUrl}/${id}/status/deleted`,
+      {}, // Empty body for PATCH
+    { responseType: 'json' as 'json' } 
+     
+    );
   }
+  
+  // For reactivation
+  reactivatePaymentMethod(id: number): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${this.apiUrl}/${id}/status/active`,
+      {}, // Empty body for PATCH
+    { responseType: 'json' as 'json' } 
+     
+    );
+  }
+
+ 
   createPaymentMethod(method: Partial<PaymentMethod>): Observable<ApiResponse<PaymentMethod>> {
     console.log("method " + method.id);
     console.log("method " + method.paymentType);

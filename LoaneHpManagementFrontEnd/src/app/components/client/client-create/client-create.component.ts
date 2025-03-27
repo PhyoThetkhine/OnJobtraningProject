@@ -113,7 +113,7 @@ export class ClientCreateComponent implements OnInit, OnDestroy {
       nrcType: ['', Validators.required],
       nrcNumber: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]],
       dateOfBirth: ['', Validators.required],
-      gender: ['', Validators.required,this.minAgeValidator(18)],
+      gender: ['', Validators.required],
       cifType: ['', Validators.required],
       photo: ['', Validators.required],
       address: this.fb.group({

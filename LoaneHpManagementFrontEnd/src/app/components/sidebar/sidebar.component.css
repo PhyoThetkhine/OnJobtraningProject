@@ -26,6 +26,13 @@
     .sidebar-content {
       padding: 1rem;
     }
+    .modal-backdrop {
+      z-index: 1040; 
+    }
+    
+    .modal {
+      z-index: 1050; 
+    }
   
     .nav-link {
       color: #475569;

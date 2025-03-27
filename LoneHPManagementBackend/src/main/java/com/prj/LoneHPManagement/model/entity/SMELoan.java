@@ -37,45 +37,6 @@ public class SMELoan extends LoanBaseEntity{
     @JsonIgnore
     private int paidPrincipalStatus;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getSmeLoanCode() {
-        return smeLoanCode;
-    }
-
-    public void setSmeLoanCode(String smeLoanCode) {
-        this.smeLoanCode = smeLoanCode;
-    }
-
-    public String getPurpose() {
-        return purpose;
-    }
-
-    public void setPurpose(String purpose) {
-        this.purpose = purpose;
-    }
-
-    public FREQUENCY getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(FREQUENCY frequency) {
-        this.frequency = frequency;
-    }
-
-    public int getPaidPrincipalStatus() {
-        return paidPrincipalStatus;
-    }
-
-    public void setPaidPrincipalStatus(int paidPrincipalStatus) {
-        this.paidPrincipalStatus = paidPrincipalStatus;
-    }
 
     @PrePersist
     public void prePersist() {

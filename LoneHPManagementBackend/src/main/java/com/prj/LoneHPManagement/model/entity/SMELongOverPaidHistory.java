@@ -32,5 +32,25 @@ public class SMELongOverPaidHistory {
     private BigDecimal lateFeeAmount;
     @Column(name = "late_days", nullable = false)
     private int lateDays;
+    @PrePersist
+    protected void setDefaults() {
+        // Default paidDate to current time if not set
+        if (this.paidDate == null) {
+            this.paidDate = LocalDateTime.now();
+        }
 
+        // Initialize BigDecimal fields to ZERO if null
+        if (this.paidAmount == null) {
+            this.paidAmount = BigDecimal.ZERO;
+        }
+        if (this.OutstandingAmount == null) {
+            this.OutstandingAmount = BigDecimal.ZERO;
+        }
+        if (this.lateFeeAmount == null) {
+            this.lateFeeAmount = BigDecimal.ZERO;
+        }
+
+        // Ensure lateDays is non-negative
+        this.lateDays = Math.max(this.lateDays, 0);
+    }
 }

@@ -3,6 +3,8 @@ package com.prj.LoneHPManagement.Controller;
 import com.prj.LoneHPManagement.Service.PaymentMethodService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
+import com.prj.LoneHPManagement.model.dto.PaymentMethodStatus;
+import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import com.prj.LoneHPManagement.model.entity.PaymentMethod;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payment-methods")
@@ -32,6 +35,35 @@ public class PaymentMethodController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
+    @PutMapping ("/{id}/status/deleted")
+    public ResponseEntity<ApiResponse<Void>> updateStatus(
+            @PathVariable int id
+
+          ) {
+
+        int statu = ConstraintEnum.DELETED.getCode();
+        paymentMethodService.updateStatus(id, statu);
+        return ResponseEntity.ok(new ApiResponse<>(
+                200,
+                "Status updated succes  sfully",
+                null
+        ));
+    }
+    @PutMapping("/{id}/status/active")
+    public ResponseEntity<ApiResponse<Void>> updateStatusactive(
+            @PathVariable int id
+
+            ) {
+
+        int statu = ConstraintEnum.ACTIVE.getCode();
+        paymentMethodService.updateStatus(id, statu);
+        return ResponseEntity.ok(new ApiResponse<>(
+                200,
+                "Status updated succes  sfully",
+                null
+        ));
+    }
+
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<PagedResponse<PaymentMethod>>> getAllPaymentMethods(

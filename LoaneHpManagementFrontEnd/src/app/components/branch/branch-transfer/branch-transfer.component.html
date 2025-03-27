@@ -88,7 +88,7 @@
       </div>
 
     <!-- Update branch account selection in template -->
-<div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
+<!-- <div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
   <label for="branchAccount" class="form-label">Select Branch Account</label>
   <select class="form-select" 
           id="branchAccount" 
@@ -102,7 +102,23 @@
   <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
     {{ getErrorMessage('branchAccount') }}
   </div>
+</div> -->
+<div class="mb-4" *ngIf="transferForm.get('accountType')?.value === AccountType.BRANCH">
+  <label for="branchAccount" class="form-label">Select Branch Account</label>
+  <select class="form-select" 
+          id="branchAccount" 
+          formControlName="branchAccount"
+          [class.is-invalid]="isFieldInvalid('branchAccount')">
+    <option value="">Select a branch account</option>
+    <option *ngFor="let branch of branchAccounts" [value]="branch.accountId">
+      {{ branch.branchName }} ({{ branch.branchCode }})
+    </option>
+  </select>
+  <div class="invalid-feedback" *ngIf="isFieldInvalid('branchAccount')">
+    {{ getErrorMessage('branchAccount') }}
+  </div>
 </div>
+
   
       <!-- Payment Method Selection -->
       <div class="mb-4">

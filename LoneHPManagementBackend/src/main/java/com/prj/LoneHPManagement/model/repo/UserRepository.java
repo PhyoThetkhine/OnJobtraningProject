@@ -21,6 +21,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findByRoleId(Integer roleId, Pageable pageable);
     User findByUserCode(String userCode);
     Page<User> findByBranch_Id(int branchId, Pageable pageable);
+    List<User> findByBranch_Id(int branchId);
     Page<User> findByBranch_IdAndStatus(int branchId,int status,Pageable pageable);
     @Query("SELECT DISTINCT u.phoneNumber FROM User u")
     List<String> findAllUniquePhoneNumbers();

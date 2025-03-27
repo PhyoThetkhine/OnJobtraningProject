@@ -62,7 +62,11 @@
       <ul class="nav flex-column">
         <li class="nav-item" *ngFor="let item of filteredBottomMenuItems">
           <ng-container *ngIf="!item.submenu; else submenuTemplate">
-            <a [routerLink]="item.route" class="nav-link">
+            <!-- <a [routerLink]="item.route" class="nav-link">
+              <i class="bi {{ item.icon }} me-2"></i>
+              {{ item.title }}
+            </a> -->
+            <a class="nav-link" href="#" (click)="handleItemClick(item); $event.preventDefault()">
               <i class="bi {{ item.icon }} me-2"></i>
               {{ item.title }}
             </a>
@@ -110,5 +114,24 @@
         </li>
       </ul>
     </div>
+</div>
+<!-- Logout Confirmation Modal -->
+<div class="modal-backdrop fade show" *ngIf="showLogoutModal" (click)="showLogoutModal = false"></div>
+<div class="modal fade show d-block" *ngIf="showLogoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Logout</h5>
+        <button type="button" class="btn-close" (click)="showLogoutModal = false"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to logout?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="showLogoutModal = false">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="confirmLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="sidebar-overlay d-lg-none" [class.show]="isOpen" (click)="toggleSidebar()"></div>

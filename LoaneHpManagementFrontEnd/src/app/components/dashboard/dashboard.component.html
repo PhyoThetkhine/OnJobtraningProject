@@ -1,1 +1,118 @@
-<p>dashboard works!</p>
+<div class="dashboard-container container mt-4">
+ 
+  
+    <div *ngIf="isLoading" class="text-center my-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <div *ngIf="!isLoading">
+      <!-- Stats Cards -->
+      <div class="row g-4 stats-cards">
+        <!-- CIF Card -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card card-stats shadow">
+            <div class="card-body">
+              <h5 class="card-title text-primary">
+                <i class="bi bi-people-fill me-2"></i>Total Clients
+              </h5>
+              <p class="display-5 amount">{{ stats.totalCif | number }}</p>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Users Card -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card card-stats shadow">
+            <div class="card-body">
+              <h5 class="card-title text-success">
+                <i class="bi bi-person-badge-fill me-2"></i>Total Staffs
+              </h5>
+              <p class="display-5 amount">{{ stats.totalUsers | number }}</p>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Loans Card -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card card-stats shadow">
+            <div class="card-body">
+              <h5 class="card-title text-danger">
+                <i class="bi bi-cash-coin me-2"></i>Total Loans
+              </h5>
+              <p class="display-5 amount">{{ stats.totalLoans | number }}</p>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Active Loans Card -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card card-stats shadow">
+            <div class="card-body">
+              <h5 class="card-title text-warning">
+                <i class="bi bi-lightning-charge-fill me-2"></i>Active Loans
+              </h5>
+              <p class="display-5 amount">{{ stats.activeLoans | number }}</p>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Total Loan Amount Card -->
+        <div class="col-12">
+            <div class="card card-stats shadow">
+              <div class="card-body">
+                <h5 class="card-title text-info">
+                  <i class="bi bi-currency-exchange me-2"></i>Total Loan Amount
+                </h5>
+                <p class="display-5 amount">
+                  {{ stats.totalLoanAmount | currency:'MMK':'symbol':'1.2-2' }}
+                </p>
+              </div>
+            </div>
+          </div>
+      </div>
+  
+      <!-- Charts Section -->
+      <div class="row g-4 charts-section mt-4">
+        <!-- Loan Status Chart -->
+        <div class="col-md-6">
+          <div class="card shadow chart-card">
+            <div class="card-body">
+              <h5 class="card-title">Loan Status by Year</h5>
+              <ngx-charts-bar-vertical-stacked
+                [results]="loanStatusData"
+                [xAxis]="true"
+                [yAxis]="true"
+                [legend]="true"
+                [showXAxisLabel]="true"
+                [showYAxisLabel]="true"
+                xAxisLabel="Year"
+                yAxisLabel="Number of Loans"
+                [colorScheme]="colorScheme">
+              </ngx-charts-bar-vertical-stacked>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Branch Balances Chart -->
+        <div class="col-md-6">
+          <div class="card shadow chart-card">
+            <div class="card-body">
+              <h5 class="card-title">Branch Account Balances</h5>
+              <ngx-charts-bar-horizontal
+                [results]="branchBalanceData"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showDataLabel]="false"
+                [tooltipDisabled]="true"
+                [xScaleMax]="getMaxBalance()"
+                [colorScheme]="colorScheme">
+              </ngx-charts-bar-horizontal>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  

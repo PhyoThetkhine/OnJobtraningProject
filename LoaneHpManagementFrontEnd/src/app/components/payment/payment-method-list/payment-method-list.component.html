@@ -12,14 +12,20 @@
     </div>
   </div>
 
-  <!-- Actions Bar -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-primary" (click)="openEditModal()">
-      <i class="bi bi-plus"></i> Add Payment Method
-    </button>
+    <!-- Actions Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button class="btn btn-primary" (click)="showCreateForm = !showCreateForm">
+        <i class="bi bi-plus"></i> 
+        {{ showCreateForm ? 'Cancel' : 'Add Payment Method' }}
+      </button>
+    </div>
   
-  </div>
-
+    <!-- Create Form -->
+    <div *ngIf="showCreateForm" class="mb-4">
+      <app-payment-method-create 
+        (paymentMethodCreated)="onPaymentMethodCreated()"
+      ></app-payment-method-create>
+    </div>
   <!-- Loading Spinner -->
   <div *ngIf="loading" class="text-center my-4">
     <div class="spinner-border" role="status">
@@ -31,6 +37,8 @@
   <div *ngIf="error" class="alert alert-danger" role="alert">
     {{ error }}
   </div>
+
+
 
   <!-- Table -->
   <div class="table-responsive" *ngIf="!loading">
@@ -71,30 +79,33 @@
               {{ method.status | titlecase }}
             </span>
           </td>
-          <td class="text-end">
-            <div class="dropdown">
-              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a class="dropdown-item" href="javascript:void(0)" (click)="openEditModal(method)">
-                    <i class="bi bi-pencil me-2"></i>Edit
-                  </a>
-                </li>
-                <li *ngIf="canDelete(method)">
-                  <a class="dropdown-item text-danger" href="javascript:void(0)" (click)="toggleStatus(method)">
-                    <i class="bi bi-trash me-2"></i>Delete
-                  </a>
-                </li>
-                <li *ngIf="canActivate(method)">
-                  <a class="dropdown-item text-success" href="javascript:void(0)" (click)="toggleStatus(method)">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Activate
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </td>
+<!-- payment-method-list.component.html -->
+<td class="text-end">
+  <div class="dropdown">
+    <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+      <i class="bi bi-three-dots-vertical"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li>
+        <a class="dropdown-item" href="javascript:void(0)" (click)="openEditModal(method)">
+          <i class="bi bi-pencil me-2"></i>Edit
+        </a>
+      </li>
+      <li *ngIf="canDelete(method)">
+        <a class="dropdown-item text-danger" href="javascript:void(0)" 
+           (click)="deletePaymentMethod(method)">
+          <i class="bi bi-trash me-2"></i>Delete
+        </a>
+      </li>
+      <li *ngIf="canActivate(method)">
+        <a class="dropdown-item text-success" href="javascript:void(0)" 
+           (click)="reactivatePaymentMethod(method)">
+          <i class="bi bi-arrow-clockwise me-2"></i>Reactivate
+        </a>
+      </li>
+    </ul>
+  </div>
+</td>
         </tr>
         <tr *ngIf="paymentMethods.length === 0">
           <td colspan="7" class="text-center">No payment methods found</td>

@@ -10,10 +10,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
 public interface HpLoanRepository extends JpaRepository<HpLoan,Integer> {
+    @Query("SELECT COUNT(s) FROM HpLoan s WHERE s.status = :status")
+    long countByStatus(@Param("status") int status);
+    @Query("SELECT YEAR(h.applicationDate) as year, h.status, COUNT(h) " +
+            "FROM HpLoan h " +
+            "GROUP BY YEAR(h.applicationDate), h.status")
+    List<Object[]> getLoanStatusCounts();
+
+    @Query("SELECT SUM(s.DisbursementAmount) FROM HpLoan s")
+    BigDecimal sumLoanAmount();
     @Query("SELECT l FROM HpLoan l WHERE l.cif.id = :cifId AND l.status = :status")
     List<HpLoan> findByCifIdAndStatus(@Param("cifId") int cifId, @Param("status") int status);
     HpLoan findByHpLoanCode(String hpLoanCode);

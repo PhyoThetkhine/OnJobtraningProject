@@ -105,7 +105,7 @@ private destroy$ = new Subject<void>();
       nrcNumber: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]],
       nrcFrontPhoto: [''],  // Not required in form validation
       nrcBackPhoto: [''],   // Not required in form validation
-      dateOfBirth: ['', Validators.required,this.minAgeValidator(18)],
+      dateOfBirth: ['', Validators.required],
       gender: ['', Validators.required],
       branchId: ['', Validators.required,],
       roleId: ['', Validators.required],

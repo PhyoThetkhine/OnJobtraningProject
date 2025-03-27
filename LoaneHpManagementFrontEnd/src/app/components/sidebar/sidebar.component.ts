@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 interface MenuItem {
   title: string;
@@ -8,6 +9,7 @@ interface MenuItem {
   route?: string;
   submenu?: MenuItem[];
   permission?: string;
+  action?: string;
 }
 
 @Component({
@@ -17,9 +19,24 @@ interface MenuItem {
   standalone: false,
 })
 export class SidebarComponent implements OnInit {
+  showLogoutModal = false; 
   isOpen = false;
   filteredMenuItems: MenuItem[] = [];
   filteredBottomMenuItems: MenuItem[] = [];
+
+  handleItemClick(item: MenuItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    } else if (item.route) {
+      this.router.navigate([item.route]);
+    }
+  }
+
+  // Add this method
+  confirmLogout() {
+    this.authService.logout();
+    this.showLogoutModal = false;
+  }
 
   private menuItems: MenuItem[] = [
     { title: 'Dashboard', icon: 'bi-speedometer2', route: '/dashboard' },
@@ -125,12 +142,13 @@ export class SidebarComponent implements OnInit {
         { title: 'Change Password', route: '/settings/password' }
       ]
     },
-    { title: 'Logout', icon: 'bi-box-arrow-right', route: '/logout' }
+    { title: 'Logout', icon: 'bi-box-arrow-right', action: 'logout' } 
   ];
 
   constructor(
     private sidebarService: SidebarService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
   ) {}
 
   ngOnInit() {

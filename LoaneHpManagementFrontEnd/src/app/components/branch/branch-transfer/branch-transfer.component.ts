@@ -14,6 +14,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AccountType } from '../../../models/transaction.model';
 import { CurrentUser } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
+import { forkJoin, map } from 'rxjs';
+import { BranchCurrentAccount } from 'src/app/models/branch-account.model';
 
 @Component({
   selector: 'app-branch-transfer',
@@ -114,17 +116,56 @@ showCifDropdown: boolean = false;
   }
 
   // Add to BranchTransferComponent class
+// private loadBranches() {
+//   this.branchService.getAllBranches().subscribe({
+//     next: (branches) => {
+//       // Filter out current branch if needed
+//       this.branchAccounts = branches
+//         .filter(b => b.id !== this.branch?.id) // Exclude current branch
+//         .map(branch => ({
+          
+//           id: branch.id,
+//           branchName: branch.branchName,
+//           branchCode: branch.branchCode
+//         }));
+//     },
+//     error: (error) => {
+//       console.error('Error loading branches:', error);
+//       this.toastr.error('Failed to load branches');
+//     }
+//   });
+// }
 private loadBranches() {
+  // First, load all branches
   this.branchService.getAllBranches().subscribe({
-    next: (branches) => {
-      // Filter out current branch if needed
-      this.branchAccounts = branches
-        .filter(b => b.id !== this.branch?.id) // Exclude current branch
-        .map(branch => ({
-          id: branch.id,
-          branchName: branch.branchName,
-          branchCode: branch.branchCode
-        }));
+    next: (branches: Branch[]) => {
+      // Exclude the current branch
+      const targetBranches = branches.filter(b => b.id !== this.branch?.id);
+      
+      // For each branch, call getBranchAccount to get its current account details
+      const accountObservables = targetBranches.map(branch =>
+        this.branchService.getBranchAccount(branch.id!).pipe(
+          map(response => {
+            const branchAccount = response.data as BranchCurrentAccount;
+            return {
+              accountId: branchAccount.id,  // This is the branch account id
+              branchName: branch.branchName,
+              branchCode: branch.branchCode
+            };
+          })
+        )
+      );
+      
+      // Wait for all branch account calls to finish
+      forkJoin(accountObservables).subscribe({
+        next: (accounts) => {
+          this.branchAccounts = accounts;
+        },
+        error: (error) => {
+          console.error('Error fetching branch accounts:', error);
+          this.toastr.error('Failed to load branch accounts');
+        }
+      });
     },
     error: (error) => {
       console.error('Error loading branches:', error);

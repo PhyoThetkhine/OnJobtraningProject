@@ -1,6 +1,7 @@
 package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.PaymentMethodService;
+import com.prj.LoneHPManagement.model.dto.PaymentMethodStatus;
 import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import com.prj.LoneHPManagement.model.entity.PaymentMethod;
 import com.prj.LoneHPManagement.model.entity.User;
@@ -28,7 +29,14 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
 
     @Autowired
     private UserRepository userRepository;
-
+    // PaymentMethodService.java
+    public void updateStatus(int id, int status) {
+        PaymentMethod method = paymentMethodRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Payment method not found"));
+       method.setStatus(status);
+        method.setUpdatedDate(LocalDateTime.now());
+        paymentMethodRepository.save(method);
+    }
     @Override
     public PaymentMethod createPaymentMethod(PaymentMethod paymentMethod, int userId) {
         Optional<User> user = userRepository.findById(userId);

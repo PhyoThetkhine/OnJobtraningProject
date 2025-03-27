@@ -218,15 +218,7 @@ public class UserServiceImpl implements UserService {
 
             userPermissionRepository.save(userPermission);
         }
-        // Create UserCurrentAccount
-        UserCurrentAccount userCurrentAccount = new UserCurrentAccount();
-        userCurrentAccount.setUser(savedUser);
-        userCurrentAccount.setAccCode(codeGenerateService.generateUserAccountCode(savedUser));
-        userCurrentAccount.setBalance(BigDecimal.ZERO);
-        userCurrentAccount.setIsFreeze(ConstraintEnum.NOT_FREEZE.getCode());
-        userCurrentAccount.setCreatedDate(LocalDateTime.now());
-        userCurrentAccount.setUpdatedDate(LocalDateTime.now());
-        userCurrentAccountRepository.save(userCurrentAccount);
+
         return savedUser;
     }
 

@@ -34,12 +34,12 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @PostMapping("/make")
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(1).orElseThrow(() -> new ServiceException("Payment method not found"));
-        transaction.setPaymentMethod(paymentMethod);
-        return ResponseEntity.ok(transactionService.processTransaction(transaction));
-    }
+//    @PostMapping("/make")
+//    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+//        PaymentMethod paymentMethod = paymentMethodRepository.findById(1).orElseThrow(() -> new ServiceException("Payment method not found"));
+//        transaction.setPaymentMethod(paymentMethod);
+//        return ResponseEntity.ok(transactionService.processTransaction(transaction));
+//    }
     @PostMapping("/transfer")
     public ResponseEntity<?> transferFunds(@RequestBody TransferRequest request) {
         System.out.println(request);

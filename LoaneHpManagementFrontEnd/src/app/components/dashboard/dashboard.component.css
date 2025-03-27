@@ -1,0 +1,91 @@
+/* Container & Title */
+.dashboard-container {
+    max-width: 1200px;
+  }
+  
+  .dashboard-title {
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  /* Stats Cards Styling */
+  .card-stats {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #ffffff;
+  }
+  
+  .card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-stats .card-body {
+    text-align: center;
+  }
+  
+  /* Display Sizes */
+  .display-6 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin: 0.5rem 0;
+  }
+  
+  .display-5 {
+    font-size: 2rem;
+    font-weight: 300;
+    margin: 0.5rem 0;
+  }
+  
+  /* Charts Section */
+  .charts-section .chart-card {
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  
+  /* General card styling */
+  .card {
+    background: #fff;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .dashboard-title {
+      font-size: 1.8rem;
+    }
+    .display-6 {
+      font-size: 2rem;
+    }
+    .display-5 {
+      font-size: 1.75rem;
+    }
+  }
+  /* Enhance the overall number styling */
+.amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2a9d8f; /* Choose a color that fits your design */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0;
+  }
+  
+  .count {
+    font-size: 2rem;
+    font-weight: 500;
+    color: #264653;
+    margin: 0.5rem 0;
+  }
+  
+  /* Optionally, add animations to numbers on load */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .amount, .count {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  

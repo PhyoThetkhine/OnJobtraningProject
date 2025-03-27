@@ -44,6 +44,7 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
     @Autowired
     private SMELongOverPaidHistoryRepository smeLongOverPaidHistoryRepository;
 
+
     @Scheduled(cron = "0 0 0 * * *") // Run at midnight every day
     @Transactional
     @Override

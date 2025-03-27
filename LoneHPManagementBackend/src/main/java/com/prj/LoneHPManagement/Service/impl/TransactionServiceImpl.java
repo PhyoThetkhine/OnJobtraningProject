@@ -1,5 +1,6 @@
 package com.prj.LoneHPManagement.Service.impl;
 
+import com.prj.LoneHPManagement.Service.PaymentTrigger;
 import com.prj.LoneHPManagement.Service.TransactionService;
 import com.prj.LoneHPManagement.model.dto.TransactionHistoryResponse;
 import com.prj.LoneHPManagement.model.dto.TransferRequest;
@@ -25,20 +26,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
+    // Existing dependencies
+    @Autowired
+  private PaymentTrigger paymentTrigger;
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
     private BranchCurrentAccountRepository branchCurrentAccountRepository;
     @Autowired
     private CIFCurrentAccountRepository cifCurrentAccountRepository;
-    @Autowired
-    private AutoPaymentServiceImpl autoPaymentService;
+
     @Autowired
     private UserCurrentAccountRepository userCurrentAccountRepository;
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
     @Autowired
     private CIFRepository cifRepository;
+
+
 
     @Override
     public Page<Transaction> getTransactionsByUserId(
@@ -84,6 +89,8 @@ public class TransactionServiceImpl implements TransactionService {
             // Credit CIF account
             cifAccount.setBalance(cifAccount.getBalance().add(request.getAmount()));
             cifCurrentAccountRepository.save(cifAccount);
+
+            paymentTrigger.processHpAccountPaymentsForTransaction(cifAccount);
             //Debit Branch Account
             BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getFromAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
 
@@ -154,83 +161,81 @@ public class TransactionServiceImpl implements TransactionService {
 
 
 
-    @Override
-    public Transaction processTransaction(Transaction transaction) {
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(transaction.getPaymentMethod().getId())
-                .orElseThrow(() -> new ServiceException("Payment method not found"));
-        transaction.setPaymentMethod(paymentMethod);
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        // Handle BRANCH to CIF transaction
-        if (transaction.getFromAccountType() == Transaction.AccountType.BRANCH && 
-            transaction.getToAccountType() == Transaction.AccountType.CIF) {
-            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getToAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
-
-            // Credit CIF account
-            cifAccount.setBalance(cifAccount.getBalance().add(savedTransaction.getAmount()));
-            cifCurrentAccountRepository.save(cifAccount);
-
-            // Trigger auto-payment process
-            autoPaymentService.processTransaction(savedTransaction);
-        }
-        // Handle CIF to BRANCH transaction
-        else if (transaction.getFromAccountType() == Transaction.AccountType.CIF && 
-                 transaction.getToAccountType() == Transaction.AccountType.BRANCH) {
-            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getFromAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
-
-            // Validate CIF account
-            validateCIFSender(cifAccount, savedTransaction.getAmount());
-
-            // Debit CIF account
-            cifAccount.setBalance(cifAccount.getBalance().subtract(savedTransaction.getAmount()));
-            cifCurrentAccountRepository.save(cifAccount);
-        }
-        // Handle USER to CIF transaction
-        else if (transaction.getFromAccountType() == Transaction.AccountType.USER && 
-                 transaction.getToAccountType() == Transaction.AccountType.CIF) {
-            UserCurrentAccount userAccount = userCurrentAccountRepository.findById(transaction.getFromAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("User account not found"));
-            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getToAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
-
-            // Validate user account
-            validateUserSender(userAccount, savedTransaction.getAmount());
-
-            // Debit user account
-            userAccount.setBalance(userAccount.getBalance().subtract(savedTransaction.getAmount()));
-            userCurrentAccountRepository.save(userAccount);
-
-            // Credit CIF account
-            cifAccount.setBalance(cifAccount.getBalance().add(savedTransaction.getAmount()));
-            cifCurrentAccountRepository.save(cifAccount);
-
-            // Trigger auto-payment process
-            autoPaymentService.processTransaction(savedTransaction);
-        }
-        // Handle CIF to USER transaction
-        else if (transaction.getFromAccountType() == Transaction.AccountType.CIF && 
-                 transaction.getToAccountType() == Transaction.AccountType.USER) {
-            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getFromAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
-            UserCurrentAccount userAccount = userCurrentAccountRepository.findById(transaction.getToAccountId())
-                    .orElseThrow(() -> new AccountNotFoundException("User account not found"));
-
-            // Validate CIF account
-            validateCIFSender(cifAccount, savedTransaction.getAmount());
-
-            // Debit CIF account
-            cifAccount.setBalance(cifAccount.getBalance().subtract(savedTransaction.getAmount()));
-            cifCurrentAccountRepository.save(cifAccount);
-
-            // Credit user account
-            userAccount.setBalance(userAccount.getBalance().add(savedTransaction.getAmount()));
-            userCurrentAccountRepository.save(userAccount);
-        }
-
-        return savedTransaction;
-    }
+//    @Override
+//    public Transaction processTransaction(Transaction transaction) {
+//        PaymentMethod paymentMethod = paymentMethodRepository.findById(transaction.getPaymentMethod().getId())
+//                .orElseThrow(() -> new ServiceException("Payment method not found"));
+//        transaction.setPaymentMethod(paymentMethod);
+//        Transaction savedTransaction = transactionRepository.save(transaction);
+//
+//        // Handle BRANCH to CIF transaction
+//        if (transaction.getFromAccountType() == Transaction.AccountType.BRANCH &&
+//            transaction.getToAccountType() == Transaction.AccountType.CIF) {
+//            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getToAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+//
+//            // Credit CIF account
+//            cifAccount.setBalance(cifAccount.getBalance().add(savedTransaction.getAmount()));
+//            cifCurrentAccountRepository.save(cifAccount);
+//
+//        }
+//        // Handle CIF to BRANCH transaction
+//        else if (transaction.getFromAccountType() == Transaction.AccountType.CIF &&
+//                 transaction.getToAccountType() == Transaction.AccountType.BRANCH) {
+//            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getFromAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+//
+//            // Validate CIF account
+//            validateCIFSender(cifAccount, savedTransaction.getAmount());
+//
+//            // Debit CIF account
+//            cifAccount.setBalance(cifAccount.getBalance().subtract(savedTransaction.getAmount()));
+//            cifCurrentAccountRepository.save(cifAccount);
+//        }
+//        // Handle USER to CIF transaction
+//        else if (transaction.getFromAccountType() == Transaction.AccountType.USER &&
+//                 transaction.getToAccountType() == Transaction.AccountType.CIF) {
+//            UserCurrentAccount userAccount = userCurrentAccountRepository.findById(transaction.getFromAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("User account not found"));
+//            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getToAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+//
+//            // Validate user account
+//            validateUserSender(userAccount, savedTransaction.getAmount());
+//
+//            // Debit user account
+//            userAccount.setBalance(userAccount.getBalance().subtract(savedTransaction.getAmount()));
+//            userCurrentAccountRepository.save(userAccount);
+//
+//            // Credit CIF account
+//            cifAccount.setBalance(cifAccount.getBalance().add(savedTransaction.getAmount()));
+//            cifCurrentAccountRepository.save(cifAccount);
+//
+//            // Trigger auto-payment process
+//            autoPaymentService.processTransaction(savedTransaction);
+//        }
+//        // Handle CIF to USER transaction
+//        else if (transaction.getFromAccountType() == Transaction.AccountType.CIF &&
+//                 transaction.getToAccountType() == Transaction.AccountType.USER) {
+//            CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(transaction.getFromAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
+//            UserCurrentAccount userAccount = userCurrentAccountRepository.findById(transaction.getToAccountId())
+//                    .orElseThrow(() -> new AccountNotFoundException("User account not found"));
+//
+//            // Validate CIF account
+//            validateCIFSender(cifAccount, savedTransaction.getAmount());
+//
+//            // Debit CIF account
+//            cifAccount.setBalance(cifAccount.getBalance().subtract(savedTransaction.getAmount()));
+//            cifCurrentAccountRepository.save(cifAccount);
+//
+//            // Credit user account
+//            userAccount.setBalance(userAccount.getBalance().add(savedTransaction.getAmount()));
+//            userCurrentAccountRepository.save(userAccount);
+//        }
+//
+//        return savedTransaction;
+//    }
 
     @Override
     public List<TransactionHistoryResponse> getTransactionHistory(String accountType, int accountId) {

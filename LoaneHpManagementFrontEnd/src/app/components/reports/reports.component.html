@@ -1,1 +1,18 @@
-<p>reports works!</p>
+<div class="report-container">
+    <div class="report-actions">
+      <button 
+        class="btn btn-primary"
+        (click)="generateReport('pdf')"
+        [disabled]="loadingReport"
+      >
+        <span *ngIf="!loadingReport">Download PDF Report</span>
+        <span *ngIf="loadingReport">
+          <i class="spinner"></i> Generating Report...
+        </span>
+      </button>
+      
+      <div *ngIf="reportError" class="error-message">
+        {{ reportError }}
+      </div>
+    </div>
+  </div>

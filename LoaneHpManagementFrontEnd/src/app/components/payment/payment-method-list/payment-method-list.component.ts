@@ -23,7 +23,7 @@ export class PaymentMethodListComponent implements OnInit {
   error: string | null = null;
   PaymentMethodStatus = PaymentMethodStatus; // Make enum available in template
   userMap: Map<number, User> = new Map();
-
+  showCreateForm = false;
   // Pagination
   currentPage = 0;
   pageSize = 10;
@@ -166,22 +166,39 @@ export class PaymentMethodListComponent implements OnInit {
       }
     });
   }
+  onPaymentMethodCreated(): void {
+    this.loadPaymentMethods(this.currentPage);
+    this.showCreateForm = false; // Hide form after creation
+  }
 
-  toggleStatus(method: PaymentMethod): void {
-    const newStatus = method.status === PaymentMethodStatus.ACTIVE 
-      ? PaymentMethodStatus.DELETED 
-      : PaymentMethodStatus.ACTIVE;
-
-    this.paymentMethodService.updateStatus(method.id, newStatus).subscribe({
-      next: (response: ApiResponse<PaymentMethod>) => {
+  deletePaymentMethod(method: PaymentMethod): void {
+    this.paymentMethodService.deletePaymentMethod(method.id).subscribe({
+      next: (response: ApiResponse<void>) => {
         if (response.status === 200) {
-          method.status = newStatus;
-          this.toastr.success(`Payment method ${newStatus === PaymentMethodStatus.ACTIVE ? 'activated' : 'deleted'} successfully`);
+          method.status = PaymentMethodStatus.DELETED;
+          this.toastr.success('Payment method deleted successfully');
+          this.loadPaymentMethods(this.currentPage);
         }
       },
       error: (error: any) => {
-        this.toastr.error('Failed to update payment method status');
-        console.error('Error updating payment method status:', error);
+        this.toastr.error('Failed to delete payment method');
+        console.error('Error deleting payment method:', error);
+      }
+    });
+  }
+  
+  reactivatePaymentMethod(method: PaymentMethod): void {
+    this.paymentMethodService.reactivatePaymentMethod(method.id).subscribe({
+      next: (response: ApiResponse<void>) => {
+        if (response.status === 200) {
+          method.status = PaymentMethodStatus.ACTIVE;
+          this.toastr.success('Payment method reactivated successfully');
+          this.loadPaymentMethods(this.currentPage);
+        }
+      },
+      error: (error: any) => {
+        this.toastr.error('Failed to reactivate payment method');
+        console.error('Error reactivating payment method:', error);
       }
     });
   }

@@ -1,5 +1,6 @@
 package com.prj.LoneHPManagement.Service.impl;
 
+import com.prj.LoneHPManagement.Service.PaymentTrigger;
 import com.prj.LoneHPManagement.Service.TransactionService;
 import com.prj.LoneHPManagement.model.entity.*;
 import com.prj.LoneHPManagement.model.repo.*;
@@ -18,7 +19,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Service
-public class HPAutoPaymentServiceImpl {
+public class HPAutoPaymentServiceImpl implements PaymentTrigger {
     @Autowired
     private CIFCurrentAccountRepository cifCurrentAccountRepository;
     @Autowired
@@ -29,17 +30,31 @@ public class HPAutoPaymentServiceImpl {
     private HpLoanHistoryRepository hpLoanHistoryRepository;
     @Autowired
     private SMELoanHistoryRepository smeLoanHistoryRepository;
-    @Autowired
-    private TransactionService transactionService;
+
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
     @Autowired
     private HpLongOverPaidHistoryRepository hpLongOverPaidHistoryRepository;
     @Autowired
     private BranchCurrentAccountRepository branchCurrentAccountRepository;
+@Override
+    public void processHpAccountPaymentsForTransaction(CIFCurrentAccount cifAccount) {
+        List<HpLoan> activeLoans = hpLoanRepository.findByCifIdAndStatus(
+                cifAccount.getCif().getId(),
+                ConstraintEnum.UNDER_SCHEDULE.getCode()
+        );
+
+        for (HpLoan loan : activeLoans) {
+            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+            processHpLoanPayment(loan, cifAccount);
+        }
+    }
+
     @Scheduled(cron = "0 0 0 * * *") // Run at midnight daily
     @Transactional
-
+@Override
     public void processHpAutoPayments() {
         // Get all CIF accounts with balance
         List<CIFCurrentAccount> accountsWithBalance = cifCurrentAccountRepository.findAll().stream()
