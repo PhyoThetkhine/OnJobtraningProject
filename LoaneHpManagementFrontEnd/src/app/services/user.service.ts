@@ -14,6 +14,12 @@ export class UserService {
   private apiUrl = `${environment.apiUrl}/user`;
 
   constructor(private http: HttpClient) {}
+  getUserById(id: number): Observable<User> {
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/findUser/${id}`)
+      .pipe(
+        map(response => response.data)
+      );
+  }
 
   getUsers(page: number = 0, size: number = 15, sortBy: string = 'id'): Observable<PagedResponse<User>> {
     const params = new HttpParams()
@@ -65,13 +71,7 @@ export class UserService {
   }
 
 
-  getUserById(id: number): Observable<User> {
-    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/findUser/${id}`)
-      .pipe(
-        map(response => response.data)
-      );
-  }
-
+  
   createUser(userData: CreateUserDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/saveUser`, userData);
   }

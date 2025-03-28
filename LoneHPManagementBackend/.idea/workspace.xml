@@ -5,52 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="95df5b7e-6fb4-4747-94de-9146727b615a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/DashboardController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/UserReportController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/PaymentTrigger.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/UserReportService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/UserReportServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/BranchBalanceDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/DashboardDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/LoanStatusChartDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/PaymentMethodStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/UserDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/jasperreports.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/reports/user_report.jrxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-create/client-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-create/client-create.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/dashboard/dashboard.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-list/payment-method-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-list/payment-method-list.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-list/payment-method-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-list/payment-method-list.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/reports/reports.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-create/user-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-create/user-create.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/payment-method.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/payment-method.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app-routing.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app-routing.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/accounting/transactions/transactions.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/accounting/transactions/transactions.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/update-profile/update-profile.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/update-profile/update-profile.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/update-profile/update-profile.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/update-profile/update-profile.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/sidebar/sidebar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/sidebar/sidebar.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-create/user-create.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-create/user-create.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-detail/user-detail.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-detail/user-detail.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/auth.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/user.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/user.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/PaymentMethodController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/PaymentMethodController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/TransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/TransactionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/PaymentMethodService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/PaymentMethodService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/TransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/TransactionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/SMEAutoPaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/SMEAutoPaymentService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/PaymentMethodServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/PaymentMethodServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HpLoanServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HpLoanServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMELoanServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMELoanServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/UserServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/HpLongOverPaidHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/HpLongOverPaidHistory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/SMELoan.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/SMELoan.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/SMELongOverPaidHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/SMELongOverPaidHistory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/BranchCurrentAccountRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/BranchCurrentAccountRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/HpLoanRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/HpLoanRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/SMELoanRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/SMELoanRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/SMELoanHistoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/SMELoanHistoryRepository.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -131,6 +107,9 @@
     ]
   }
 }</component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
   <component name="RunManager" selected="Application.LoneHpManagementApplication">
     <configuration name="LoneHpManagementApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.prj.LoneHPManagement.LoneHpManagementApplication" />
@@ -207,12 +186,444 @@
       <workItem from="1742994207568" duration="12144000" />
       <workItem from="1743043137287" duration="9974000" />
       <workItem from="1743053681521" duration="1329000" />
-      <workItem from="1743078183585" duration="7983000" />
+      <workItem from="1743078183585" duration="7986000" />
+      <workItem from="1743094201310" duration="2920000" />
+      <workItem from="1743100707955" duration="6648000" />
+      <workItem from="1743131329288" duration="3927000" />
+      <workItem from="1743144883433" duration="1555000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/TransactionController.java</url>
+          <line>46</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>50</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>54</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>58</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java</url>
+          <line>100</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java</url>
+          <line>96</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>95</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>100</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>112</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>113</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>116</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>117</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>131</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>123</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>146</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>629</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>635</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>638</line>
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>650</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>657</line>
+          <option name="timeStamp" value="29" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>664</line>
+          <option name="timeStamp" value="30" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>677</line>
+          <option name="timeStamp" value="31" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>686</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>687</line>
+          <option name="timeStamp" value="33" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>690</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>699</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="35" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>705</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>711</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>742</line>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>163</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>170</line>
+          <option name="timeStamp" value="43" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>174</line>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>306</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>311</line>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>316</line>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>141</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>448</line>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>444</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>456</line>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>452</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>453</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>454</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>457</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>459</line>
+          <option name="timeStamp" value="58" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>476</line>
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>481</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>480</line>
+          <option name="timeStamp" value="61" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>483</line>
+          <option name="timeStamp" value="62" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>484</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>466</line>
+          <option name="timeStamp" value="64" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>467</line>
+          <option name="timeStamp" value="65" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>115</line>
+          <option name="timeStamp" value="66" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>185</line>
+          <option name="timeStamp" value="67" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>580</line>
+          <option name="timeStamp" value="69" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>589</line>
+          <option name="timeStamp" value="71" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>595</line>
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>591</line>
+          <option name="timeStamp" value="73" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>604</line>
+          <option name="timeStamp" value="74" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>609</line>
+          <option name="timeStamp" value="75" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>613</line>
+          <option name="timeStamp" value="76" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>621</line>
+          <option name="timeStamp" value="78" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>405</line>
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>410</line>
+          <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>415</line>
+          <option name="timeStamp" value="81" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>49</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processSMEAccountPaymentsForTransaction">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>91</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processLoanPayment">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>121</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processLongTermOverdue">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>181</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="resetLateDaysForAllTerms">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>627</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processPaymentComponent">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>701</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processPaymentComponent">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>737</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processTermPayment">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>152</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processDefaultedLoan">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>302</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processTermIOD">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>443</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processLateFeePayment">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
+          <line>577</line>
+          <properties class="com.prj.LoneHPManagement.Service.impl.SMEAutoPaymentServiceImpl" method="processRemainingPayments">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="68" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

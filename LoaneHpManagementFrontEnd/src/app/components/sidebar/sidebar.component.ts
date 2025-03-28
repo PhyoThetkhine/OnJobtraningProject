@@ -138,7 +138,7 @@ export class SidebarComponent implements OnInit {
       title: 'Settings',
       icon: 'bi-gear',
       submenu: [
-        { title: 'Update Profile', route: '/settings/profile' },
+        { title: 'Your Profile', route: '/settings/profile' },
         { title: 'Change Password', route: '/settings/password' }
       ]
     },

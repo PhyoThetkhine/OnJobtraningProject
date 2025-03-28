@@ -7,5 +7,6 @@ import com.prj.LoneHPManagement.model.entity.SMETerm;
 import java.util.List;
 
 public interface SMEAutoPaymentService {
+    void processSMEAccountPaymentsForTransaction(CIFCurrentAccount cifAccount);
     void processAutoPayments();
 } 

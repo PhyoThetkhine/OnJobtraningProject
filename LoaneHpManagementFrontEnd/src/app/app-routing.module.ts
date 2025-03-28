@@ -26,7 +26,7 @@ import { ChartComponent } from './components/accounting/chart/chart.component';
 import { ProductsComponent } from './components/dealer/products/products.component';
 import { MainCategoriesComponent } from './components/dealer/main-categories/main-categories.component';
 import { SubCategoriesComponent } from './components/dealer/sub-categories/sub-categories.component';
-import { UpdateProfileComponent } from './components/settings/update-profile/update-profile.component';
+
 import { ChangePasswordComponent } from './components/settings/change-password/change-password.component';
 import { LogoutComponent } from './components/logout/logout.component';
 import { BranchCreateComponent } from './components/branch/branch-create/branch-create.component';
@@ -36,6 +36,7 @@ import { BranchDetailComponent } from './components/branch/branch-detail/branch-
 import { RoleDetailComponent } from './components/access-control/role-detail/role-detail.component';
 import { HpLoanDetailComponent } from './components/loan/hp/hp-loan-detail/hp-loan-detail.component';
 import { ClientDetailComponent } from './components/client/client-detail/client-detail.component';
+import { YourProfileComponent } from './components/settings/your-profile/your-profile.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -78,7 +79,7 @@ const routes: Routes = [
       { path: 'dealer/products', component: ProductsComponent },
       { path: 'dealer/main-categories', component: MainCategoriesComponent },
       { path: 'dealer/sub-categories', component: SubCategoriesComponent },
-      { path: 'settings/profile', component: UpdateProfileComponent },
+      { path: 'settings/profile', component: YourProfileComponent },
       { path: 'settings/password', component: ChangePasswordComponent },
       { path: 'logout', component: LogoutComponent },
       { path: 'branches/edit/:id', component: BranchCreateComponent },

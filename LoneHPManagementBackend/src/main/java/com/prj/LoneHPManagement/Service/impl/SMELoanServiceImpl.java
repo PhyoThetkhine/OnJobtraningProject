@@ -62,7 +62,8 @@ public class SMELoanServiceImpl implements SMELoanService {
     private LoanCollateralRepository loanCollateralRepository;
     @Autowired
     private BranchRepository branchRepository;
-
+    @Autowired
+    private BranchCurrentAccountRepository branchCurrentAccountRepository;
     @Override
     public Page<SMELoan> getSMELoansByCif(int cifId, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
@@ -103,6 +104,9 @@ public class SMELoanServiceImpl implements SMELoanService {
                 .orElseThrow(() -> new ServiceException("Loan not found with ID: " + loanId));
         User confirmUser = userRepository.findById(confirmData.getConfirmUserId())
                 .orElseThrow(() -> new ServiceException("User not found with ID: " + confirmData.getConfirmUserId()));
+        BranchCurrentAccount branchCurrentAccount= branchCurrentAccountRepository.findByBranch_Id(confirmUser.getBranch().getId()) .orElseThrow(() -> new ServiceException("branch account  not found with ID: " + confirmData.getConfirmUserId()));
+       CIFCurrentAccount cifaccount = cifCurrentAccountRepository.findByCifId(loan.getCif().getId()) .orElseThrow(() -> new ServiceException("cif acccount not found"));
+
         // Update loan details with confirmation data
         loan.setDisbursementAmount(disbursementAmount);
         loan.setDocumentFeeRate(documentFeeRate);
@@ -134,6 +138,22 @@ public class SMELoanServiceImpl implements SMELoanService {
         // 6. Generate terms
         List<SMETerm> terms = generateTerms(smeLoan, startDate, loan.getFrequency(), loan.getDuration());
         smeTermRepository.saveAll(terms);
+        // Transfer disbursementAmount from branch to CIF account
+        if (branchCurrentAccount.getBalance().compareTo(disbursementAmount) < 0) {
+            throw new ServiceException("Branch account has insufficient funds.");
+        }
+
+        // Update balances
+        branchCurrentAccount.setBalance(
+                branchCurrentAccount.getBalance().subtract(disbursementAmount)
+        );
+        cifaccount.setBalance(
+                cifaccount.getBalance().add(disbursementAmount)
+        );
+
+        // Save the updated accounts
+        branchCurrentAccountRepository.save(branchCurrentAccount);
+        cifCurrentAccountRepository.save(cifaccount);
     }
 
     @Override

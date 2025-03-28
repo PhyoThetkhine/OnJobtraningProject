@@ -34,7 +34,7 @@ import { ChartComponent } from './components/accounting/chart/chart.component';
 import { ProductsComponent } from './components/dealer/products/products.component';
 import { MainCategoriesComponent } from './components/dealer/main-categories/main-categories.component';
 import { SubCategoriesComponent } from './components/dealer/sub-categories/sub-categories.component';
-import { UpdateProfileComponent } from './components/settings/update-profile/update-profile.component';
+
 import { ChangePasswordComponent } from './components/settings/change-password/change-password.component';
 import { LogoutComponent } from './components/logout/logout.component';
 import { BranchCreateComponent } from './components/branch/branch-create/branch-create.component';
@@ -47,11 +47,11 @@ import { CloudinaryInterceptor } from './interceptors/cloudinary.interceptor';
 import { BranchDetailComponent } from './components/branch/branch-detail/branch-detail.component';
 import { ClientDetailComponent } from './components/client/client-detail/client-detail.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { YourProfileComponent } from './components/settings/your-profile/your-profile.component';
 
 @NgModule({
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   declarations: [
-    
     AppComponent,
     LoginComponent,
     SidebarComponent,
@@ -62,26 +62,18 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     SmeLoanListComponent,
     SmeLoanApplicationsComponent,
     SmeLoanCreateComponent,
-    
     HpLoanApplicationsComponent,
     HpLoanCreateComponent,
     ReportsComponent,
     RoleListComponent,
-   
-    
     PaymentMethodListComponent,
     PaymentMethodCreateComponent,
-    
-   
     MainCategoriesComponent,
     SubCategoriesComponent,
-    UpdateProfileComponent,
     ChangePasswordComponent,
     LogoutComponent,
     BranchCreateComponent,
-
     BranchEditComponent,
-   
     ClientCreateComponent,
     BranchDetailComponent
   ],

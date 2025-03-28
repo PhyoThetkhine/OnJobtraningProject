@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserService } from '../../../services/user.service';
-import { User } from '../../../models/user.model';
+import { CurrentUser, User } from '../../../models/user.model';
 import { PagedResponse } from '../../../models/common.types';
 import { AuthService } from 'src/app/services/auth.service';
 import { AUTHORITY } from 'src/app/models/role.model';
@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, RouterModule, FormsModule ]
 })
 export class UserListComponent implements OnInit {
+  currentUser : CurrentUser |null = null;
+ 
   users: User[] = [];
   loading = false;
   selectedStatus: string | null = null;
@@ -35,11 +37,17 @@ export class UserListComponent implements OnInit {
 
   ngOnInit() {
     this.loadUsers();
+    this.loadCurrentUser();
   }
 
   onStatusChange() {
     this.currentPage = 0; // Reset to first page when filter changes
     this.loadUsers();
+  }
+  loadCurrentUser() {
+    this.authService.getCurrentUser().subscribe(user => {
+      this.currentUser = user;
+    });
   }
 
   loadUsers() {

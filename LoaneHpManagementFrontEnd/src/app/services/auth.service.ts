@@ -27,6 +27,7 @@ export class AuthService {
   private userPermissions = new BehaviorSubject<string[]>([]);
   permissions$ = this.userPermissions.asObservable();
 
+
   public readonly MAX_ATTEMPTS = 3;
  // private readonly LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
  private readonly LOCKOUT_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds
@@ -36,6 +37,9 @@ export class AuthService {
     private router: Router
   ) {
     this.loadStoredPermissions();
+  }
+  getCurrentUser(): Observable<CurrentUser> {
+    return this.http.get<CurrentUser>(`${this.apiUrl}/current-user`);
   }
 
   getRemainingLockTime(): number {
@@ -92,9 +96,7 @@ export class AuthService {
     );
   }
   
-  getCurrentUser(): Observable<CurrentUser> {
-    return this.http.get<CurrentUser>(`${this.apiUrl}/current-user`);
-  }
+ 
 
 
   logout(): void {

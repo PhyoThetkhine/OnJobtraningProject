@@ -1,6 +1,7 @@
 package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.PaymentTrigger;
+import com.prj.LoneHPManagement.Service.SMEAutoPaymentService;
 import com.prj.LoneHPManagement.Service.TransactionService;
 import com.prj.LoneHPManagement.model.dto.TransactionHistoryResponse;
 import com.prj.LoneHPManagement.model.dto.TransferRequest;
@@ -42,6 +43,8 @@ public class TransactionServiceImpl implements TransactionService {
     private PaymentMethodRepository paymentMethodRepository;
     @Autowired
     private CIFRepository cifRepository;
+    @Autowired
+    private SMEAutoPaymentService smeAutoPaymentService;
 
 
 
@@ -83,14 +86,19 @@ public class TransactionServiceImpl implements TransactionService {
         // Handle BRANCH to CIF transaction
         if (request.getFromAccountType() == Transaction.AccountType.BRANCH &&
                 request.getToAccountType() == Transaction.AccountType.CIF) {
+
+
+            // Credit CIF account
+            // 2. Credit CIF Account
             CIFCurrentAccount cifAccount = cifCurrentAccountRepository.findById(request.getToAccountId())
                     .orElseThrow(() -> new AccountNotFoundException("CIF account not found"));
 
-            // Credit CIF account
             cifAccount.setBalance(cifAccount.getBalance().add(request.getAmount()));
-            cifCurrentAccountRepository.save(cifAccount);
+           CIFCurrentAccount account= cifCurrentAccountRepository.save(cifAccount);
 
-            paymentTrigger.processHpAccountPaymentsForTransaction(cifAccount);
+            // 3. Process Auto-Payments Sequentially
+           // paymentTrigger.processHpAccountPaymentsForTransaction(cifAccount);  // HP first
+            smeAutoPaymentService.processSMEAccountPaymentsForTransaction(account);
             //Debit Branch Account
             BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getFromAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));
 

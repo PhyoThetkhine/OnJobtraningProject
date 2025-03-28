@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository;
 public interface SMELoanHistoryRepository extends JpaRepository<SMELoanHistory,Integer> {
     @Query("SELECT h FROM SMELoanHistory h JOIN h.smeTerm t WHERE t.smeLoan.id = :loanId")
     Page<SMELoanHistory> findByLoanId(@Param("loanId") Integer loanId, Pageable pageable);
+
 }

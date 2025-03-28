@@ -169,14 +169,34 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
                     return paid;
                 });
 
-        // Save histories and update totals
-        paymentHistoryMap.values().forEach(history -> {
-            history.setTotalPaid(history.getIodPaid()
-                    .add(history.getInterestPaid())
-                    .add(history.getPrincipalPaid())
-                    .add(history.getPrincipalLateFeePaid())
-                    .add(history.getPodPaid()));
+
+
+        // Update term repayment tracking
+        paymentHistoryMap.forEach((term, history) -> {
+            history.setHpTerm(term);
+
+            BigDecimal totalPaid = history.getPrincipalLateFeePaid()  // Principal Late Fee
+                    .add(history.getInterestLateFeePaid())                // Interest Late Fee
+                    .add(history.getIodPaid())                            // Interest Overdue (IOD)
+                    .add(history.getPodPaid())                            // Principal Overdue (POD)
+                    .add(history.getInterestPaid())                       // Regular Interest
+                    .add(history.getPrincipalPaid());
+
+            history.setTotalPaid(totalPaid);
             hpLoanHistoryRepository.save(history);
+
+            // Update term's repayment tracking fields
+            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+                // 1. Update total repayment amount
+                term.setTotalRepaymentAmount(
+                        term.getTotalRepaymentAmount().add(totalPaid)
+                );
+
+                // 2. Update last repayment date
+                term.setLastRepayDate(new Date(System.currentTimeMillis()));
+            }
+
+
         });
 
         // Update term statuses
@@ -310,16 +330,30 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
             return paid;
         });
         // Save histories and update terms
+        // Update term repayment tracking
         historyMap.forEach((term, history) -> {
             history.setHpTerm(term);
-            history.setTotalPaid(history.getPrincipalLateFeePaid()
+
+            // Calculate total paid for this transaction
+            BigDecimal totalPaid = history.getPrincipalLateFeePaid()
                     .add(history.getIodPaid())
                     .add(history.getInterestLateFeePaid())
+                    .add(history.getPodPaid())  // Added POD component
                     .add(history.getInterestPaid())
-                    .add(history.getPrincipalPaid()));
+                    .add(history.getPrincipalPaid());
+
+            history.setTotalPaid(totalPaid);
             hpLoanHistoryRepository.save(history);
-            updateHpTermStatus(term, loan);
+
+            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+                term.setTotalRepaymentAmount(
+                        term.getTotalRepaymentAmount().add(totalPaid)
+                );
+                term.setLastRepayDate(new Date(System.currentTimeMillis()));
+            }
+
         });
+        sortedTerms.forEach(term -> updateHpTermStatus(term, loan));
     }
     private void processPaymentComponent(List<HpTerm> terms,
                                          CIFCurrentAccount cifAccount,

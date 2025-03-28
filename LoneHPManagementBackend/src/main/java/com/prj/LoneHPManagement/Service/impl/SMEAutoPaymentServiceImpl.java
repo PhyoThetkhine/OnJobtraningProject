@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -44,6 +45,20 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
     @Autowired
     private SMELongOverPaidHistoryRepository smeLongOverPaidHistoryRepository;
 
+
+    @Override
+    public void processSMEAccountPaymentsForTransaction(CIFCurrentAccount cifAccount) {
+        List<SMELoan> activeLoans = smeLoanRepository.findByCifIdAndStatus(
+                cifAccount.getCif().getId(),
+                ConstraintEnum.UNDER_SCHEDULE.getCode()
+        );
+        for (SMELoan loan : activeLoans) {
+            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+            processLoanPayment(loan, cifAccount);
+        }
+    }
 
     @Scheduled(cron = "0 0 0 * * *") // Run at midnight every day
     @Transactional
@@ -90,12 +105,10 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
         // Find the maximum late days among past due terms only
         long maxLateDays = termsToProcess.stream()
                 .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
-                .mapToLong(term -> ChronoUnit.DAYS.between(
-                        term.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime(),
-                        LocalDateTime.now()
-                ))
-                .max()
-                .orElse(0);
+                .mapToInt(SMETerm::getInterestLateDays) // Convert to int stream
+                .max() // Get maximum value
+                .orElse(0); // Default to 0 if no past due terms
+        System.out.println("maxlateDay"+maxLateDays);
 
         if (maxLateDays > 180) {
             processLongTermOverdue(loan, allTerms, cifAccount);
@@ -109,9 +122,12 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
     private void processLongTermOverdue(SMELoan loan, List<SMETerm> allTerms, CIFCurrentAccount cifAccount) {
         // Calculate total outstanding for late terms
         BigDecimal totalOutstanding = calculateTotalOutstanding(allTerms);
-        
-        // Get the maximum late days for calculation
-        long maxLateDays = getMaxLateDays(allTerms);
+
+        long maxLateDays = allTerms.stream()
+                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
+                .mapToInt(SMETerm::getInterestLateDays) // Convert to int stream
+                .max() // Get maximum value
+                .orElse(0); // Default to 0 if no past due terms
 
         // Long-term overdue example
         BigDecimal lateFee = totalOutstanding
@@ -139,7 +155,11 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
         BigDecimal totalOutstanding = calculateTotalOutstanding(allTerms);
         
         // Get the maximum late days for calculation
-        long maxLateDays = getMaxLateDays(allTerms);
+        long maxLateDays = allTerms.stream()
+                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
+                .mapToInt(SMETerm::getInterestLateDays) // Convert to int stream
+                .max() // Get maximum value
+                .orElse(0); // Default to 0 if no past due terms
         // Long-term overdue example
         BigDecimal lateFee = totalOutstanding
                 .multiply(BigDecimal.valueOf(loan.getDefaultedRate())) // e.g., 0.24 (24% annual rate)
@@ -169,28 +189,24 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
     }
 
     private void processNormalOverdue(SMELoan loan, List<SMETerm> termsToProcess, CIFCurrentAccount cifAccount) {
-        // Sort terms by due date to ensure proper order
-        termsToProcess.sort((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()));
-//        // Filter and sort terms
-//        List<SMETerm> termsToProcess = terms.stream()
-//                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
-//                        || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
-//                .sorted(Comparator.comparing(SMETerm::getDueDate))
-//                .collect(Collectors.toList());
+        // Sort terms by due date
+        termsToProcess.sort(Comparator.comparing(SMETerm::getDueDate));
 
-        // Map to track payment history per term
         Map<SMETerm, SMELoanHistory> paymentHistoryMap = new LinkedHashMap<>();
 
-        // Initialize history entries for all terms
+        // Initialize history entries with all payment components
         termsToProcess.forEach(term -> {
             SMELoanHistory history = new SMELoanHistory();
             history.setSmeTerm(term);
             history.setPaidDate(LocalDateTime.now());
+            history.setInterestLateFeePaid(BigDecimal.ZERO);  // Initialize late fee tracking
             history.setIodPaid(BigDecimal.ZERO);
             history.setInterestPaid(BigDecimal.ZERO);
             history.setPrincipalPaid(BigDecimal.ZERO);
             paymentHistoryMap.put(term, history);
         });
+
+        // Process Late Fees First
         processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
                 (term, history) -> {
                     BigDecimal paid = processTermLateFees(term, cifAccount);
@@ -198,7 +214,7 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
                     return paid;
                 });
 
-        // First pass: Process IOD for all terms
+        // Process other components
         processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
                 (term, history) -> {
                     BigDecimal paid = processTermIOD(term, cifAccount);
@@ -206,7 +222,6 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
                     return paid;
                 });
 
-        // Second pass: Process Interest for all terms
         processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
                 (term, history) -> {
                     BigDecimal paid = processTermInterest(term, cifAccount);
@@ -214,7 +229,7 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
                     return paid;
                 });
 
-        // Third pass: Process Principal for eligible terms
+        // Principal processing
         if (!termsToProcess.isEmpty()) {
             SMETerm lastTerm = termsToProcess.get(termsToProcess.size() - 1);
             if (loan.getPaidPrincipalStatus() == ConstraintEnum.ALLOWED.getCode() || isLastTerm(lastTerm, loan)) {
@@ -227,17 +242,28 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
             }
         }
 
-        // Calculate totals and save histories
+        // Calculate totals with ALL components
         paymentHistoryMap.values().forEach(history -> {
-            history.setTotalPaid(history.getIodPaid()
-                    .add(history.getInterestPaid())
-                    .add(history.getPrincipalPaid()));
+            // Include all payment components
+            BigDecimal totalPaid = history.getInterestLateFeePaid()  // Late fees
+                    .add(history.getIodPaid())                           // Interest overdue
+                    .add(history.getInterestPaid())                      // Regular interest
+                    .add(history.getPrincipalPaid());                     // Principal
+
+            history.setTotalPaid(totalPaid);
             smeLoanHistoryRepository.save(history);
+
+            // Update term tracking fields
+            SMETerm term = history.getSmeTerm();
+            if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+                term.setTotalRepaymentAmount(
+                        term.getTotalRepaymentAmount().add(totalPaid)
+                );
+                term.setLastRepayDate(new Date(System.currentTimeMillis()));
+            }
         });
 
-        // Update term statuses
         termsToProcess.forEach(term -> updateTermStatus(term, loan));
-
     }
 
     private BigDecimal processTermLateFees(SMETerm term, CIFCurrentAccount cifAccount) {
@@ -549,118 +575,130 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
         smeLoanHistoryRepository.save(history);
     }
 
-//    private void processRemainingPayments(List<SMETerm> terms, CIFCurrentAccount cifAccount, SMELoan loan) {
+    private void processRemainingPayments(List<SMETerm> terms, CIFCurrentAccount cifAccount, SMELoan loan) {
+
+        // Filter and sort terms that need processing (PAST_DUE or GRACE_PERIOD)
+        List<SMETerm> termsToProcess = terms.stream()
+                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
+                        || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
+                .sorted((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
+                .collect(Collectors.toList());
+
+        termsToProcess.sort((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()));
+
+        // first pass: Process all IOD
+        for (SMETerm term : termsToProcess) {
+            SMELoanHistory history = new SMELoanHistory();  // Create NEW history per term
+            history.setSmeTerm(term);
+            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            BigDecimal iodPaid = processTermIOD(term, cifAccount);
+            history.setIodPaid(iodPaid);
+        }
+
+        // second pass: Process all interest
+        for (SMETerm term : termsToProcess) {
+            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            BigDecimal interestPaid = processTermInterest(term, cifAccount);
+
+        }
+        SMETerm lastTerm = termsToProcess.get(termsToProcess.size() - 1);
+        // third pass: Process principal if allowed
+        if (loan.getPaidPrincipalStatus() == ConstraintEnum.ALLOWED.getCode() && !termsToProcess.isEmpty()) {
+            BigDecimal principalPaid =   processTermPrincipal(lastTerm, cifAccount, loan);
+
+        }else {
+            if (isLastTerm(lastTerm, loan)) {
+                BigDecimal principalPaid =  processTermPrincipal(lastTerm, cifAccount, loan);
+
+            }
+        }
+
+
+        // Update term statuses
+        for (SMETerm term : termsToProcess) {
+            updateTermStatus(term, loan);
+        }
+
+
+    }
+//private void processRemainingPayments(List<SMETerm> terms, CIFCurrentAccount cifAccount, SMELoan loan) {
+//    // Filter and sort terms
+//    List<SMETerm> termsToProcess = terms.stream()
+//            .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
+//                    || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
+//            .sorted(Comparator.comparing(SMETerm::getDueDate))
+//            .collect(Collectors.toList());
 //
-//        // Filter and sort terms that need processing (PAST_DUE or GRACE_PERIOD)
-//        List<SMETerm> termsToProcess = terms.stream()
-//                .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
-//                        || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
-//                .sorted((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()))
-//                .collect(Collectors.toList());
+//    Map<SMETerm, SMELoanHistory> paymentHistoryMap = new LinkedHashMap<>();
 //
-//        termsToProcess.sort((t1, t2) -> t1.getDueDate().compareTo(t2.getDueDate()));
+//    // Initialize history entries with all potential payment components
+//    termsToProcess.forEach(term -> {
+//        SMELoanHistory history = new SMELoanHistory();
+//        history.setSmeTerm(term);
+//        history.setPaidDate(LocalDateTime.now());
+//        history.setIodPaid(BigDecimal.ZERO);
+//        history.setInterestPaid(BigDecimal.ZERO);
+//        history.setPrincipalPaid(BigDecimal.ZERO);
+//        // Initialize any additional fields here if needed
+//        paymentHistoryMap.put(term, history);
+//    });
 //
-//        // first pass: Process all IOD
-//        for (SMETerm term : termsToProcess) {
-//            SMELoanHistory history = new SMELoanHistory();  // Create NEW history per term
-//            history.setSmeTerm(term);
-//            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-//                return;
-//            }
-//            BigDecimal iodPaid = processTermIOD(term, cifAccount);
-//            history.setIodPaid(iodPaid);
-//        }
+//    // Process payment components
+//    processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+//            (term, history) -> {
+//                BigDecimal paid = processTermIOD(term, cifAccount);
+//                history.setIodPaid(paid);
+//                return paid;
+//            });
 //
-//        // second pass: Process all interest
-//        for (SMETerm term : termsToProcess) {
-//            if (getTotalAvailableAmount(cifAccount).compareTo(BigDecimal.ZERO) <= 0) {
-//                return;
-//            }
-//            BigDecimal interestPaid = processTermInterest(term, cifAccount);
-//            history.setInterestPaid(interestPaid);
-//        }
+//    processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
+//            (term, history) -> {
+//                BigDecimal paid = processTermInterest(term, cifAccount);
+//                history.setInterestPaid(paid);
+//                return paid;
+//            });
+//
+//    if (!termsToProcess.isEmpty()) {
 //        SMETerm lastTerm = termsToProcess.get(termsToProcess.size() - 1);
-//        // third pass: Process principal if allowed
-//        if (loan.getPaidPrincipalStatus() == ConstraintEnum.ALLOWED.getCode() && !termsToProcess.isEmpty()) {
-//            BigDecimal principalPaid =   processTermPrincipal(lastTerm, cifAccount, loan);
-//            history.setPrincipalPaid(principalPaid);
-//        }else {
-//            if (isLastTerm(lastTerm, loan)) {
-//                BigDecimal principalPaid =  processTermPrincipal(lastTerm, cifAccount, loan);
-//                history.setPrincipalPaid(principalPaid);
-//            }
+//        if (loan.getPaidPrincipalStatus() == ConstraintEnum.ALLOWED.getCode() || isLastTerm(lastTerm, loan)) {
+//            processPaymentComponent(Collections.singletonList(lastTerm), cifAccount, paymentHistoryMap,
+//                    (term, history) -> {
+//                        BigDecimal paid = processTermPrincipal(term, cifAccount, loan);
+//                        history.setPrincipalPaid(paid);
+//                        return paid;
+//                    });
 //        }
+//    }
+//
+//    // Calculate totals with all components
+//    paymentHistoryMap.values().forEach(history -> {
+//        // Sum ALL payment components
+//        BigDecimal totalPaid = history.getIodPaid()
+//                .add(history.getInterestPaid())
+//                .add(history.getPrincipalPaid())
+//                // Add any additional components here
+//                // .add(history.getLateFeePaid())
+//                ;
+//
+//        history.setTotalPaid(totalPaid);
 //        smeLoanHistoryRepository.save(history);
 //
-//        // Update term statuses
-//        for (SMETerm term : termsToProcess) {
-//            updateTermStatus(term, loan);
+//        // Update term tracking fields
+//        SMETerm term = history.getSmeTerm();
+//        if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+//            term.setTotalRepaymentAmount(
+//                    term.getTotalRepaymentAmount().add(totalPaid)
+//            );
+//            term.setLastRepayDate(new Date(System.currentTimeMillis()));
 //        }
+//    });
 //
-//
-//    }
-private void processRemainingPayments(List<SMETerm> terms, CIFCurrentAccount cifAccount, SMELoan loan) {
-    // Filter and sort terms
-    List<SMETerm> termsToProcess = terms.stream()
-            .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode()
-                    || term.getStatus() == ConstraintEnum.GRACE_PERIOD.getCode())
-            .sorted(Comparator.comparing(SMETerm::getDueDate))
-            .collect(Collectors.toList());
-
-    // Map to track payment history per term
-    Map<SMETerm, SMELoanHistory> paymentHistoryMap = new LinkedHashMap<>();
-
-    // Initialize history entries for all terms
-    termsToProcess.forEach(term -> {
-        SMELoanHistory history = new SMELoanHistory();
-        history.setSmeTerm(term);
-        history.setPaidDate(LocalDateTime.now());
-        history.setIodPaid(BigDecimal.ZERO);
-        history.setInterestPaid(BigDecimal.ZERO);
-        history.setPrincipalPaid(BigDecimal.ZERO);
-        paymentHistoryMap.put(term, history);
-    });
-
-    // First pass: Process IOD for all terms
-    processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
-            (term, history) -> {
-                BigDecimal paid = processTermIOD(term, cifAccount);
-                history.setIodPaid(paid);
-                return paid;
-            });
-
-    // Second pass: Process Interest for all terms
-    processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
-            (term, history) -> {
-                BigDecimal paid = processTermInterest(term, cifAccount);
-                history.setInterestPaid(paid);
-                return paid;
-            });
-
-    // Third pass: Process Principal for eligible terms
-    if (!termsToProcess.isEmpty()) {
-        SMETerm lastTerm = termsToProcess.get(termsToProcess.size() - 1);
-        if (loan.getPaidPrincipalStatus() == ConstraintEnum.ALLOWED.getCode() || isLastTerm(lastTerm, loan)) {
-            processPaymentComponent(Collections.singletonList(lastTerm), cifAccount, paymentHistoryMap,
-                    (term, history) -> {
-                        BigDecimal paid = processTermPrincipal(term, cifAccount, loan);
-                        history.setPrincipalPaid(paid);
-                        return paid;
-                    });
-        }
-    }
-
-    // Calculate totals and save histories
-    paymentHistoryMap.values().forEach(history -> {
-        history.setTotalPaid(history.getIodPaid()
-                .add(history.getInterestPaid())
-                .add(history.getPrincipalPaid()));
-        smeLoanHistoryRepository.save(history);
-    });
-
-    // Update term statuses
-    termsToProcess.forEach(term -> updateTermStatus(term, loan));
-}
+//    termsToProcess.forEach(term -> updateTermStatus(term, loan));
+//}
     private void processPaymentComponent(List<SMETerm> terms,
                                          CIFCurrentAccount cifAccount,
                                          Map<SMETerm, SMELoanHistory> historyMap,

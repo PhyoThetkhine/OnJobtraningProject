@@ -44,6 +44,8 @@ public class HpLoanServiceImpl implements HpLoanService {
     @Autowired
     private CIFRepository cifRepository;
     @Autowired
+    private BranchCurrentAccountRepository branchCurrentAccountRepository;
+    @Autowired
     private DealerProductRepository dealerProductRepository;
     @Autowired
     private HpTermCalculationService hpTermCalculationService;
@@ -106,6 +108,7 @@ public class HpLoanServiceImpl implements HpLoanService {
         // 9. Save entities
         hpTermRepository.saveAll(terms);
         hpLoanRepository.save(loan);
+
     }
     @Override
     public List<HpTerm> generateTerms(HpLoan loan, LocalDate startDate, int duration) {
@@ -303,7 +306,8 @@ public class HpLoanServiceImpl implements HpLoanService {
 
         User confirmUser  = userRepository.findById(confirmData.getConfirmUserId())
                 .orElseThrow(() -> new ServiceException("Confirm user not found with id: " + confirmData.getConfirmUserId()));
-
+        BranchCurrentAccount branchCurrentAccount= branchCurrentAccountRepository.findByBranch_Id(confirmUser.getBranch().getId()) .orElseThrow(() -> new ServiceException("branch account  not found with ID: " + confirmData.getConfirmUserId()));
+        CIFCurrentAccount cifaccount = cifCurrentAccountRepository.findByCifId(loan.getCif().getId()) .orElseThrow(() -> new ServiceException("cif acccount not found"));
         // Update loan details with confirmation data
         loan.setDisbursementAmount(disbursementAmount);
         loan.setDocumentFeeRate(documentFeeRate);
@@ -329,6 +333,22 @@ public class HpLoanServiceImpl implements HpLoanService {
         // Generate terms (monthly)
         List<HpTerm> terms = generateTerms(hpLoan, startDate, loan.getDuration());
         hpTermRepository.saveAll(terms);
+        // Transfer disbursementAmount from branch to CIF account
+        if (branchCurrentAccount.getBalance().compareTo(disbursementAmount) < 0) {
+            throw new ServiceException("Branch account has insufficient funds.");
+        }
+
+        // Update balances
+        branchCurrentAccount.setBalance(
+                branchCurrentAccount.getBalance().subtract(disbursementAmount)
+        );
+        cifaccount.setBalance(
+                cifaccount.getBalance().add(disbursementAmount)
+        );
+
+        // Save the updated accounts
+        branchCurrentAccountRepository.save(branchCurrentAccount);
+        cifCurrentAccountRepository.save(cifaccount);
     }
 
     @Override
