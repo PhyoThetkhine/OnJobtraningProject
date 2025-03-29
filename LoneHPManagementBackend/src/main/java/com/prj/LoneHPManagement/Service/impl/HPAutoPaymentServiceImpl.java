@@ -112,19 +112,30 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
         termsToProcess.forEach(term -> {
             HpLoanHistory history = new HpLoanHistory();
             history.setHpTerm(term);
+            history.setPodPaid(BigDecimal.ZERO);
+            history.setPrincipalLateFeePaid(BigDecimal.ZERO);
+            history.setPrincipalLateDays(0);
+            history.setPaidAmount(BigDecimal.ZERO);
+            history.setOutstanding(BigDecimal.ZERO);
             history.setPaidDate(LocalDateTime.now());
+            history.setInterestLateFeePaid(BigDecimal.ZERO);
+            history.setTotalPaid(BigDecimal.ZERO);// Initialize late fee tracking
             history.setIodPaid(BigDecimal.ZERO);
+            history.setInterestLateDays(0);
             history.setInterestPaid(BigDecimal.ZERO);
             history.setPrincipalPaid(BigDecimal.ZERO);
-            history.setPrincipalLateFeePaid(BigDecimal.ZERO);
-            history.setPodPaid(BigDecimal.ZERO);
             paymentHistoryMap.put(term, history);
         });
 
         // 1. Process Interest Late Fees
         processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
                 (term, history) -> {
+                    int interestLateDays = term.getInterestLateDays(); // Capture current days
                     BigDecimal paid = processHpInterestLateFee(term, cifAccount);
+                    if (paid != null) {
+                        // Only set if payment was actually made
+                        history.setInterestLateDays(interestLateDays);
+                    }
                     history.setInterestLateFeePaid(paid);
                     return paid;
                 });
@@ -132,7 +143,12 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
         // 2. Process Principal Late Fees
         processPaymentComponent(termsToProcess, cifAccount, paymentHistoryMap,
                 (term, history) -> {
+                    int principalLateDays = term.getLatePrincipalDays(); // Capture current days
                     BigDecimal paid = processHpPrincipalLateFee(term, cifAccount);
+                    if (paid != null) {
+                        // Only set if payment was actually made
+                        history.setPrincipalLateDays(principalLateDays);
+                    }
                     history.setPrincipalLateFeePaid(paid);
                     return paid;
                 });
@@ -286,8 +302,23 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
                 .collect(Collectors.toList());
 
         Map<HpTerm, HpLoanHistory> historyMap = new LinkedHashMap<>();
-        sortedTerms.forEach(term -> historyMap.put(term, new HpLoanHistory()));
-
+        sortedTerms.forEach(term -> {
+            HpLoanHistory history = new HpLoanHistory();
+            history.setHpTerm(term);
+            history.setPodPaid(BigDecimal.ZERO);
+            history.setPrincipalLateFeePaid(BigDecimal.ZERO);
+            history.setPrincipalLateDays(0);
+            history.setPaidAmount(BigDecimal.ZERO);
+            history.setOutstanding(BigDecimal.ZERO);
+            history.setPaidDate(LocalDateTime.now());
+            history.setInterestLateFeePaid(BigDecimal.ZERO);
+            history.setTotalPaid(BigDecimal.ZERO);// Initialize late fee tracking
+            history.setIodPaid(BigDecimal.ZERO);
+            history.setInterestLateDays(0);
+            history.setInterestPaid(BigDecimal.ZERO);
+            history.setPrincipalPaid(BigDecimal.ZERO);
+            historyMap.put(term, history);
+        });
 //        // 1. Process Interest Late Fees
 //        processPaymentComponent(sortedTerms, cifAccount, historyMap,
 //                (term, history) -> processHpInterestLateFee(term, cifAccount, history));
@@ -514,13 +545,11 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
     private long getHpMaxLateDays(List<HpTerm> terms) {
         return terms.stream()
                 .filter(term -> term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
-                .mapToLong(term -> ChronoUnit.DAYS.between(
-                        term.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime(),
-                        LocalDateTime.now()
-                ))
+                .mapToLong(term -> Math.max(term.getLatePrincipalDays(), term.getInterestLateDays()))
                 .max()
                 .orElse(0);
     }
+
 
     private void resetHpLateDays(List<HpTerm> terms) {
         terms.forEach(t -> {
