@@ -2,6 +2,8 @@ package com.prj.LoneHPManagement.Service.impl;
 
 
 import com.prj.LoneHPManagement.Service.CodeGenerateService;
+import com.prj.LoneHPManagement.Service.EmailService;
+import com.prj.LoneHPManagement.Service.PasswordService;
 import com.prj.LoneHPManagement.Service.UserService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -47,7 +50,12 @@ public class UserServiceImpl implements UserService {
     private RolePermissionRepository rolePermissionRepository;
     @Autowired
     private UserPermissionRepository userPermissionRepository;
-
+    @Autowired
+    private PasswordService passwordService;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Override
     public User getUserById(int id) {
         Optional<User> userOptional = userRepository.findById(id);
@@ -56,6 +64,24 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new UserNotFoundException("User not found for ID: " + id);
         }
+    }
+    @Override
+    public boolean changePassword(int userId, String currentPassword, String newPassword) {
+        // Retrieve the user from the repository.
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException("User not found with id: " + userId));
+
+        // Validate the current password using PasswordEncoder.
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new ServiceException("Current password is incorrect.");
+        }
+
+        // Encode the new password and update the user.
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedNewPassword);
+        userRepository.save(user);
+
+        return true;
     }
     @Override
     public User updateUser(int id, UserUpdateDTO userUpdates) {
@@ -189,11 +215,16 @@ public class UserServiceImpl implements UserService {
         address.setTownship(user.getAddress().getTownship());
         address.setAdditionalAddress(user.getAddress().getAdditionalAddress());
         Address savedAddress = addressRepository.save(address);
-        user.setUserCode(codeGenerateService.generateUserCode(branch));
+        // Generate a new plain text password using the PasswordService
+        String plainPassword = passwordService.generatePassword();
+        // Encode the password before saving it
+        String encodedPassword = passwordEncoder.encode(plainPassword);
+        String userCode = codeGenerateService.generateUserCode(branch);
+        user.setUserCode(userCode);
         user.setRole(userrole);
         user.setBranch(branch);
         user.setCreatedUser(creator);
-        user.setPassword("$2a$10$tVX1cC0Yq5MC5eF5YNzVle/vMqTuhvUqtPkD/Pv04vw2c3cNGm0d6");
+        user.setPassword(encodedPassword);
         user.setCreatedDate(LocalDateTime.now());
         user.setUpdatedDate(LocalDateTime.now());
         user.setAddress(savedAddress);
@@ -218,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
             userPermissionRepository.save(userPermission);
         }
-
+        emailService.sendPassword(savedUser.getEmail(), plainPassword, userCode);
         return savedUser;
     }
 

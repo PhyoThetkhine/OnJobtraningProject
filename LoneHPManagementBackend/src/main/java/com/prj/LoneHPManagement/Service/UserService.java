@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface UserService {
     User getUserById(int id);
+    boolean changePassword(int userId, String currentPassword, String newPassword);
     User save(User user);
     User changeUserStatus(int userId, int statusCode);
     Page<User> getAllUser(Pageable pageable);

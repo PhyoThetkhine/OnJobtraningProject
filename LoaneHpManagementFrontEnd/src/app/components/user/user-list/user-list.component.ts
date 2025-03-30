@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserService } from '../../../services/user.service';
-import { CurrentUser, User } from '../../../models/user.model';
+import {  CurrentUser, User } from '../../../models/user.model';
 import { PagedResponse } from '../../../models/common.types';
 import { AuthService } from 'src/app/services/auth.service';
 import { AUTHORITY } from 'src/app/models/role.model';
-import { switchMap } from 'rxjs';
+import { of, switchMap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { BranchService } from 'src/app/services/branch.service';
+import { Branch } from 'src/app/models/branch.model';
 
 @Component({
   selector: 'app-user-list',
@@ -17,7 +19,13 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, RouterModule, FormsModule ]
 })
 export class UserListComponent implements OnInit {
-  currentUser : CurrentUser |null = null;
+  searchTerm: string = '';
+filteredUsers: User[] = [];
+  branches: Branch[] = [];
+  readonly AUTHORITY = AUTHORITY;
+  selectedBranch: Branch | null = null;
+  // Update the property definition
+currentUser: CurrentUser | null = null;
  
   users: User[] = [];
   loading = false;
@@ -32,13 +40,28 @@ export class UserListComponent implements OnInit {
   sortBy = 'id';
 
   constructor(private userService: UserService
-    ,    private authService: AuthService
+    ,    private authService: AuthService,
+    private branchService: BranchService
   ) {}
 
   ngOnInit() {
     this.loadUsers();
     this.loadCurrentUser();
   }
+  onSearchChange() {
+    // If no search term, reset the filtered list to the loaded users
+    if (!this.searchTerm.trim()) {
+      this.filteredUsers = this.users;
+    } else {
+      const term = this.searchTerm.toLowerCase();
+      this.filteredUsers = this.users.filter(user =>
+        user.name.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        user.userCode.toLowerCase().includes(term)
+      );
+    }
+  }
+  
 
   onStatusChange() {
     this.currentPage = 0; // Reset to first page when filter changes
@@ -47,32 +70,91 @@ export class UserListComponent implements OnInit {
   loadCurrentUser() {
     this.authService.getCurrentUser().subscribe(user => {
       this.currentUser = user;
+      if (user.role.authority === AUTHORITY.MainBranchLevel) {
+        this.loadBranches();
+      }
+      this.loadUsers(); // Load users after getting current user
     });
   }
-
+  loadBranches() {
+    this.branchService.getBranches(0, 1000).subscribe({
+      next: (response) => {
+        this.branches = response.data.content; // Use response.data.content
+      },
+      error: (error) => {
+        console.error('Error loading branches:', error);
+      }
+    });
+  }
+  onBranchChange() {
+    this.currentPage = 0;
+    this.loadUsers();
+  }
   loadUsers() {
     this.loading = true;
     this.error = null;
-
+  
     this.authService.getCurrentUser().pipe(
       switchMap(currentUser => {
-        if (currentUser.role.authority === AUTHORITY.MainBranchLevel) {
-          if (this.selectedStatus) {
-            return this.userService.getUsersByStatus(
-              this.selectedStatus,
-              this.currentPage,
-              this.pageSize,
-              this.sortBy
-            );
+        const emptyResponse: PagedResponse<User> = {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: this.pageSize,
+          number: this.currentPage,
+          numberOfElements: 0,
+          first: this.currentPage === 0,
+          last: this.currentPage >= this.totalPages - 1,
+          empty: true
+        };
+  
+        if (currentUser.role?.authority === AUTHORITY.MainBranchLevel) {
+          if (this.selectedBranch) {
+            const branchId = this.selectedBranch.id;
+            if (!branchId) {
+              this.error = 'Invalid branch selection';
+              return of(emptyResponse);
+            }
+  
+            if (this.selectedStatus) {
+              return this.userService.getUsersByBranchAndStatus(
+                this.selectedStatus,
+                branchId,
+                this.currentPage,
+                this.pageSize,
+                this.sortBy
+              );
+            } else {
+              return this.userService.getUsersByBranch(
+                branchId,
+                this.currentPage,
+                this.pageSize,
+                this.sortBy
+              );
+            }
           } else {
-            return this.userService.getUsers(
-              this.currentPage,
-              this.pageSize,
-              this.sortBy
-            );
+            if (this.selectedStatus) {
+              return this.userService.getUsersByStatus(
+                this.selectedStatus,
+                this.currentPage,
+                this.pageSize,
+                this.sortBy
+              );
+            } else {
+              return this.userService.getUsers(
+                this.currentPage,
+                this.pageSize,
+                this.sortBy
+              );
+            }
           }
         } else {
-          const branchId = currentUser.branch.id;
+          const branchId = currentUser.branch?.id;
+          if (!branchId) {
+            this.error = 'Invalid branch selection';
+            return of(emptyResponse);
+          }
+  
           if (this.selectedStatus) {
             return this.userService.getUsersByBranchAndStatus(
               this.selectedStatus,
@@ -97,6 +179,7 @@ export class UserListComponent implements OnInit {
         this.totalElements = response.totalElements;
         this.totalPages = response.totalPages;
         this.loading = false;
+        this.onSearchChange();
       },
       error: (error: any) => {  
         console.error('Error loading users:', error);

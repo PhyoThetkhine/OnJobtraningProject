@@ -19,28 +19,28 @@ interface DecodedToken {
   iat: number;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthService {
-  private apiUrl = `${environment.apiUrl}/auth`;
-  private userPermissions = new BehaviorSubject<string[]>([]);
-  permissions$ = this.userPermissions.asObservable();
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class AuthService {
+    private apiUrl = `${environment.apiUrl}/auth`;
+    private userPermissions = new BehaviorSubject<string[]>([]);
+    permissions$ = this.userPermissions.asObservable();
 
 
-  public readonly MAX_ATTEMPTS = 3;
- // private readonly LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
- private readonly LOCKOUT_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds
+    public readonly MAX_ATTEMPTS = 3;
+  // private readonly LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+  private readonly LOCKOUT_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {
-    this.loadStoredPermissions();
-  }
-  getCurrentUser(): Observable<CurrentUser> {
-    return this.http.get<CurrentUser>(`${this.apiUrl}/current-user`);
-  }
+    constructor(
+      private http: HttpClient,
+      private router: Router
+    ) {
+      this.loadStoredPermissions();
+    }
+    getCurrentUser(): Observable<CurrentUser> {
+      return this.http.get<CurrentUser>(`${this.apiUrl}/current-user`);
+    }
 
   getRemainingLockTime(): number {
     const blockedUntil = localStorage.getItem('blockedUntil');

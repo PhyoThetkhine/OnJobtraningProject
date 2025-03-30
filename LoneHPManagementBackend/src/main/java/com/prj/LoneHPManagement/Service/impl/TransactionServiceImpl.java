@@ -97,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
            CIFCurrentAccount account= cifCurrentAccountRepository.save(cifAccount);
 
             // 3. Process Auto-Payments Sequentially
-           // paymentTrigger.processHpAccountPaymentsForTransaction(cifAccount);  // HP first
+           paymentTrigger.processHpAccountPaymentsForTransaction(cifAccount);  // HP first
             smeAutoPaymentService.processSMEAccountPaymentsForTransaction(account);
             //Debit Branch Account
             BranchCurrentAccount branchCurrentAccount = branchCurrentAccountRepository.findById(request.getFromAccountId()).orElseThrow(() -> new AccountNotFoundException("Branch account not found"));

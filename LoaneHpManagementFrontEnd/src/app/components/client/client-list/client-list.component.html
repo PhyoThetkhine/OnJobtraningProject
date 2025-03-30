@@ -17,7 +17,17 @@
     <button class="btn btn-primary" routerLink="/clients/create">
       <i class="bi bi-plus"></i> Add Client
     </button>
+    
     <div class="d-flex">
+      <div class="input-group ms-2" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel">
+        <select class="form-select" 
+                [(ngModel)]="selectedBranch" 
+                (ngModelChange)="onBranchChange()">
+          <option [ngValue]="null">All Branches</option>
+          <option *ngFor="let branch of branches" 
+                  [ngValue]="branch">{{ branch.branchName }}</option>
+        </select>
+      </div>
       <div class="input-group ms-2">
         <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
           <option [ngValue]="null">All Statuses</option>
