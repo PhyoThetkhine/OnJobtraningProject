@@ -2,6 +2,7 @@ package com.prj.LoneHPManagement.Controller;
 
 import com.prj.LoneHPManagement.Service.impl.ClientReportService;
 import com.prj.LoneHPManagement.Service.impl.ClientReportService.ReportResponse;
+import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Locale;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -31,10 +33,23 @@ public class ClientReportController {
             @RequestParam("format") String format,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
-            @RequestParam(value = "branchName", required = false) String branchName) {
+            @RequestParam(value = "branchName", required = false) String branchName,
+            @RequestParam(value = "status", required = false) String statusStr
+    ) {
         try {
-            logRequest(format, page, size, branchName);
-            ReportResponse reportResponse = clientReportService.generateCifReport(format, page, size, branchName);
+
+            Integer status = null;
+            if (statusStr != null && !statusStr.trim().isEmpty()) {
+                ConstraintEnum constraint = ConstraintEnum.valueOf(statusStr.toUpperCase());
+                if (constraint != null) {
+                    status = constraint.getCode();
+                } else {
+                    return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid status value: " + statusStr);
+                }
+            }
+
+            logRequest(format, page, size, branchName,statusStr);
+            ReportResponse reportResponse = clientReportService.generateCifReport(format, page, size, branchName, status);
             return buildSuccessResponse(reportResponse, format, page, branchName);
 
         } catch (IllegalArgumentException e) {
@@ -48,9 +63,9 @@ public class ClientReportController {
         }
     }
 
-    private void logRequest(String format, int page, int size, String branchName) {
-        System.out.printf("Starting report generation for format: %s, page: %d, size: %d, branchName: %s%n",
-                format, page, size, branchName != null ? branchName : "all");
+    private void logRequest(String format, int page, int size, String branchName, String status) {
+        System.out.printf("Starting report generation for format: %s, page: %d, size: %d, branchName: %s, status: %s%n",
+                format, page, size, branchName != null ? branchName : "all", status != null ? status : "all");
     }
 
     private ResponseEntity<byte[]> buildSuccessResponse(ReportResponse reportResponse, String format, int page, String branchName) {

@@ -1,21 +1,18 @@
+
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CIF } from '../../../models/cif.model';
 import { CIFService } from '../../../services/cif.service';
-import { ApiResponse, PagedResponse } from '../../../models/common.types';
 import { AuthService } from 'src/app/services/auth.service';
-import { of, switchMap } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AUTHORITY } from 'src/app/models/role.model';
 import { FormsModule } from '@angular/forms';
-
-import { BranchService } from 'src/app/services/branch.service';
-
 import { ClientreportService } from 'src/app/services/clientreport.service';
-
-import { BranchDTO } from 'src/app/models/branch.dto';
-
+import { BranchService } from 'src/app/services/branch.service';
 import { Branch } from 'src/app/models/branch.model';
+import { PagedResponse } from 'src/app/models/common.types';
 
 @Component({
   selector: 'app-client-list',
@@ -25,15 +22,13 @@ import { Branch } from 'src/app/models/branch.model';
   imports: [CommonModule, RouterModule, FormsModule]
 })
 export class ClientListComponent implements OnInit {
-  branches: Branch[] = [];
-  readonly AUTHORITY = AUTHORITY;
-  selectedBranch: Branch | null = null;
-  currentUser: any = null;
-originalcifs: CIF[] = [];
   clients: CIF[] = [];
-  searchQuery: string = '';
+  originalCifs: CIF[] = [];
+  branches: Branch[] = [];
   loading = true;
+  searchQuery = '';
   selectedStatus: string | null = null;
+  selectedBranch: number | null = null;
   error: string | null = null;
 
   // Pagination
@@ -43,42 +38,27 @@ originalcifs: CIF[] = [];
   totalPages = 0;
   sortBy = 'id';
 
+  readonly AUTHORITY = AUTHORITY;
 
   constructor(
     private cifService: CIFService,
     private authService: AuthService,
-    private branchService: BranchService,
     private clientReportService: ClientreportService,
+    private branchService: BranchService
   ) {}
 
   ngOnInit() {
-    this.loadCurrentUser();
-  }
-
-  loadCurrentUser() {
-    this.authService.getCurrentUser().subscribe({
-      next: (user) => {
-        this.currentUser = user;
-        if (user.role?.authority === AUTHORITY.MainBranchLevel) {
-          this.loadBranches();
-        }
-        this.loadClients();
-      },
-      error: (err) => {
-        console.error('Error loading current user:', err);
-        this.currentUser = null;
-      }
-    });
+    this.loadBranches();
+    this.loadClients();
   }
 
   loadBranches() {
-    this.branchService.getBranches(0, 1000).subscribe({
-      next: (response) => {
-        this.branches = response.data.content;
+    this.branchService.getAllBranches().subscribe({
+      next: (branches) => {
+        this.branches = branches;
       },
       error: (error) => {
         console.error('Error loading branches:', error);
-        this.branches = [];
       }
     });
   }
@@ -97,88 +77,60 @@ originalcifs: CIF[] = [];
     this.loading = true;
     this.error = null;
 
-    const emptyResponse: PagedResponse<CIF> = {
-      content: [],
-      totalElements: 0,
-      totalPages: 0,
-      size: this.pageSize,
-      number: this.currentPage,
-      numberOfElements: 0,
-      first: this.currentPage === 0,
-      last: this.currentPage >= this.totalPages - 1,
-      empty: true
-    };
-
     this.authService.getCurrentUser().pipe(
       switchMap(currentUser => {
-        if (!currentUser?.role) return of(emptyResponse);
-
         if (currentUser.role.authority === AUTHORITY.MainBranchLevel) {
           if (this.selectedBranch) {
-            const branchId = this.selectedBranch.id;
-            if (!branchId) {
-              this.error = 'Invalid branch selection';
-              return of(emptyResponse);
-            }
-
-            if (this.selectedStatus) {
-              return this.cifService.getCIFsByBranchAdStatus(
+            return this.selectedStatus 
+              ? this.cifService.getCIFsByBranchAdStatus(
+                  this.selectedStatus,
+                  this.selectedBranch,
+                  this.currentPage,
+                  this.pageSize,
+                  this.sortBy
+                )
+              : this.cifService.getCIFsByBranch(
+                  this.selectedBranch,
+                  this.currentPage,
+                  this.pageSize,
+                  this.sortBy
+                );
+          } else {
+            return this.selectedStatus
+              ? this.cifService.getCIFsByStatus(
+                  this.selectedStatus,
+                  this.currentPage,
+                  this.pageSize,
+                  this.sortBy
+                )
+              : this.cifService.getCIFs(
+                  this.currentPage,
+                  this.pageSize,
+                  this.sortBy
+                );
+          }
+        } else {
+          const branchId = currentUser.branch.id;
+          return this.selectedStatus
+            ? this.cifService.getCIFsByBranchAdStatus(
                 this.selectedStatus,
                 branchId,
                 this.currentPage,
                 this.pageSize,
                 this.sortBy
-              );
-            }
-            return this.cifService.getCIFsByBranch(
-              branchId,
-              this.currentPage,
-              this.pageSize,
-              this.sortBy
-            );
-          } else {
-            if (this.selectedStatus) {
-              return this.cifService.getCIFsByStatus(
-                this.selectedStatus,
+              )
+            : this.cifService.getCIFsByBranch(
+                branchId,
                 this.currentPage,
                 this.pageSize,
                 this.sortBy
               );
-            }
-            return this.cifService.getCIFs(
-              this.currentPage,
-              this.pageSize,
-              this.sortBy
-            );
-          }
-        } else {
-          const branchId = currentUser.branch?.id;
-          if (!branchId) {
-            this.error = 'Invalid branch information';
-            return of(emptyResponse);
-          }
-
-          if (this.selectedStatus) {
-            return this.cifService.getCIFsByBranchAdStatus(
-              this.selectedStatus,
-              branchId,
-              this.currentPage,
-              this.pageSize,
-              this.sortBy
-            );
-          }
-          return this.cifService.getCIFsByBranch(
-            branchId,
-            this.currentPage,
-            this.pageSize,
-            this.sortBy
-          );
         }
       })
     ).subscribe({
       next: (response: PagedResponse<CIF>) => {
         this.clients = response.content;
-        this.originalcifs = response.content; 
+        this.originalCifs = response.content;
         this.totalElements = response.totalElements;
         this.totalPages = response.totalPages;
         this.loading = false;
@@ -190,14 +142,14 @@ originalcifs: CIF[] = [];
       }
     });
   }
-  
+
   onSearch() {
     if (this.searchQuery) {
-      this.clients = this.originalcifs.filter(clients =>
-        clients.cifCode.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
+      this.clients = this.originalCifs.filter(client =>
+        client.cifCode.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
     } else {
-      this.clients = [...this.originalcifs]; // Reset to the original list if the search query is empty
+      this.clients = [...this.originalCifs];
     }
   }
 
@@ -219,16 +171,11 @@ originalcifs: CIF[] = [];
   }
 
   downloadClientReport(format: string): void {
-    console.log('Generating report for format:', format, 'branch:', this.selectedBranch);
-    this.clientReportService.generateReport(format, this.selectedBranch || undefined);
-  }
-
-  onBranchChanges() {
-    console.log('Selected branch:', this.selectedBranch);
-    this.currentPage = 0; // Reset to first page
-    this.loadClients(); // Fetch clients for the selected branch
-    if (this.selectedBranch) { // Generate report only if a branch is selected
-      this.downloadClientReport('pdf'); // Trigger report download
-    }
+    this.clientReportService.generateReport(
+      format, 
+      this.selectedBranch?.toString() || undefined, 
+      this.selectedStatus || undefined
+    );
   }
 }
+
