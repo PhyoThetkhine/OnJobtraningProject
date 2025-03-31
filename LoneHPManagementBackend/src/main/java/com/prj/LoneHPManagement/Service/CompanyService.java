@@ -10,7 +10,7 @@ import java.util.List;
 public interface CompanyService {
 
     Page<Company> getCompaniesByCifId(int cifId, int page, int size, String sortBy);
-    Company save(CompanyDTO companyDTO);
+//    Company save(CompanyDTO companyDTO);
     List<BusinessPhoto> getPhotosByCompanyId(int companyId);
     List<Company> getAllCompanies();
 

@@ -1,4 +1,5 @@
 package com.prj.LoneHPManagement.Service.impl;
+import com.prj.LoneHPManagement.model.dto.AccountLimitUpdateDTO;
 import com.prj.LoneHPManagement.model.entity.*;
 
 import com.prj.LoneHPManagement.Service.CIFCurrentAccountService;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,7 +24,22 @@ public class CIFCurrentAccountServiceImpl implements CIFCurrentAccountService {
     private CIFCurrentAccountRepository cifCurrentAccountRepository;
     @Autowired
     private UserRepository userRepository;
+    @Override
+    public CIFCurrentAccount updateAccountLimits(int accountId, AccountLimitUpdateDTO updateDTO) {
+        // Validate user exists
+        User updatedBy = userRepository.findById(updateDTO.getUpdatedUserId())
+                .orElseThrow(() -> new ServiceException("User not found with id: " + updateDTO.getUpdatedUserId()));
 
+        CIFCurrentAccount account = cifCurrentAccountRepository.findById(accountId)
+                .orElseThrow(() -> new ServiceException("Account not found with id: " + accountId));
+
+        // Update account limits
+        account.setMinAmount(updateDTO.getMinAmount());
+        account.setMaxAmount(updateDTO.getMaxAmount());
+        account.setUpdatedDate(LocalDateTime.now());
+
+        return cifCurrentAccountRepository.save(account);
+    }
     @Override
     public CIFCurrentAccount changeFreezeStatus(int accountId, String status) {
         CIFCurrentAccount account = cifCurrentAccountRepository.findById(accountId)

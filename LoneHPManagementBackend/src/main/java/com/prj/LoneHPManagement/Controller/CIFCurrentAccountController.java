@@ -1,5 +1,6 @@
 package com.prj.LoneHPManagement.Controller;
 
+import com.prj.LoneHPManagement.model.dto.AccountLimitUpdateDTO;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.entity.CIFCurrentAccount;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -31,6 +32,21 @@ public class CIFCurrentAccountController {
         ApiResponse<CIFCurrentAccount> response = ApiResponse.success(
                 HttpStatus.OK.value(), "Account fetched successfully", account);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{accountId}/limits")
+    public ResponseEntity<ApiResponse<CIFCurrentAccount>> updateAccountLimits(
+            @PathVariable int accountId,
+             @RequestBody AccountLimitUpdateDTO updateDTO
+    ) {
+        CIFCurrentAccount updatedAccount = cifCurrentAccountService.updateAccountLimits(accountId, updateDTO);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Account limits updated successfully",
+                        updatedAccount
+                )
+        );
     }
     @GetMapping("/getByaccount/{accountId}")
     public ResponseEntity<ApiResponse<CIFCurrentAccount>> getAccountById(@PathVariable int accountId) {

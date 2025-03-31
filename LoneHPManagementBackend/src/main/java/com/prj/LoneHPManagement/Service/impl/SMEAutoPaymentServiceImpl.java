@@ -145,7 +145,10 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
         }
 
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            processRemainingPayments(allTerms, cifAccount, loan);
+            List<SMETerm> underScheduleTerms = allTerms.stream()
+                    .filter(term -> term.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode())
+                    .collect(Collectors.toList());
+            processRemainingPayments(underScheduleTerms, cifAccount, loan);
 
         }
     }
@@ -173,7 +176,10 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
             resetLateDaysForAllTerms(allTerms);
         }
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            processRemainingPayments(allTerms, cifAccount, loan);
+            List<SMETerm> underScheduleTerms = allTerms.stream()
+                    .filter(term -> term.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode())
+                    .collect(Collectors.toList());
+            processRemainingPayments(underScheduleTerms, cifAccount, loan);
 
         }
 
@@ -427,18 +433,25 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
     }
 
     private BigDecimal calculateTotalOutstanding(List<SMETerm> terms) {
+        // Filter only terms that are UNDER_SCHEDULE or PAST_DUE
+        List<SMETerm> filteredTerms = terms.stream()
+                .filter(term -> term.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode() ||
+                        term.getStatus() == ConstraintEnum.PAST_DUE.getCode())
+                .collect(Collectors.toList());
+
         BigDecimal totalOutstanding = BigDecimal.ZERO;
-        for (SMETerm term : terms) {
+        for (SMETerm term : filteredTerms) {
             // Outstanding = Interest + IOD for each term
             BigDecimal termOutstanding = term.getInterest().add(term.getInterestOfOverdue());
             totalOutstanding = totalOutstanding.add(termOutstanding);
         }
         // Add principal once (as it's shared across terms)
-        if (!terms.isEmpty()) {
-            totalOutstanding = totalOutstanding.add(terms.get(0).getPrincipal());
+        if (!filteredTerms.isEmpty()) {
+            totalOutstanding = totalOutstanding.add(filteredTerms.get(0).getPrincipal());
         }
         return totalOutstanding;
     }
+
 
     private BigDecimal calculateLateFee(BigDecimal totalOutstanding, BigDecimal annualRate) {
         // Convert annual rate to daily rate
@@ -492,7 +505,7 @@ public class SMEAutoPaymentServiceImpl implements SMEAutoPaymentService {
             cifAccount.setHoldAmount(totalAvailable); // Move totalAvailable into hold
             cifAccount.setBalance(BigDecimal.ZERO);   // Clear balance
             cifCurrentAccountRepository.save(cifAccount);
-            return false; // Late fee not fully paid
+            return true; // Late fee not fully paid
         }
     }
 

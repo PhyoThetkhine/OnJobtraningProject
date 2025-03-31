@@ -2,8 +2,10 @@ package com.prj.LoneHPManagement.Controller;
 
 import com.prj.LoneHPManagement.Service.UserService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
+import com.prj.LoneHPManagement.model.dto.ChangePasswordRequest;
 import com.prj.LoneHPManagement.model.dto.LoginRequest;
 import com.prj.LoneHPManagement.model.entity.User;
+import com.prj.LoneHPManagement.model.exception.ServiceException;
 import com.prj.LoneHPManagement.model.repo.UserRepository;
 import com.prj.LoneHPManagement.security.CustomUserDetailsService;
 import com.prj.LoneHPManagement.security.JwtUtil;
@@ -40,7 +42,16 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
-    }
+        }
+        @PostMapping("/change-password")
+        public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+            try {
+                userService.changePassword(request.getUserId(), request.getCurrentPassword(), request.getNewPassword());
+                return ResponseEntity.ok("Password changed successfully.");
+            } catch (ServiceException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            }
+        }
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequest loginRequest) {
 

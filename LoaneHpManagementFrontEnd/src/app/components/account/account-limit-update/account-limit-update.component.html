@@ -3,6 +3,7 @@
   <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
 </div>
 
+<!-- Update the template -->
 <div class="modal-body">
   <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
     <div class="row">
@@ -22,9 +23,9 @@
         <div class="mb-3">
           <label class="form-label">Maximum Amount</label>
           <input type="number" class="form-control" formControlName="maxAmount"
-                 [class.is-invalid]="isFieldInvalid('maxAmount')"
+                 [class.is-invalid]="isFieldInvalid('maxAmount') || accountForm.errors?.['maxLessThanMin']"
                  placeholder="Enter maximum amount">
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('maxAmount')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('maxAmount') || accountForm.errors?.['maxLessThanMin']">
             {{ getErrorMessage('maxAmount') }}
           </div>
         </div>

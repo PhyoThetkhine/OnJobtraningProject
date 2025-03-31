@@ -17,23 +17,29 @@
     <button class="btn btn-primary" routerLink="/loans/hp/create">
       <i class="bi bi-plus"></i> Create HP Loan
     </button>
-    <div class="d-flex">
-      <div class="input-group ms-2">
-        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
-          <option [ngValue]="null">All Statuses</option>
-          <option value="under_review">Under Review</option>
-          <option value="rejected">Rejected</option>
-          <option value="paid_off">Paid Off</option>
-          <option value="under_schedule">Under Schedule</option>
-        </select>
-      </div>
-      <!-- <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search...">
-        <button class="btn btn-outline-secondary" type="button">
-          <i class="bi bi-search"></i>
-        </button>
-      </div> -->
-    </div>
+ <!-- In the actions bar -->
+<div class="d-flex">
+  <div class="input-group ms-2" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel">
+    <select class="form-select" 
+            [(ngModel)]="selectedBranch" 
+            (ngModelChange)="onBranchChange()">
+      <option [ngValue]="null">All Branches</option>
+      <option *ngFor="let branch of branches" 
+              [ngValue]="branch">{{ branch.branchName }}</option>
+    </select>
+  </div>
+  <div class="input-group ms-2">
+    <select class="form-select" 
+            [(ngModel)]="selectedStatus" 
+            (ngModelChange)="onStatusChange()">
+      <option [ngValue]="null">All Statuses</option>
+      <option value="under_review">Under Review</option>
+      <option value="rejected">Rejected</option>
+      <option value="paid_off">Paid Off</option>
+      <option value="under_schedule">Under Schedule</option>
+    </select>
+  </div>
+</div>
   </div>
 
   <!-- Loading Spinner -->

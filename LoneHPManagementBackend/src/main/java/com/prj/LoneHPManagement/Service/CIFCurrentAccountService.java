@@ -1,5 +1,6 @@
 package com.prj.LoneHPManagement.Service;
 
+import com.prj.LoneHPManagement.model.dto.AccountLimitUpdateDTO;
 import com.prj.LoneHPManagement.model.entity.CIFCurrentAccount;
 
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 public interface CIFCurrentAccountService {
+    CIFCurrentAccount updateAccountLimits(int accountId, AccountLimitUpdateDTO updateDTO);
     List<CIFCurrentAccount> getByBranchCode(String branchCode,int userid);
     CIFCurrentAccount getAccountByCifId(int id);
     CIFCurrentAccount getAccountById(int id);

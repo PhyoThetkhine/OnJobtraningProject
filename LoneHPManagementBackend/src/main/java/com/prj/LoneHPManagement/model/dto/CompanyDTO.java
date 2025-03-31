@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CompanyDTO {
-    private int id;
     private String name;
     private String companyType;
     private String category;
@@ -23,12 +22,7 @@ public class CompanyDTO {
     private Date licenseIssueDate;
     private Date licenseExpiryDate;
     private String phoneNumber;
-    private int createdUserId;  // Changed to ID
-    private int cifId;          // Changed to ID
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
-    private String state;
-    private String city;
-    private String township;
-    private String address;     // Corrected to 'address' (lowercase)
+    private AddressDTO address;
+
+    // Add getters and setters
 }

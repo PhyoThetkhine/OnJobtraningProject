@@ -1,17 +1,19 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AsyncValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BranchService } from '../../../services/branch.service';
 import { AuthService } from '../../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { CreateBranchDto, BranchStatus } from '../../../models/branch.model';
+import { Observable, of, timer } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-branch-create',
   templateUrl: './branch-create.component.html',
   styleUrls: ['./branch-create.component.css'],
-  standalone:false
+  standalone: false
 })
 export class BranchCreateComponent implements OnInit {
   @Input() isModal = false;
@@ -41,7 +43,10 @@ export class BranchCreateComponent implements OnInit {
 
   private initializeForm() {
     this.branchForm = this.fb.group({
-      branchName: ['', [Validators.required, Validators.minLength(3)]],
+      branchName: ['', 
+        [Validators.required, Validators.minLength(3)],
+        [this.duplicateBranchValidator()]
+      ],
       status: [BranchStatus.ACTIVE],
       address: this.fb.group({
         state: ['', Validators.required],
@@ -50,6 +55,29 @@ export class BranchCreateComponent implements OnInit {
         additionalAddress: ['']
       })
     });
+  }
+
+  private duplicateBranchValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value || control.value.length < 3) {
+        return of(null);
+      }
+      return timer(500).pipe(
+        switchMap(() => this.branchService.getAllBranches()),
+        map((branches: any[]) => {
+          const inputName = this.normalizeBranchName(control.value);
+          const isDuplicate = branches.some(branch => 
+            this.normalizeBranchName(branch.branchName) === inputName
+          );
+          return isDuplicate ? { duplicateBranch: true } : null;
+        }),
+        catchError(() => of(null))
+      );
+    };
+  }
+
+  private normalizeBranchName(name: string): string {
+    return name.replace(/\s+/g, '').toLowerCase();
   }
 
   private loadAddressData() {
@@ -104,7 +132,6 @@ export class BranchCreateComponent implements OnInit {
             createdUser: {
               id: currentUser.id
             },
-  
           };
 
           this.branchService.createBranch(branchData).subscribe({
@@ -159,6 +186,11 @@ export class BranchCreateComponent implements OnInit {
         this.markFormGroupTouched(control);
       }
     });
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.branchForm.get(fieldName);
+    return field ? (field.invalid && (field.dirty || field.touched) && !field.pending) : false;
   }
 
   getStatusText(status: BranchStatus): string {

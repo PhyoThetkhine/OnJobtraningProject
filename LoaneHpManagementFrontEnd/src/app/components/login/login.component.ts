@@ -93,7 +93,7 @@ export class LoginComponent implements OnInit {
         next: (response) => {
           this.authService.resetAttempts();
           this.toastr.success('Login successful');
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/settings/profile']);
         },
         error: (error) => {
           this.authService.recordFailedAttempt();

@@ -1,7 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Branch } from '../../../models/branch.model';
+import { catchError, map, Observable, of, switchMap, timer } from 'rxjs';
+import { BranchService } from 'src/app/services/branch.service';
 declare var bootstrap: any;
 
 @Component({
@@ -22,10 +24,14 @@ export class BranchEditComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private http: HttpClient
+    private http: HttpClient,
+    private branchService: BranchService,
   ) {
     this.editForm = this.fb.group({
-      branchName: ['', Validators.required],
+      branchName: ['', 
+        [Validators.required, Validators.minLength(3)],
+        [this.duplicateBranchValidator()]
+      ],
       address: this.fb.group({
         state: ['', Validators.required],
         township: ['', Validators.required],
@@ -41,6 +47,30 @@ export class BranchEditComponent implements OnInit {
         this.populateForm();
       }
     });
+  }
+
+  private duplicateBranchValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value || control.value.length < 3) {
+        return of(null);
+      }
+      return timer(500).pipe(
+        switchMap(() => this.branchService.getAllBranches()),
+        map((branches: Branch[]) => {
+          const inputName = this.normalizeBranchName(control.value);
+          const isDuplicate = branches.some(branch => 
+            this.normalizeBranchName(branch.branchName) === inputName &&
+            (!this.branch || branch.id !== this.branch.id) // Exclude current branch
+          );
+          return isDuplicate ? { duplicateBranch: true } : null;
+        }),
+        catchError(() => of(null))
+      );
+    };
+  }
+
+  private normalizeBranchName(name: string): string {
+    return name.replace(/\s+/g, '').toLowerCase();
   }
 
   private async loadTownshipData() {
@@ -89,6 +119,11 @@ export class BranchEditComponent implements OnInit {
     }
   }
 
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.editForm.get(fieldName);
+    return field ? (field.invalid && (field.dirty || field.touched) && !field.pending) : false;
+  }
+
   onSubmit() {
     if (this.editForm.valid && this.branch) {
       const formData = this.editForm.value;
@@ -110,4 +145,4 @@ export class BranchEditComponent implements OnInit {
       modal.hide();
     }
   }
-} 
+}

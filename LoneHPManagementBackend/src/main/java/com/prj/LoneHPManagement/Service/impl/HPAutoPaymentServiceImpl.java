@@ -54,7 +54,7 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
 
     @Scheduled(cron = "0 0 0 * * *") // Run at midnight daily
     @Transactional
-@Override
+    @Override
     public void processHpAutoPayments() {
         // Get all CIF accounts with balance
         List<CIFCurrentAccount> accountsWithBalance = cifCurrentAccountRepository.findAll().stream()
@@ -233,7 +233,10 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
         }
 
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            processHpRemainingPayments(allTerms, cifAccount, loan);
+            List<HpTerm> underScheduleTerms = allTerms.stream()
+                    .filter(term -> term.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode())
+                    .collect(Collectors.toList());
+            processHpRemainingPayments(underScheduleTerms, cifAccount, loan);
         }
     }
 
@@ -251,7 +254,10 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
         }
 
         if (cifAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            processHpRemainingPayments(allTerms, cifAccount, loan);
+            List<HpTerm> underScheduleTerms = allTerms.stream()
+                    .filter(term -> term.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode())
+                    .collect(Collectors.toList());
+            processHpRemainingPayments(underScheduleTerms, cifAccount, loan);
         }
     }
 
@@ -292,7 +298,7 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
         } else {
             cifAccount.setHoldAmount(totalAvailable);
             cifAccount.setBalance(BigDecimal.ZERO);
-            return false;
+            return true;
         }
     }
 
@@ -535,12 +541,15 @@ public class HPAutoPaymentServiceImpl implements PaymentTrigger {
     // Helper methods
     private BigDecimal calculateHpTotalOutstanding(List<HpTerm> terms) {
         return terms.stream()
-                .map(t -> t.getInterest()
+                .filter(t -> t.getStatus() == ConstraintEnum.UNDER_SCHEDULE.getCode() ||
+                        t.getStatus() == ConstraintEnum.PAST_DUE.getCode()) // Only include relevant terms
+                .map(t -> t.getInterest().add(t.getPrincipal())
                         .add(t.getInterestOfOverdue())
                         .add(t.getPrincipalOfOverdue())
                         .add(t.getPrincipal()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 
     private long getHpMaxLateDays(List<HpTerm> terms) {
         return terms.stream()

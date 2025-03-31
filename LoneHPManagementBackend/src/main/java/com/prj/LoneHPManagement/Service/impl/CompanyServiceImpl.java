@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,51 +37,60 @@ public class CompanyServiceImpl implements CompanyService {
     public CompanyServiceImpl(CompanyRepository companyRepository) {
         this.companyRepository = companyRepository;
     }
-    @Override
-    @Transactional
-    public Company save(CompanyDTO companyDTO) {
-        System.out.println("Starting company registration...");
-
-        User createdUser = userRepository.findById(companyDTO.getCreatedUserId())
-                .orElseThrow(() -> new RuntimeException("User with ID " + companyDTO.getCreatedUserId() + " not found in database"));
-
-        System.out.println("User found: " + createdUser.getName());
-
-        CIF cif = cifRepository.findById(companyDTO.getCifId())
-                .orElseThrow(() -> new RuntimeException("CIF with ID " + companyDTO.getCifId() + " not found in database"));
-
-        Address address = new Address();
-        address.setCity(companyDTO.getCity());
-        address.setState(companyDTO.getState());
-        address.setTownship(companyDTO.getTownship());
-        address.setAdditionalAddress(companyDTO.getAddress());
-
-        Address savedAddress = addressRepository.save(address);
-
-        Company company = new Company();
-        company.setId(companyDTO.getId());
-        company.setName(companyDTO.getName());
-        company.setCompanyType(companyDTO.getCompanyType());
-        company.setCategory(companyDTO.getCategory());
-        company.setBusinessType(companyDTO.getBusinessType());
-        company.setRegistrationDate(companyDTO.getRegistrationDate());
-        company.setLicenseNumber(companyDTO.getLicenseNumber());
-        company.setLicenseIssueDate(companyDTO.getLicenseIssueDate());
-        company.setLicenseExpiryDate(companyDTO.getLicenseExpiryDate());
-        company.setPhoneNumber(companyDTO.getPhoneNumber());
-
-        company.setAddress(savedAddress);
-        company.setCreatedUser(createdUser);
-        company.setCif(cif);
-        company.setCreatedDate(companyDTO.getCreatedDate());
-        company.setUpdatedDate(companyDTO.getUpdatedDate());
-
-        System.out.println("Saving company to database...");
-        Company savedCompany = companyRepository.save(company);
-        System.out.println("Company saved successfully with ID: " + savedCompany.getId());
-
-        return savedCompany;
-    }
+//    @Override
+//    @Transactional
+//    private Company createCompany(BusinessRegistrationDTO businessDTO, CIF cif, User createdUser) {
+//        // Create and save business address
+//        Address businessAddress = createAddress(businessDTO.getAddress());
+//        Address savedBusinessAddress = addressRepository.save(businessAddress);
+//
+//        // Create company
+//        Company company = new Company();
+//        company.setName(businessDTO.getName());
+//        company.setCompanyType(businessDTO.getCompanyType());
+//        company.setBusinessType(businessDTO.getBusinessType());
+//        company.setCategory(businessDTO.getCategory());
+//        company.setRegistrationDate(
+//                businessDTO.getRegistrationDate().toInstant()
+//                        .atZone(ZoneId.systemDefault())
+//                        .toLocalDateTime()
+//        );
+//        company.setLicenseNumber(businessDTO.getLicenseNumber());
+//        company.setLicenseIssueDate(
+//                businessDTO.getLicenseIssueDate().toInstant()
+//                        .atZone(ZoneId.systemDefault())
+//                        .toLocalDateTime()
+//        );
+//        company.setLicenseExpiryDate(
+//                businessDTO.getLicenseExpiryDate().toInstant()
+//                        .atZone(ZoneId.systemDefault())
+//                        .toLocalDateTime()
+//        );
+//        company.setPhoneNumber(businessDTO.getPhoneNumber());
+//        company.setAddress(savedBusinessAddress);
+//        company.setCreatedUser(createdUser);
+//        company.setCif(cif);
+//        company.setBusinessPhotos(businessDTO.getBusinessPhotos());
+//
+//        Company savedCompany = companyRepository.save(company);
+//
+//        // Create financial record
+//        Financial financial = new Financial();
+//        financial.setAverageIncome(BigDecimal.valueOf(businessDTO.getFinancial().getAverageIncome()));
+//        financial.setExpectedIncome(BigDecimal.valueOf(businessDTO.getFinancial().getExpectedIncome()));
+//        financial.setAverageExpenses(BigDecimal.valueOf(businessDTO.getFinancial().getAverageExpenses()));
+//        financial.setAverageInvestment(BigDecimal.valueOf(businessDTO.getFinancial().getAverageInvestment()));
+//        financial.setAverageEmployees(businessDTO.getFinancial().getAverageEmployees());
+//        financial.setAverageSalaryPaid(BigDecimal.valueOf(financial.getAverageSalaryPaid()));
+//        financial.setRevenueProof(financial.getRevenueProof());
+//        financial.setCompany(savedCompany);
+//        financial.setCreatedUser(createdUser);
+//        financial.setCreatedDate(LocalDateTime.now());
+//
+//        financialRepository.save(financial);
+//
+//        return savedCompany;
+//    }
 
     @Override
     public Page<Company> getCompaniesByCifId(int cifId, int page, int size, String sortBy) {
@@ -108,10 +119,12 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+
     public Company updateCompany(int id, CompanyDTO companyDTO) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));
 
+        // Update basic fields
         company.setName(companyDTO.getName());
         company.setCompanyType(companyDTO.getCompanyType());
         company.setCategory(companyDTO.getCategory());
@@ -121,7 +134,15 @@ public class CompanyServiceImpl implements CompanyService {
         company.setLicenseIssueDate(companyDTO.getLicenseIssueDate());
         company.setLicenseExpiryDate(companyDTO.getLicenseExpiryDate());
         company.setPhoneNumber(companyDTO.getPhoneNumber());
-        company.setUpdatedDate(companyDTO.getUpdatedDate());
+        company.setUpdatedDate(LocalDateTime.now());
+
+        // Update address
+        if (companyDTO.getAddress() != null) {
+            company.getAddress().setState(companyDTO.getAddress().getState());
+            company.getAddress().setTownship(companyDTO.getAddress().getTownship());
+            company.getAddress().setCity(companyDTO.getAddress().getCity());
+            company.getAddress().setAdditionalAddress(companyDTO.getAddress().getAdditionalAddress());
+        }
 
         return companyRepository.save(company);
     }

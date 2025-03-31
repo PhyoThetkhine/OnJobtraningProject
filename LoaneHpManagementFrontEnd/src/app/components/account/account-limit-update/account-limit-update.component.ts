@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 import { CIFCurrentAccountService } from '../../../services/cif-current-account.service';
@@ -34,14 +34,21 @@ export class AccountLimitUpdateComponent implements OnInit {
     this.accountForm = this.formBuilder.group({
       minAmount: [this.account.minAmount, [Validators.required, Validators.min(0)]],
       maxAmount: [this.account.maxAmount, [Validators.required, Validators.min(0)]]
-    });
+    }, { validators: this.minMaxValidator });
   }
 
-  isFieldInvalid(field: string): boolean {
-    const formControl = this.accountForm.get(field);
-    return formControl ? (formControl.invalid && (formControl.dirty || formControl.touched)) : false;
+  // Add custom validator
+  private minMaxValidator(control: AbstractControl): ValidationErrors | null {
+    const min = control.get('minAmount')?.value;
+    const max = control.get('maxAmount')?.value;
+    
+    if (min !== null && max !== null && max < min) {
+      return { maxLessThanMin: true };
+    }
+    return null;
   }
 
+  // Update error check
   getErrorMessage(field: string): string {
     const control = this.accountForm.get(field);
     if (control?.errors) {
@@ -52,9 +59,21 @@ export class AccountLimitUpdateComponent implements OnInit {
         return `${field.charAt(0).toUpperCase()}${field.slice(1)} must be greater than or equal to 0`;
       }
     }
+    
+    // Check for cross-field error
+    if (this.accountForm.errors?.['maxLessThanMin'] && field === 'maxAmount') {
+      return 'Maximum amount must be greater than or equal to minimum amount';
+    }
+    
     return '';
   }
 
+  isFieldInvalid(field: string): boolean {
+    const formControl = this.accountForm.get(field);
+    return formControl ? (formControl.invalid && (formControl.dirty || formControl.touched)) : false;
+  }
+
+ 
   async onSubmit() {
     if (this.accountForm.valid) {
       this.loading = true;
