@@ -1,5 +1,5 @@
 import { SubCategory } from './sub-category.model';
-import { Company } from './company.model';
+import { CIF } from './cif.model';
 import { User } from './user.model';
 
 export interface DealerProduct {
@@ -7,9 +7,10 @@ export interface DealerProduct {
   name: string;
   price: number;
   description: string;
-  subCategory: any; // Replace with proper SubCategory type
-  cif: any; // Replace with proper CIF type
-  createdUser: any; // Replace with proper User type
-  createdDate: string | null;
-  updatedDate: string | null;
-} 
+  subCategory: SubCategory;
+  cif: CIF;
+  createdUser: User;
+  createdDate: string;
+  updatedDate: string;
+  status: string;
+}

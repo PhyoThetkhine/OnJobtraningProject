@@ -23,6 +23,7 @@ public class CifDTO {
     private String userCode;
     private Integer addressId;
     private String cifType;
+    private int status;
 
     public CifDTO(int id, String cifCode, String name, String email, UserCIFBaseEntity.Gender gender, Date dateOfBirth, String phoneNumber, String nrc, CIF.CIFType cifType) {
     }

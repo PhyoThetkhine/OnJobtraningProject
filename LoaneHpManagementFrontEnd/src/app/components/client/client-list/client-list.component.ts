@@ -1,5 +1,3 @@
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -28,7 +26,8 @@ export class ClientListComponent implements OnInit {
   loading = true;
   searchQuery = '';
   selectedStatus: string | null = null;
-  selectedBranch: number | null = null;
+  selectedBranchId: number | null = null;
+  selectedBranchName: string | null = null;
   error: string | null = null;
 
   // Pagination
@@ -69,6 +68,8 @@ export class ClientListComponent implements OnInit {
   }
 
   onBranchChange() {
+    const selectedBranch = this.branches.find(branch => branch.id === this.selectedBranchId);
+    this.selectedBranchName = selectedBranch ? selectedBranch.branchName : null;
     this.currentPage = 0;
     this.loadClients();
   }
@@ -80,17 +81,17 @@ export class ClientListComponent implements OnInit {
     this.authService.getCurrentUser().pipe(
       switchMap(currentUser => {
         if (currentUser.role.authority === AUTHORITY.MainBranchLevel) {
-          if (this.selectedBranch) {
+          if (this.selectedBranchId) {
             return this.selectedStatus 
               ? this.cifService.getCIFsByBranchAdStatus(
                   this.selectedStatus,
-                  this.selectedBranch,
+                  this.selectedBranchId,
                   this.currentPage,
                   this.pageSize,
                   this.sortBy
                 )
               : this.cifService.getCIFsByBranch(
-                  this.selectedBranch,
+                  this.selectedBranchId,
                   this.currentPage,
                   this.pageSize,
                   this.sortBy
@@ -173,9 +174,8 @@ export class ClientListComponent implements OnInit {
   downloadClientReport(format: string): void {
     this.clientReportService.generateReport(
       format, 
-      this.selectedBranch?.toString() || undefined, 
+      this.selectedBranchName || undefined, 
       this.selectedStatus || undefined
     );
   }
 }
-

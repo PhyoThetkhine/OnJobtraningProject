@@ -2,9 +2,7 @@ package com.prj.LoneHPManagement.Controller;
 
 import com.prj.LoneHPManagement.Service.CompanyService;
 import com.prj.LoneHPManagement.Service.impl.CompanyServiceImpl;
-import com.prj.LoneHPManagement.model.dto.ApiResponse;
-import com.prj.LoneHPManagement.model.dto.CompanyDTO;
-import com.prj.LoneHPManagement.model.dto.PagedResponse;
+import com.prj.LoneHPManagement.model.dto.*;
 import com.prj.LoneHPManagement.model.entity.BusinessPhoto;
 import com.prj.LoneHPManagement.model.entity.Company;
 
@@ -22,7 +20,19 @@ import java.util.List;
 public class CompanyController {
     @Autowired
     private CompanyService companyService;
-
+    @PostMapping("/save")
+    public ResponseEntity<ApiResponse<Company>> createCompany(@RequestBody CompanyDTO request) {
+        Company company = companyService.createCompany(request);
+        ApiResponse<Company> response = ApiResponse.success(HttpStatus.OK.value(),
+                "Company created successfully", company);
+        return ResponseEntity.ok(response);
+    }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<Company>> updateCompany(@PathVariable int id, @RequestBody CompanyDTOUpdate request) {
+        Company company = companyService.updateCompany(id, request);
+        ApiResponse<Company> response = ApiResponse.success(HttpStatus.OK.value(), "Company updated successfully", company);
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/byCompany/{companyId}")
     public ResponseEntity<ApiResponse<List<BusinessPhoto>>> getBusinessPhotosByCompany(
             @PathVariable int companyId) {
@@ -77,6 +87,7 @@ public class CompanyController {
 //    }
 
 
+
     // ✅ Get all companies
     @GetMapping("/list")
     public ResponseEntity<?> getAllCompanies() {
@@ -92,15 +103,15 @@ public class CompanyController {
     }
 
     // ✅ Update company by ID
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateCompany(@PathVariable int id, @RequestBody CompanyDTO companyDTO) {
-        try {
-            Company updatedCompany = companyService.updateCompany(id, companyDTO);
-            return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Company updated successfully", updatedCompany).getData());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
+//    @PutMapping("/update/{id}")
+//    public ResponseEntity<?> updateCompany(@PathVariable int id, @RequestBody CompanyDTO companyDTO) {
+//        try {
+//            Company updatedCompany = companyService.updateCompany(id, companyDTO);
+//            return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Company updated successfully", updatedCompany).getData());
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+//        }
+//    }
 
     // ✅ Delete company by ID
     @DeleteMapping("/{id}")

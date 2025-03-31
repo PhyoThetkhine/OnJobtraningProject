@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
 import { DealerProductService } from '../../../services/dealer-product.service';
 import { DealerProduct } from '../../../models/dealer-product.model';
 import { PagedResponse } from '../../../models/common.types';
@@ -10,13 +11,16 @@ import { SubCategoryService } from 'src/app/services/sub-category.service';
 import { CIFService } from 'src/app/services/cif.service';
 import { SubCategory } from 'src/app/models/sub-category.model';
 import { CIF } from 'src/app/models/cif.model';
+import { AuthService } from 'src/app/services/auth.service';
+import { CurrentUser, User } from 'src/app/models/user.model';
+import { ConfirmationModalComponent } from 'src/app/shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule,  ReactiveFormsModule, ConfirmationModalComponent],
   templateUrl: './products.component.html',
-  styleUrl: './products.component.css'
+  styleUrls: ['./products.component.css']
 })
 export class ProductsComponent implements OnInit {
   products: DealerProduct[] = [];
@@ -41,14 +45,18 @@ export class ProductsComponent implements OnInit {
   productForm: FormGroup;
   isSubmitting = false;
   editingProduct: DealerProduct | null = null;
-  toastr: any;
+
+  currentUser: CurrentUser | null = null;
 
   constructor(
     private dealerProductService: DealerProductService,
     private subCategoryService: SubCategoryService,
     private cifService: CIFService,
     private modalService: NgbModal,
-    private fb: FormBuilder
+    private toastr: ToastrService,
+    private fb: FormBuilder,
+    private authService: AuthService,
+    
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
@@ -62,6 +70,21 @@ export class ProductsComponent implements OnInit {
   ngOnInit(): void {
     this.loadProducts();
     this.loadDropdownData();
+    this.loadCurrentUser();
+   
+  }
+  
+
+  loadCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        // Load dependent data after user is loaded
+        this.loadProducts();
+        this.loadDropdownData();
+      },
+      error: (err) => this.toastr.error('Failed to load current user.')
+    });
   }
 
   loadProducts(): void {
@@ -100,13 +123,35 @@ export class ProductsComponent implements OnInit {
   }
 
   loadDropdownData(): void {
-    this.cifService.getCIFs(0, 1000).subscribe({
-      next: (response) => this.cifs = response.content,
-      error: (err) => this.toastr.error('Failed to load CIFs.')
-    });
-
+    // Load CIFs based on user role
+    if (this.currentUser?.roleLevel === 'RegularBranchLevel' && this.currentUser?.branch?.id) {
+      this.cifService.getCIFsByBranch(
+        this.currentUser.branch.id, 
+        0, 
+        1000
+      ).subscribe({
+        next: (response) => {
+          this.cifs = response.content;
+          console.log('Branch CIFs:', this.cifs);
+        },
+        error: (err) => this.toastr.error('Failed to load branch CIFs.')
+      });
+    } else {
+      this.cifService.getCIFs(0, 1000).subscribe({
+        next: (response) => {
+          this.cifs = response.content;
+          console.log('All CIFs:', this.cifs);
+        },
+        error: (err) => this.toastr.error('Failed to load CIFs.')
+      });
+    }
+  
+    // Load subcategories remains the same
     this.subCategoryService.getAllSubCategories(0, 1000).subscribe({
-      next: (response) => this.subCategories = response.content.filter(sc => sc.status === 'active'),
+      next: (response) => {
+        this.subCategories = response.content.filter(sc => sc.status === 'active');
+        console.log('SubCategories:', this.subCategories);
+      },
       error: (err) => this.toastr.error('Failed to load subcategories.')
     });
   }
@@ -143,9 +188,20 @@ export class ProductsComponent implements OnInit {
 
   onSubmit(modal: any): void {
     if (this.productForm.invalid || this.isSubmitting) return;
-
+  
     this.isSubmitting = true;
     const { name, price, description, subCategoryId, cifId } = this.productForm.value;
+  
+    console.log('subCategoryId:', subCategoryId);
+    console.log('cifId:', cifId);
+  
+    const selectedSubCategory = this.subCategories.find(sc => sc.id === subCategoryId);
+    const selectedCif = this.cifs.find(c => c.id === cifId);
+  
+    console.log('selectedSubCategory:', selectedSubCategory);
+    console.log('selectedCif:', selectedCif);
+  
+    
 
     if (this.editingProduct) {
       const updatedProduct: DealerProduct = {
@@ -153,8 +209,12 @@ export class ProductsComponent implements OnInit {
         name,
         price,
         description,
-        subCategory: this.subCategories.find(sc => sc.id === subCategoryId) || null,
-        cif: this.cifs.find(c => c.id === cifId) || null
+        subCategory: {id: subCategoryId} as SubCategory,
+        cif: {id: cifId} as CIF,
+        createdUser: this.editingProduct.createdUser,
+        createdDate: this.editingProduct.createdDate,
+        updatedDate: new Date().toISOString(),
+        status: this.editingProduct.status
       };
       this.dealerProductService.updateDealerProduct(this.editingProduct.id, updatedProduct).subscribe({
         next: (updated) => {
@@ -175,11 +235,12 @@ export class ProductsComponent implements OnInit {
         name,
         price,
         description,
-        subCategory: this.subCategories.find(sc => sc.id === subCategoryId) || null,
-        cif: this.cifs.find(c => c.id === cifId) || null,
-        createdUser: null,
-        createdDate: null,
-        updatedDate: null
+        subCategory: {id: subCategoryId} as SubCategory,
+        cif: {id: cifId} as CIF,
+        createdUser: { id: this.currentUser?.id } as User, // Only pass the user ID
+        createdDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
+        status: 'active'
       };
       this.dealerProductService.createDealerProduct(cifId, newProduct).subscribe({
         next: (product) => {
@@ -196,19 +257,38 @@ export class ProductsComponent implements OnInit {
     }
   }
 
-  deleteProduct(id: number): void {
-    if (confirm('Are you sure you want to delete this product?')) {
-      this.dealerProductService.deleteDealerProduct(id).subscribe({
-        next: () => {
-          this.toastr.success('Product deleted successfully.');
-          this.loadProducts();
-        },
-        error: (err) => {
-          this.toastr.error('Failed to delete product.');
-        }
-      });
+  // Update the toggleProductStatus method
+toggleProductStatus(product: DealerProduct): void {
+  const isDeleting = product.status === 'active';
+  const modalRef = this.modalService.open(ConfirmationModalComponent, {
+    centered: true
+  });
+  
+  // Customize modal content
+  modalRef.componentInstance.title = isDeleting ? 'Confirm Deletion' : 'Confirm Restoration';
+  modalRef.componentInstance.message = isDeleting
+    ? 'Are you sure you want to delete this product?'
+    : 'Are you sure you want to restore this product?';
+
+  modalRef.closed.subscribe((confirmed) => {
+    if (confirmed) {
+      const newStatus = isDeleting ? 'deleted' : 'active';
+      const action = isDeleting ? 'delete' : 'restore';
+
+      this.dealerProductService.updateDealerProductStatus(product.id, newStatus)
+        .subscribe({
+          next: () => {
+            product.status = newStatus; // Update local state
+            this.toastr.success(`Product ${action}d successfully.`);
+          },
+          error: (err) => {
+            this.toastr.error(`Failed to ${action} product.`);
+            console.error('Error:', err);
+          }
+        });
     }
-  }
+  });
+}
 
   setCifId(cifId: number | null): void {
     this.cifId = cifId;

@@ -38,8 +38,7 @@ export class BusinessUpdateComponent implements OnInit {
     private toastr: ToastrService,
     private http: HttpClient,
     private authService: AuthService,
-     private cloudinaryService: CloudinaryService,
-    
+    private cloudinaryService: CloudinaryService
   ) {}
 
   ngOnInit(): void {
@@ -208,29 +207,29 @@ export class BusinessUpdateComponent implements OnInit {
 
         // Prepare business data for update
         const businessData = {
-          id: this.businessId, // Add the business ID for update (assuming you have this)
+          id: this.businessId,
           name: this.businessForm.value.name,
           companyType: this.businessForm.value.companyType,
           businessType: this.businessForm.value.businessType,
           category: this.businessForm.value.category,
           registrationDate: new Date(this.businessForm.value.registrationDate).toISOString(),
           licenseNumber: this.businessForm.value.licenseNumber,
-          licenseIssueDate: new Date(this.businessForm.value.licenseIssueDate).toISOString().split('T')[0],
-          licenseExpiryDate: new Date(this.businessForm.value.licenseExpiryDate).toISOString().split('T')[0],
+          licenseIssueDate: this.businessForm.value.licenseIssueDate,
+          licenseExpiryDate: this.businessForm.value.licenseExpiryDate,
           phoneNumber: this.businessForm.value.phoneNumber,
-          updatedUserId: currentUser.id, // Using updatedUserId instead of createdUserId
+          updatedUserId: currentUser.id,
           cifId: this.cifId,
           state: this.businessForm.value.address.state,
           city: this.businessForm.value.address.city,
           township: this.businessForm.value.address.township,
           address: this.businessForm.value.address.additionalAddress || '',
-          ...(businessPhotoUrls.length > 0 && { businessPhotos: businessPhotoUrls }) // Only add if new photos exist
+          ...(businessPhotoUrls.length > 0 && { businessPhotos: businessPhotoUrls })
         };
 
         console.log('Updating business:', JSON.stringify(businessData, null, 2));
 
         // Update company instead of create
-        const updateCompany = await this.companyService.updateCompany(this.businessId, businessData).toPromise();
+        const updateCompany = await this.companyService.updateCompany(this.company.id, businessData).toPromise();
         this.toastr.success('Business updated successfully');
         this.activeModal.close(true);
       } catch (error: any) {

@@ -1,15 +1,9 @@
 package com.prj.LoneHPManagement.Service.impl;
 
 import com.prj.LoneHPManagement.Service.DealerProductService;
-import com.prj.LoneHPManagement.model.entity.DealerProduct;
-import com.prj.LoneHPManagement.model.entity.Company;
-import com.prj.LoneHPManagement.model.entity.SubCategory;
-import com.prj.LoneHPManagement.model.entity.User;
+import com.prj.LoneHPManagement.model.entity.*;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
-import com.prj.LoneHPManagement.model.repo.DealerProductRepository;
-import com.prj.LoneHPManagement.model.repo.CompanyRepository;
-import com.prj.LoneHPManagement.model.repo.SubCategoryRepository;
-import com.prj.LoneHPManagement.model.repo.UserRepository;
+import com.prj.LoneHPManagement.model.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +19,8 @@ public class DealerProductServiceImpl implements DealerProductService {
 
     @Autowired
     private DealerProductRepository dealerProductRepository;
+    @Autowired
+    private CIFRepository cifRepository;
 
     @Autowired
     private CompanyRepository companyRepository;
@@ -40,15 +36,34 @@ public class DealerProductServiceImpl implements DealerProductService {
         return dealerProductRepository.findAll();
     }
 
+    public DealerProduct updateProductStatus(int id, String status) {
+        DealerProduct product = dealerProductRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Product not found with id: " + id));
+
+        // Convert string status to enum code
+        int statusCode = convertStatusToCode(status);
+        product.setStatus(statusCode);
+
+        return dealerProductRepository.save(product);
+    }
+
+    private int convertStatusToCode(String status) {
+        return switch (status.toLowerCase()) {
+            case "active" -> ConstraintEnum.ACTIVE.getCode();
+            case "deleted" -> ConstraintEnum.DELETED.getCode();
+            default -> throw new IllegalArgumentException("Invalid status: " + status);
+        };
+    }
+
     @Override
     public Optional<DealerProduct> getDealerProductById(int id) {
         return dealerProductRepository.findById(id);
     }
 
-    @Override
-    public List<DealerProduct> getDealerProductsByCompanyId(int companyId) {
-        return dealerProductRepository.findByCompanyId(companyId);
-    }
+//    @Override
+//    public List<DealerProduct> getDealerProductsByCompanyId(int companyId) {
+//        return dealerProductRepository.findByCompanyId(companyId);
+//    }
     // DealerProductService.java
     @Override
     public Page<DealerProduct> getAllDealerProducts(int page, int size, String sortBy) {
@@ -64,9 +79,9 @@ public class DealerProductServiceImpl implements DealerProductService {
     }
 
     @Override
-    public DealerProduct createDealerProduct(int companyId, DealerProduct dealerProduct) {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ServiceException("Company not found with ID: " + companyId));
+    public DealerProduct createDealerProduct(int cifId, DealerProduct dealerProduct) {
+        CIF cif = cifRepository.findById(cifId)
+                .orElseThrow(() -> new ServiceException("Company not found with ID: " + cifId));
 
         // Assuming you may want to fetch and associate SubCategory and User entities as well.
         SubCategory subCategory = subCategoryRepository.findById(dealerProduct.getSubCategory().getId())
@@ -76,9 +91,10 @@ public class DealerProductServiceImpl implements DealerProductService {
                 .orElseThrow(() -> new ServiceException("User not found"));
 
         // Set the associated entities on the DealerProduct
-        dealerProduct.setCompany(company);
+        dealerProduct.setCif(cif);
         dealerProduct.setSubCategory(subCategory);
         dealerProduct.setCreatedUser(user);
+        dealerProduct.setStatus(ConstraintEnum.ACTIVE.getCode());
 
         return dealerProductRepository.save(dealerProduct);
     }
@@ -96,11 +112,10 @@ public class DealerProductServiceImpl implements DealerProductService {
         // Assuming update of SubCategory and User as well if needed
         SubCategory subCategory = subCategoryRepository.findById(dealerProductDetails.getSubCategory().getId())
                 .orElseThrow(() -> new ServiceException("SubCategory not found"));
-        User user = userRepository.findById(dealerProductDetails.getCreatedUser().getId())
-                .orElseThrow(() -> new ServiceException("User not found"));
+
 
         dealerProduct.setSubCategory(subCategory);
-        dealerProduct.setCreatedUser(user);
+
 
         return dealerProductRepository.save(dealerProduct);
     }

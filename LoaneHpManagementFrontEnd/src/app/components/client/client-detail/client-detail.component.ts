@@ -760,19 +760,19 @@ isCredit(transaction: Transaction): boolean {
   }
   openUpdateBusinessModal() {
     if (!this.selectedCompany) return;
-
+  
     const modalRef = this.modalService.open(BusinessUpdateComponent, {
       size: 'lg',
       backdrop: 'static'
     });
     
-    modalRef.componentInstance.company = this.selectedCompany;
+    modalRef.componentInstance.company = this.selectedCompany!;
     
     modalRef.result.then(
       (result) => {
         if (result) {
-          this.selectedCompany = result;
-          this.loadCompanies(this.companiesCurrentPage);
+          this.viewCompanyDetails(this.selectedCompany!); // Reload company details
+          this.loadCompanies(this.companiesCurrentPage); // Reload the list of companies
           this.toastr.success('Business updated successfully');
         }
       },

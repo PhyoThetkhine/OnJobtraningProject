@@ -43,6 +43,14 @@ export class DealerProductService {
     return this.http.post<ApiResponse<DealerProduct>>(`${this.apiUrl}/save/${cifId}`, dealerProduct)
       .pipe(map(response => response.data));
   }
+ // In dealer-product.service.ts
+// In dealer-product.service.ts
+updateDealerProductStatus(id: number, status: string) {
+  return this.http.put<any>(
+    `${this.apiUrl}/${id}/status`, 
+    { status }
+  );
+}
 
   updateDealerProduct(id: number, dealerProduct: DealerProduct): Observable<DealerProduct> {
     return this.http.put<ApiResponse<DealerProduct>>(`${this.apiUrl}/update/${id}`, dealerProduct)

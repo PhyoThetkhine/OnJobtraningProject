@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface DealerProductRepository extends JpaRepository<DealerProduct, Integer> {
-    List<DealerProduct> findByCompanyId(int companyId);
+    List<DealerProduct> findByCif_Id(int cifId);
     List<DealerProduct> findByNameContainingIgnoreCase(String searchTerm);
 }

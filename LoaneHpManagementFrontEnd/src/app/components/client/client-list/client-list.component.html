@@ -28,13 +28,12 @@
     <div class="d-flex align-items-center gap-3 flex-wrap">
       <!-- Filters -->
       <div class="d-flex gap-2">
-        <select class="form-select" [(ngModel)]="selectedBranch" (change)="onBranchChange()">
+        <select class="form-select" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
           <option [ngValue]="null">All Branches</option>
           <option *ngFor="let branch of branches" [ngValue]="branch.id">
             {{ branch.branchName }}
           </option>
         </select>
-
         <select class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
           <option [ngValue]="null">All Statuses</option>
           <option value="active">Active</option>

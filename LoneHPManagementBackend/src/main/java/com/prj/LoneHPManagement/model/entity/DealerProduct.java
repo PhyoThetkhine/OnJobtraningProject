@@ -1,5 +1,7 @@
 package com.prj.LoneHPManagement.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,8 +33,8 @@ public class DealerProduct {
     @JoinColumn(name = "sub_category_id", nullable = false)
     private SubCategory subCategory;
     @ManyToOne
-    @JoinColumn(name = "company_id", nullable = false)
-    private Company company;
+    @JoinColumn(name = "cif_id", nullable = false)
+    private CIF cif;
     @ManyToOne
     @JoinColumn(name = "created_user_id", nullable = false)
     private User createdUser;
@@ -40,6 +42,16 @@ public class DealerProduct {
     private LocalDateTime createdDate;
     @Column(name = "updated_date", nullable = false)
     private LocalDateTime updatedDate;
+    @Column(name = "status", nullable = false)
+    @JsonIgnore
+    private int status;
+
+    @JsonProperty("status")
+    public String getStatusDescription() {
+        ConstraintEnum constraint = ConstraintEnum.fromCode(status);
+        return constraint != null ? constraint.getDescription() : "unknown";
+    }
+
 
     public int getId() {
         return id;
@@ -81,13 +93,7 @@ public class DealerProduct {
         this.subCategory = subCategory;
     }
 
-    public Company getCompany() {
-        return company;
-    }
 
-    public void setCompany(Company company) {
-        this.company = company;
-    }
 
     public User getCreatedUser() {
         return createdUser;
@@ -115,6 +121,7 @@ public class DealerProduct {
 
     @PrePersist
     protected void prePersist() {
+        if (status == 0) status = ConstraintEnum.ACTIVE.getCode();
         createdDate = LocalDateTime.now();
         updatedDate = LocalDateTime.now();
     }

@@ -25,7 +25,6 @@ export class BusinessCreateComponent implements OnInit {
   townships: string[] = [];
   cities: string[] = [];
   businessPhotos: { file: File, preview: string }[] = [];
-  router: any;
 
   constructor(
     private fb: FormBuilder,
@@ -40,18 +39,6 @@ export class BusinessCreateComponent implements OnInit {
   ngOnInit() {
     this.initializeForm();
     this.loadTownshipData();
-    this.checkAuthentication(); // Check token on init
-  }
-
-  private checkAuthentication() {
-    const token = this.authService.getToken();
-    if (!token) {
-      console.warn('No token found. User may not be authenticated.');
-      this.toastr.warning('Please log in to continue.');
-      this.router.navigate(['/login']); // Redirect to login if needed
-    } else {
-      console.log('Token found:', token);
-    }
   }
 
   private initializeForm() {
@@ -167,19 +154,17 @@ export class BusinessCreateComponent implements OnInit {
     }
     return '';
   }
-
   async onSubmit() {
     if (this.businessForm.valid) {
       this.loading = true;
       this.error = null;
-
+  
       try {
-
         const token = this.authService.getToken();
         if (!token) {
           throw new Error('No authentication token found. Please log in.');
         }
-
+  
         // Upload business photos
         const businessPhotoUrls: string[] = [];
         for (const photo of this.businessPhotos) {
@@ -188,35 +173,45 @@ export class BusinessCreateComponent implements OnInit {
             businessPhotoUrls.push(uploadResult.secure_url);
           }
         }
-
+  
         // Get current user
         const currentUser = await this.authService.getCurrentUser().toPromise();
         if (!currentUser) {
           throw new Error('No authenticated user found');
         }
-
+  
+        // Prepare business data including financials and photo URLs
         const businessData = {
           name: this.businessForm.value.name,
           companyType: this.businessForm.value.companyType,
           businessType: this.businessForm.value.businessType,
           category: this.businessForm.value.category,
-          registrationDate: new Date(this.businessForm.value.registrationDate).toISOString(), // "2025-03-24T10:00:00"          
+          registrationDate: new Date(this.businessForm.value.registrationDate).toISOString(),// Already 'YYYY-MM-DD'
           licenseNumber: this.businessForm.value.licenseNumber,
-          licenseIssueDate: new Date(this.businessForm.value.licenseIssueDate).toISOString().split('T')[0], // "2025-01-01"
-          licenseExpiryDate: new Date(this.businessForm.value.licenseExpiryDate).toISOString().split('T')[0], // "2026-01-01"
+          licenseIssueDate: this.businessForm.value.licenseIssueDate, // 'YYYY-MM-DD'
+          licenseExpiryDate: this.businessForm.value.licenseExpiryDate, // 'YYYY-MM-DD'
           phoneNumber: this.businessForm.value.phoneNumber,
           createdUserId: currentUser.id,
           cifId: this.cifId,
           state: this.businessForm.value.address.state,
           city: this.businessForm.value.address.city,
           township: this.businessForm.value.address.township,
-          address: this.businessForm.value.address.additionalAddress || '' // Map additionalAddress to address
-          // Note: businessPhotos, createdDate, updatedDate, and id are not in CompanyDTO yet
+          address: this.businessForm.value.address.additionalAddress || '',
+          financial: {
+            averageIncome: this.businessForm.value.financial.averageIncome,
+            expectedIncome: this.businessForm.value.financial.expectedIncome,
+            averageExpenses: this.businessForm.value.financial.averageExpenses,
+            averageInvestment: this.businessForm.value.financial.averageInvestment,
+            averageEmployees: this.businessForm.value.financial.averageEmployees,
+            averageSalaryPaid: this.businessForm.value.financial.averageSalaryPaid,
+            revenueProof: this.businessForm.value.financial.revenueProof
+          },
+          businessPhotoUrls: businessPhotoUrls // Include photo URLs
         };
-
+  
         console.log('Submitting business:', JSON.stringify(businessData, null, 2));
-
-       const createCompany = await this.companyService.createCompany(businessData).toPromise();
+  
+        const createCompany = await this.companyService.createCompany(businessData).toPromise();
         this.toastr.success('Business created successfully');
         this.activeModal.close(true);
       } catch (error: any) {
@@ -227,27 +222,6 @@ export class BusinessCreateComponent implements OnInit {
         this.loading = false;
       }
     } else {
-      // Object.keys(this.businessForm.controls).forEach(key => {
-      //   const control = this.businessForm.get(key);
-      //   control?.markAsTouched();
-      // });
-
-      // const addressControls = this.businessForm.get('address') as FormGroup;
-      // if (addressControls) {
-      //   Object.keys(addressControls.controls).forEach(key => {
-      //     const control = addressControls.get(key);
-      //     control?.markAsTouched();
-      //   });
-      // }
-
-      // const financialControls = this.businessForm.get('financial') as FormGroup;
-      // if (financialControls) {
-      //   Object.keys(financialControls.controls).forEach(key => {
-      //     const control = financialControls.get(key);
-      //     control?.markAsTouched();
-      //   });
-      // }
-
       this.businessForm.markAllAsTouched();
       this.toastr.error('Please fill all required fields');
     }
@@ -256,4 +230,4 @@ export class BusinessCreateComponent implements OnInit {
   dismiss() {
     this.activeModal.dismiss();
   }
-} 
+}

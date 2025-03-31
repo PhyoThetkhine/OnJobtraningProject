@@ -1,9 +1,11 @@
 package com.prj.LoneHPManagement.Controller;
 
 import com.prj.LoneHPManagement.Service.DealerProductService;
+import com.prj.LoneHPManagement.Service.UserService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
 import com.prj.LoneHPManagement.model.entity.DealerProduct;
+import com.prj.LoneHPManagement.model.entity.User;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,12 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dealer-products")
 public class DealerProductController {
-
+    @Autowired
+private UserService userService;
     @Autowired
     private DealerProductService dealerProductService;
     // DealerProductController.java
@@ -62,12 +66,13 @@ public class DealerProductController {
                         .body(ApiResponse.success(HttpStatus.NOT_FOUND.value(), "Dealer product not found", null)));
     }
 
-    @PostMapping("/save/{companyId}")
-    public ResponseEntity<?> createDealerProduct(@PathVariable int companyId, @RequestBody DealerProduct dealerProduct) {
-        DealerProduct savedDealerProduct = dealerProductService.createDealerProduct(companyId, dealerProduct);
-        return new ResponseEntity<>(ApiResponse.success(HttpStatus.CREATED.value(), "Dealer product created successfully", savedDealerProduct), HttpStatus.CREATED);
+    @PostMapping("/save/{cifId}")
+    public ResponseEntity<ApiResponse<DealerProduct>> createDealerProduct(@PathVariable int cifId, @RequestBody DealerProduct dealerProduct) {
+        User createdUser = userService.getUserById(dealerProduct.getCreatedUser().getId());
+        dealerProduct.setCreatedUser(createdUser);
+        DealerProduct createdProduct = dealerProductService.createDealerProduct(cifId, dealerProduct);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.NOT_FOUND.value(), "Dealer product not found", createdProduct));
     }
-
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateDealerProduct(@PathVariable int id, @RequestBody DealerProduct dealerProductDetails) {
         try {
@@ -78,24 +83,32 @@ public class DealerProductController {
                     .body(ApiResponse.success(HttpStatus.NOT_FOUND.value(), e.getMessage(), null));
         }
     }
+    @PutMapping("/{id}/status")
+    public ResponseEntity<DealerProduct> updateProductStatus(
+            @PathVariable int id,
+            @RequestBody Map<String, String> statusRequest) {
 
+        String newStatus = statusRequest.get("status");
+        DealerProduct updatedProduct = dealerProductService.updateProductStatus(id, newStatus);
+        return ResponseEntity.ok(updatedProduct);
+    }
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteDealerProduct(@PathVariable int id) {
         dealerProductService.deleteDealerProduct(id);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.NO_CONTENT.value(), "Dealer product deleted successfully", null));
     }
 
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<?> getDealerProductsByCompanyId(@PathVariable int companyId) {
-        List<DealerProduct> dealerProducts = dealerProductService.getDealerProductsByCompanyId(companyId);
-
-        if (dealerProducts.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "No dealer products found for this company"));
-        }
-
-        ApiResponse<List<DealerProduct>> response = ApiResponse.success(HttpStatus.OK.value(), "Dealer products fetched successfully", dealerProducts);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/company/{companyId}")
+//    public ResponseEntity<?> getDealerProductsByCompanyId(@PathVariable int companyId) {
+//        List<DealerProduct> dealerProducts = dealerProductService.getDealerProductsByCompanyId(companyId);
+//
+//        if (dealerProducts.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                    .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "No dealer products found for this company"));
+//        }
+//
+//        ApiResponse<List<DealerProduct>> response = ApiResponse.success(HttpStatus.OK.value(), "Dealer products fetched successfully", dealerProducts);
+//        return ResponseEntity.ok(response);
+//    }
 
 }

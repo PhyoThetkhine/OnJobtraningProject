@@ -14,11 +14,6 @@
   </button>
 </div>
 
-<!-- CIF Filter -->
-<div class="mb-3">
-  <label for="cifId" class="form-label">Filter by CIF ID</label>
-  <input type="number" class="form-control w-25" id="cifId" [(ngModel)]="cifId" (ngModelChange)="setCifId(cifId)" placeholder="Enter CIF ID">
-</div>
 
 <!-- Loading State -->
 <div *ngIf="loading" class="text-center my-4">
@@ -42,14 +37,7 @@
           <i class="bi bi-box me-2"></i>All Products
         </h5>
       </div>
-      <div class="col-auto">
-        <div class="input-group">
-          <span class="input-group-text bg-light border-end-0">
-            <i class="bi bi-search text-muted"></i>
-          </span>
-          <input type="text" class="form-control border-start-0 ps-0" placeholder="Search products..." (input)="loadProducts()">
-        </div>
-      </div>
+      
     </div>
   </div>
 
@@ -63,7 +51,8 @@
             <th class="border-0" (click)="onSortChange('price')">Price {{ sortBy === 'price' ? '↓' : '' }}</th>
             <th class="border-0">Description</th>
             <th class="border-0">SubCategory</th>
-            <th class="border-0">CIF ID</th>
+            <th class="border-0">CIF Code</th>
+            <th class="border-0">Status</th>
             <th class="border-0">Created Date</th>
             <th class="border-0 rounded-end text-end pe-4" style="width: 120px;">Actions</th>
           </tr>
@@ -94,8 +83,16 @@
             <td>
               <div class="d-flex align-items-center">
                 <i class="bi bi-person text-muted me-2"></i>
-                <span class="text-muted">{{ product.cif?.id || 'N/A' }}</span>
+                <span class="text-muted">{{ product.cif?.cifCode }}</span>
               </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-success': product.status === 'active',
+                'bg-danger': product.status === 'deleted'
+              }">
+                {{ product.status | titlecase }}
+              </span>
             </td>
             <td>
               <small class="text-muted">{{ product.createdDate | date:'medium' }}</small>
@@ -105,9 +102,17 @@
                 <button class="btn btn-sm btn-outline-primary" title="Edit" (click)="openEditModal(editProductModal, product)">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="deleteProduct(product.id)">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <button class="btn btn-sm" 
+                [ngClass]="{
+                  'btn-outline-danger': product.status === 'active',
+                  'btn-outline-success': product.status === 'deleted'
+                }"
+                (click)="toggleProductStatus(product)">
+          <i class="bi" [ngClass]="{
+            'bi-trash': product.status === 'active',
+            'bi-arrow-counterclockwise': product.status === 'deleted'
+          }"></i>
+        </button>
               </div>
             </td>
           </tr>
@@ -169,60 +174,73 @@
     </h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
-  <div class="modal-body">
-  
+  <form (ngSubmit)="onSubmit(modal)" [formGroup]="productForm">
+    <div class="modal-body">
       <div class="mb-3">
         <label for="addName" class="form-label">Product Name</label>
-        <input type="text" class="form-control" id="addName" formControlName="name" [class.is-invalid]="nameField?.touched && nameField?.invalid">
-        <div *ngIf="nameField?.touched && nameField?.invalid" class="invalid-feedback">
-          <div *ngIf="nameField?.errors?.['required']">Name is required.</div>
-          <div *ngIf="nameField?.errors?.['maxlength']">Name must be 50 characters or less.</div>
+        <input type="text" class="form-control" id="addName" formControlName="name">
+        <div *ngIf="nameField?.invalid && (nameField?.dirty || nameField?.touched)" class="text-danger mt-1">
+          <small *ngIf="nameField?.errors?.['required']">Name is required</small>
+          <small *ngIf="nameField?.errors?.['maxlength']">Max 50 characters</small>
         </div>
       </div>
+
       <div class="mb-3">
         <label for="addPrice" class="form-label">Price</label>
-        <input type="number" class="form-control" id="addPrice" formControlName="price" [class.is-invalid]="priceField?.touched && priceField?.invalid">
-        <div *ngIf="priceField?.touched && priceField?.invalid" class="invalid-feedback">
-          <div *ngIf="priceField?.errors?.['required']">Price is required.</div>
-          <div *ngIf="priceField?.errors?.['min']">Price must be positive.</div>
+        <input type="number" class="form-control" id="addPrice" formControlName="price">
+        <div *ngIf="priceField?.invalid && (priceField?.dirty || priceField?.touched)" class="text-danger mt-1">
+          <small *ngIf="priceField?.errors?.['required']">Price is required</small>
+          <small *ngIf="priceField?.errors?.['min']">Must be positive</small>
         </div>
       </div>
+
       <div class="mb-3">
         <label for="addDescription" class="form-label">Description</label>
-        <textarea class="form-control" id="addDescription" formControlName="description" [class.is-invalid]="descriptionField?.touched && descriptionField?.invalid"></textarea>
-        <div *ngIf="descriptionField?.touched && descriptionField?.invalid" class="invalid-feedback">
-          <div *ngIf="descriptionField?.errors?.['required']">Description is required.</div>
-          <div *ngIf="descriptionField?.errors?.['maxlength']">Description must be 255 characters or less.</div>
+        <textarea class="form-control" id="addDescription" formControlName="description" rows="3"></textarea>
+        <div *ngIf="descriptionField?.invalid && (descriptionField?.dirty || descriptionField?.touched)" class="text-danger mt-1">
+          <small *ngIf="descriptionField?.errors?.['required']">Description is required</small>
+          <small *ngIf="descriptionField?.errors?.['maxlength']">Max 255 characters</small>
         </div>
       </div>
-      <div class="mb-3">
-        <label for="addSubCategory" class="form-label">SubCategory</label>
-        <select class="form-select" id="addSubCategory" formControlName="subCategoryId" [class.is-invalid]="subCategoryField?.touched && subCategoryField?.invalid">
-          <option [value]="null" disabled>Select SubCategory</option>
-          <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">{{ subCategory.name }}</option>
-        </select>
-        <div *ngIf="subCategoryField?.touched && subCategoryField?.invalid" class="invalid-feedback">
-          SubCategory is required.
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="addSubCategory" class="form-label">SubCategory</label>
+          <select class="form-select" id="addSubCategory" formControlName="subCategoryId">
+            <option value="" disabled>Select SubCategory</option>
+            <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">
+              {{ subCategory.category }}
+            </option>
+          </select>
+          <div *ngIf="subCategoryField?.invalid && (subCategoryField?.dirty || subCategoryField?.touched)" class="text-danger mt-1">
+            <small>SubCategory is required</small>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="addCif" class="form-label">CIF</label>
+          
+          <select class="form-select" id="addCif" formControlName="cifId">
+            <option value="" disabled>Select CIF</option>
+            <option *ngFor="let cif of cifs" [value]="cif.id">
+              {{ cif.name }} ({{ cif.cifCode }})
+            </option>
+          </select>
+          <div *ngIf="cifField?.invalid && (cifField?.dirty || cifField?.touched)" class="text-danger mt-1">
+            <small>CIF is required</small>
+          </div>
         </div>
       </div>
-      <div class="mb-3">
-        <label for="addCif" class="form-label">CIF</label>
-        <select class="form-select" id="addCif" formControlName="cifId" [class.is-invalid]="cifField?.touched && cifField?.invalid">
-          <option [value]="null" disabled>Select CIF</option>
-          <option *ngFor="let cif of cifs" [value]="cif.id">{{ cif.name }}</option>
-        </select>
-        <div *ngIf="cifField?.touched && cifField?.invalid" class="invalid-feedback">
-          CIF is required.
-        </div>
-      </div>
-  
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-primary" (click)="onSubmit(modal)" [disabled]="productForm.invalid || isSubmitting">
-      {{ isSubmitting ? 'Saving...' : 'Save Product' }}
-    </button>
-  </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid || isSubmitting">
+        <span *ngIf="!isSubmitting">Create Product</span>
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+  </form>
 </ng-template>
 
 <!-- Edit Product Modal -->
@@ -233,50 +251,72 @@
     </h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
-  <div class="modal-body">
-  
+  <form (ngSubmit)="onSubmit(modal)" [formGroup]="productForm">
+    <div class="modal-body">
       <div class="mb-3">
         <label for="editName" class="form-label">Product Name</label>
-        <input type="text" class="form-control" id="editName" formControlName="name" [class.is-invalid]="nameField?.touched && nameField?.invalid">
-        <div *ngIf="nameField?.touched && nameField?.invalid" class="invalid-feedback">
-          <div *ngIf="nameField?.errors?.['required']">Name is required.</div>
-          <div *ngIf="nameField?.errors?.['maxlength']">Name must be 50 characters or less.</div>
+        <input type="text" class="form-control" id="editName" formControlName="name">
+        <div *ngIf="nameField?.invalid && (nameField?.dirty || nameField?.touched)" class="text-danger mt-1">
+          <small *ngIf="nameField?.errors?.['required']">Name is required</small>
+          <small *ngIf="nameField?.errors?.['maxlength']">Max 50 characters</small>
         </div>
       </div>
+
       <div class="mb-3">
         <label for="editPrice" class="form-label">Price</label>
-        <input type="number" class="form-control" id="editPrice" formControlName="price" [class.is-invalid]="priceField?.touched && priceField?.invalid">
-        <div *ngIf="priceField?.touched && priceField?.invalid" class="invalid-feedback">
-          <div *ngIf="priceField?.errors?.['required']">Price is required.</div>
-          <div *ngIf="priceField?.errors?.['min']">Price must be positive.</div>
+        <input type="number" class="form-control" id="editPrice" formControlName="price">
+        <div *ngIf="priceField?.invalid && (priceField?.dirty || priceField?.touched)" class="text-danger mt-1">
+          <small *ngIf="priceField?.errors?.['required']">Price is required</small>
+          <small *ngIf="priceField?.errors?.['min']">Must be positive</small>
         </div>
       </div>
+
       <div class="mb-3">
         <label for="editDescription" class="form-label">Description</label>
-        <textarea class="form-control" id="editDescription" formControlName="description" [class.is-invalid]="descriptionField?.touched && descriptionField?.invalid"></textarea>
-        <div *ngIf="descriptionField?.touched && descriptionField?.invalid" class="invalid-feedback">
-          <div *ngIf="descriptionField?.errors?.['required']">Description is required.</div>
-          <div *ngIf="descriptionField?.errors?.['maxlength']">Description must be 255 characters or less.</div>
+        <textarea class="form-control" id="editDescription" formControlName="description" rows="3"></textarea>
+        <div *ngIf="descriptionField?.invalid && (descriptionField?.dirty || descriptionField?.touched)" class="text-danger mt-1">
+          <small *ngIf="descriptionField?.errors?.['required']">Description is required</small>
+          <small *ngIf="descriptionField?.errors?.['maxlength']">Max 255 characters</small>
         </div>
       </div>
-      <div class="mb-3">
-        <label for="editSubCategory" class="form-label">SubCategory</label>
-        <select class="form-select" id="editSubCategory" formControlName="subCategoryId" [class.is-invalid]="subCategoryField?.touched && subCategoryField?.invalid">
-          <option [value]="null" disabled>Select SubCategory</option>
-          <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">{{ subCategory.name }}</option>
-        </select>
-        <div *ngIf="subCategoryField?.touched && subCategoryField?.invalid" class="invalid-feedback">
-          SubCategory is required.
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="editSubCategory" class="form-label">SubCategory</label>
+          <select class="form-select" id="editSubCategory" formControlName="subCategoryId">
+            <option value="" disabled>Select SubCategory</option>
+            <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">
+              {{ subCategory.category }}
+            </option>
+          </select>
+          <div *ngIf="subCategoryField?.invalid && (subCategoryField?.dirty || subCategoryField?.touched)" class="text-danger mt-1">
+            <small>SubCategory is required</small>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="editCif" class="form-label">CIF</label>
+          <select class="form-select" id="editCif" formControlName="cifId">
+            <option value="" disabled>Select CIF</option>
+            <option *ngFor="let cif of cifs" [value]="cif.id">
+              {{ cif.name }} ({{ cif.cifCode}})
+            </option>
+          </select>
+          <div *ngIf="cifField?.invalid && (cifField?.dirty || cifField?.touched)" class="text-danger mt-1">
+            <small>CIF is required</small>
+          </div>
         </div>
       </div>
- 
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-primary" (click)="onSubmit(modal)" [disabled]="productForm.invalid || isSubmitting">
-      {{ isSubmitting ? 'Updating...' : 'Update Product' }}
-    </button>
-  </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid || isSubmitting">
+        <span *ngIf="!isSubmitting">Update Product</span>
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+  </form>
 </ng-template>
 <style>
  .card {
