@@ -1,6 +1,6 @@
 package com.prj.LoneHPManagement.model.dto;
 
-import com.prj.LoneHPManagement.model.entity.DealerProduct;
+//import com.prj.LoneHPManagement.model.entity.DealerProduct;
 import lombok.Getter;
 import lombok.Setter;
 

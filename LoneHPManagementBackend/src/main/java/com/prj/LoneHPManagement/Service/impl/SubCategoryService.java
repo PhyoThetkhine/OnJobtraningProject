@@ -1,5 +1,6 @@
 package com.prj.LoneHPManagement.Service.impl;
 
+import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import com.prj.LoneHPManagement.model.entity.MainCategory;
 import com.prj.LoneHPManagement.model.entity.SubCategory;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -25,74 +26,65 @@ public class SubCategoryService {
     private MainCategoryRepository mainCategoryRepository;
     public Page<SubCategory> getAllSubCategories(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return subCategoryRepository.findAll(pageable);
+        return subCategoryRepository.findAll(pageable); // Only active
     }
 
+    @Transactional
     public SubCategory createSubCategory(Integer mainCategoryId, SubCategory subCategory) {
         MainCategory mainCategory = mainCategoryRepository.findById(mainCategoryId)
-                .orElseThrow(() -> new RuntimeException("Main Category not found"));
+                .orElseThrow(() -> new ServiceException("Main Category not found with ID: " + mainCategoryId));
         subCategory.setMainCategory(mainCategory);
 
-        if(subCategoryRepository.findByCategory(subCategory.getCategory()) != null){
-            throw new ServiceException("Subcategory already exit");
+        if (subCategoryRepository.findByCategoryIgnoreCaseAndStatus(subCategory.getCategory(), ConstraintEnum.ACTIVE.getCode()) != null) {
+            throw new ServiceException("Subcategory '" + subCategory.getCategory() + "' already exists");
         }
-
-//        if(subCategoryRepository.findByCategoryIgnoreCase(subCategory.getCategory()) != null){
-//            throw new ServiceException("Subcategory already exit");
-//        }
 
         return subCategoryRepository.save(subCategory);
     }
 
-    public List<SubCategory> getAllCategory(){
-        return subCategoryRepository.findAll();
-    }
 
-    public SubCategory getCategoryById(Integer id){
-        return subCategoryRepository.findById(id).orElseThrow(() -> new ServiceException("Category not found"));
+    public SubCategory getCategoryById(Integer id) {
+        return subCategoryRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Subcategory not found with ID: " + id));
     }
 
     @Transactional
     public SubCategory updateSubCategory(Integer id, SubCategory updatedSubCategory) {
         SubCategory existingSubCategory = getCategoryById(id);
         existingSubCategory.setCategory(updatedSubCategory.getCategory());
+
         if (updatedSubCategory.getMainCategory() != null) {
-
             MainCategory mainCategory = mainCategoryRepository.findById(updatedSubCategory.getMainCategory().getId())
-                    .orElseThrow(() -> new ServiceException("Main Category not found"));
-
-
+                    .orElseThrow(() -> new ServiceException("Main Category not found with ID: " + updatedSubCategory.getMainCategory().getId()));
             existingSubCategory.setMainCategory(mainCategory);
         } else {
+            throw new ServiceException("Main Category must not be null");
+        }
 
-            throw new IllegalArgumentException("Main Category must not be null");
-        }        return subCategoryRepository.save(existingSubCategory);
+        if (subCategoryRepository.findByCategoryIgnoreCaseAndStatusAndIdNot(updatedSubCategory.getCategory(), ConstraintEnum.ACTIVE.getCode(), id) != null) {
+            throw new ServiceException("Subcategory '" + updatedSubCategory.getCategory() + "' already exists");
+        }
+
+        return subCategoryRepository.save(existingSubCategory);
     }
 
-//    @Transactional
-//    public void deleteSubCategory(Integer id) {
-//        SubCategory subCategory = getCategoryById(id);
-//        subCategoryRepository.save(subCategory);
-//    }
 
-//    @Transactional
-//    public void restoreSubCategory(Integer id) {
-//        SubCategory subCategory = getCategoryById(id);
-//        if (subCategory != null) {
-//            subCategoryRepository.save(subCategory);
-//        } else {
-//            throw new ServiceException("SubCategory not found with id " + id);
-//        }
-//    }
 
-//    public List<SubCategory>selectAllActiveSubCat(){
-//
-//        return subCategoryRepository.selectAllActiveSubCat();
-//    }
+    @Transactional
+    public void softDeleteSubCategory(Integer id) { // Renamed to match MainCategory
+        SubCategory subCategory = subCategoryRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Subcategory not found")); // Simplified lookup
+        subCategory.setStatus(ConstraintEnum.DELETED.getCode()); // Soft delete
+        subCategoryRepository.save(subCategory);
+    }
 
-//    public List<SubCategory> findByisDeleted(boolean isDeleted) {
-//
-//        return subCategoryRepository.findByisDeleted(isDeleted);
-//    }
-
+    @Transactional
+    public void activateSubCategory(Integer id) { // Changed from restoreSubCategory to activateSubCategory
+        SubCategory subCategory = getCategoryById(id);
+        if (subCategory.getStatus() == ConstraintEnum.ACTIVE.getCode()) {
+            throw new ServiceException("Subcategory is already active");
+        }
+        subCategory.setStatus(ConstraintEnum.ACTIVE.getCode());
+        subCategoryRepository.save(subCategory);
+    }
 }

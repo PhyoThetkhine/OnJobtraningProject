@@ -1,4 +1,5 @@
 package com.prj.LoneHPManagement.Service.impl;
+
 import com.prj.LoneHPManagement.model.entity.ConstraintEnum;
 import com.prj.LoneHPManagement.model.entity.MainCategory;
 import com.prj.LoneHPManagement.model.exception.ServiceException;
@@ -19,47 +20,79 @@ public class MainCatogoryService {
     @Autowired
     private MainCategoryRepository mainCategoryRepostirory;
 
-    public MainCategory createMainCat(MainCategory mainCategory){
-
-       return mainCategoryRepostirory.save(mainCategory);
+    @Transactional
+    public MainCategory createMainCat(MainCategory mainCategory) {
+        // Ensure the status is set to ACTIVE (13) if not provided or invalid
+        if (mainCategory.getStatus() == 0 || ConstraintEnum.fromCode(mainCategory.getStatus()) == null) {
+            mainCategory.setStatus(13); // Default to ACTIVE
+        }
+        // Check if the category already exists (case-insensitive)
+        MainCategory existingCategory = mainCategoryRepostirory.findByCategoryIgnoreCase(mainCategory.getCategory());
+        if (existingCategory != null) {
+            throw new ServiceException("Category '" + mainCategory.getCategory() + "' already exists");
+        }
+        return mainCategoryRepostirory.save(mainCategory);
     }
+
     public Page<MainCategory> getAllMainCategories(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return mainCategoryRepostirory.findAll(pageable);
     }
 
-//    public List<MainCategory> getAllCategory() {
-//
-//        return mainCategoryRepostirory.selectAllActiveMainCat();
-//    }
-
-    public MainCategory getCategoryById(Integer id){
-        return mainCategoryRepostirory.findById(id).orElseThrow(() -> new ServiceException("Category not found"));
+    public MainCategory getCategoryById(Integer id) {
+        return mainCategoryRepostirory.findById(id)
+                .orElseThrow(() -> new ServiceException("Category not found with ID: " + id));
     }
 
     @Transactional
-    public MainCategory updateCategory(Integer id,MainCategory mainCategory){
-            MainCategory mainCat = getCategoryById(id);
-            mainCat.setId(mainCategory.getId());
-            mainCat.setCategory(mainCategory.getCategory());
-            return mainCategoryRepostirory.save(mainCategory);
+    public MainCategory updateCategory(Integer id, String categoryName) {
+        MainCategory category = mainCategoryRepostirory.findById(id)
+                .orElseThrow(() -> new ServiceException("Category not found with ID: " + id));
+        // Check if the new category name already exists (case-insensitive)
+        MainCategory existingCategory = mainCategoryRepostirory.findByCategoryIgnoreCase(categoryName);
+        if (existingCategory != null && existingCategory.getId() != id) {
+            throw new ServiceException("Category '" + categoryName + "' already exists");
+        }
+        category.setCategory(categoryName);
+        return mainCategoryRepostirory.save(category);
     }
 
-//    @Transactional
-//    public void deleteMainCat(Integer id){
-//        MainCategory mainCat = getCategoryById(id);
-//       mainCat.setIsDelete(ConstraintEnum.TERMINATED.getCode());
-//        mainCategoryRepostirory.save(mainCat);
-//    }
+    public MainCategory showById(int id) {
+        return mainCategoryRepostirory.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
+    }
 
-//    public List<MainCategory>selectAllActiveMainCat(){
-//
-//        return mainCategoryRepostirory.selectAllActiveMainCat();
-//    }
+    public void softDeleteMainCategory(int id) {
+        MainCategory category = mainCategoryRepostirory.findById(id)
+                .orElseThrow(() -> new ServiceException("Main category not found"));
 
-//    public List<MainCategory> findByisDeleted(boolean isDeleted) {
-//
-//        return mainCategoryRepostirory.findByisDeleted(isDeleted);
-//    }
+        category.setStatus(ConstraintEnum.DELETED.getCode()); // Soft delete
+        mainCategoryRepostirory.save(category);
+    }
+
+    public List<MainCategory> findByStatus(int status) {
+        // Validate the status code
+        if (ConstraintEnum.fromCode(status) == null) {
+            throw new ServiceException("Invalid status code: " + status);
+        }
+        return mainCategoryRepostirory.findByStatus(status);
+    }
+
+    @Transactional
+    public void activateMainCategory(int id) throws ServiceException {
+        MainCategory category = mainCategoryRepostirory.findById(id)
+                .orElseThrow(() -> new ServiceException("Main category not found with ID: " + id));
+
+        // Check if category is already active
+        if (category.getStatus() == ConstraintEnum.ACTIVE.getCode()) {
+            throw new ServiceException("Category is already active");
+        }
+
+        // Activate the category
+        category.setStatus(ConstraintEnum.ACTIVE.getCode());
+        mainCategoryRepostirory.save(category);
+    }
+
+
+
 }
-

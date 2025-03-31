@@ -1,7 +1,7 @@
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h2 class="mb-0">Products</h2>
+    <h2 class="mb-0">Products {{ cifId ? 'for CIF ID: ' + cifId : '' }}</h2>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a routerLink="/dashboard">Dashboard</a></li>
@@ -12,6 +12,12 @@
   <button class="btn btn-primary d-flex align-items-center" (click)="openAddModal(addProductModal)">
     <i class="bi bi-plus-lg me-2"></i>Add Product
   </button>
+</div>
+
+<!-- CIF Filter -->
+<div class="mb-3">
+  <label for="cifId" class="form-label">Filter by CIF ID</label>
+  <input type="number" class="form-control w-25" id="cifId" [(ngModel)]="cifId" (ngModelChange)="setCifId(cifId)" placeholder="Enter CIF ID">
 </div>
 
 <!-- Loading State -->
@@ -41,7 +47,7 @@
           <span class="input-group-text bg-light border-end-0">
             <i class="bi bi-search text-muted"></i>
           </span>
-          <input type="text" class="form-control border-start-0 ps-0" placeholder="Search products...">
+          <input type="text" class="form-control border-start-0 ps-0" placeholder="Search products..." (input)="loadProducts()">
         </div>
       </div>
     </div>
@@ -52,11 +58,12 @@
       <table class="table table-hover align-middle mb-0">
         <thead class="bg-light">
           <tr>
-            <th class="border-0 rounded-start ps-4" style="width: 80px;">ID</th>
-            <th class="border-0">Product Name</th>
-            <th class="border-0">Price</th>
-            <th class="border-0">Category</th>
-            <th class="border-0">Company</th>
+            <th class="border-0 rounded-start ps-4" style="width: 80px;" (click)="onSortChange('id')">ID {{ sortBy === 'id' ? '↓' : '' }}</th>
+            <th class="border-0" (click)="onSortChange('name')">Product Name {{ sortBy === 'name' ? '↓' : '' }}</th>
+            <th class="border-0" (click)="onSortChange('price')">Price {{ sortBy === 'price' ? '↓' : '' }}</th>
+            <th class="border-0">Description</th>
+            <th class="border-0">SubCategory</th>
+            <th class="border-0">CIF ID</th>
             <th class="border-0">Created Date</th>
             <th class="border-0 rounded-end text-end pe-4" style="width: 120px;">Actions</th>
           </tr>
@@ -76,15 +83,18 @@
               <span class="badge bg-success">{{ product.price | currency }}</span>
             </td>
             <td>
+              <span class="text-muted">{{ product.description }}</span>
+            </td>
+            <td>
               <div class="d-flex align-items-center">
                 <i class="bi bi-tag text-muted me-2"></i>
-                <span class="text-muted">{{ product.subCategory.category }}</span>
+                <span class="text-muted">{{ product.subCategory?.name || 'N/A' }}</span>
               </div>
             </td>
             <td>
               <div class="d-flex align-items-center">
-                <i class="bi bi-building text-muted me-2"></i>
-                <span class="text-muted">{{ product.company.name }}</span>
+                <i class="bi bi-person text-muted me-2"></i>
+                <span class="text-muted">{{ product.cif?.id || 'N/A' }}</span>
               </div>
             </td>
             <td>
@@ -95,7 +105,7 @@
                 <button class="btn btn-sm btn-outline-primary" title="Edit" (click)="openEditModal(editProductModal, product)">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="deleteProduct(product.id)">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -119,7 +129,7 @@
   </div>
 
   <!-- Pagination Footer -->
-  <div class="card-footer bg-white py-3" *ngIf="products.length > 0">
+  <div class="card-footer bg-white py-3" *ngIf="products.length > 0 && !cifId">
     <div class="row align-items-center">
       <div class="col">
         <small class="text-muted">
@@ -130,8 +140,7 @@
         <nav aria-label="Products pagination">
           <ul class="pagination pagination-sm mb-0">
             <li class="page-item" [class.disabled]="currentPage === 0">
-              <a class="page-link" href="javascript:void(0)" 
-                 (click)="onPageChange(currentPage - 1)">
+              <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">
                 <i class="bi bi-chevron-left small"></i>
               </a>
             </li>
@@ -141,8 +150,7 @@
               </span>
             </li>
             <li class="page-item" [class.disabled]="currentPage >= totalPages - 1">
-              <a class="page-link" href="javascript:void(0)" 
-                 (click)="onPageChange(currentPage + 1)">
+              <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">
                 <i class="bi bi-chevron-right small"></i>
               </a>
             </li>
@@ -162,12 +170,58 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    <!-- Product form will be added here -->
-    <p class="text-muted">Product form coming soon...</p>
+  
+      <div class="mb-3">
+        <label for="addName" class="form-label">Product Name</label>
+        <input type="text" class="form-control" id="addName" formControlName="name" [class.is-invalid]="nameField?.touched && nameField?.invalid">
+        <div *ngIf="nameField?.touched && nameField?.invalid" class="invalid-feedback">
+          <div *ngIf="nameField?.errors?.['required']">Name is required.</div>
+          <div *ngIf="nameField?.errors?.['maxlength']">Name must be 50 characters or less.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="addPrice" class="form-label">Price</label>
+        <input type="number" class="form-control" id="addPrice" formControlName="price" [class.is-invalid]="priceField?.touched && priceField?.invalid">
+        <div *ngIf="priceField?.touched && priceField?.invalid" class="invalid-feedback">
+          <div *ngIf="priceField?.errors?.['required']">Price is required.</div>
+          <div *ngIf="priceField?.errors?.['min']">Price must be positive.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="addDescription" class="form-label">Description</label>
+        <textarea class="form-control" id="addDescription" formControlName="description" [class.is-invalid]="descriptionField?.touched && descriptionField?.invalid"></textarea>
+        <div *ngIf="descriptionField?.touched && descriptionField?.invalid" class="invalid-feedback">
+          <div *ngIf="descriptionField?.errors?.['required']">Description is required.</div>
+          <div *ngIf="descriptionField?.errors?.['maxlength']">Description must be 255 characters or less.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="addSubCategory" class="form-label">SubCategory</label>
+        <select class="form-select" id="addSubCategory" formControlName="subCategoryId" [class.is-invalid]="subCategoryField?.touched && subCategoryField?.invalid">
+          <option [value]="null" disabled>Select SubCategory</option>
+          <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">{{ subCategory.name }}</option>
+        </select>
+        <div *ngIf="subCategoryField?.touched && subCategoryField?.invalid" class="invalid-feedback">
+          SubCategory is required.
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="addCif" class="form-label">CIF</label>
+        <select class="form-select" id="addCif" formControlName="cifId" [class.is-invalid]="cifField?.touched && cifField?.invalid">
+          <option [value]="null" disabled>Select CIF</option>
+          <option *ngFor="let cif of cifs" [value]="cif.id">{{ cif.name }}</option>
+        </select>
+        <div *ngIf="cifField?.touched && cifField?.invalid" class="invalid-feedback">
+          CIF is required.
+        </div>
+      </div>
+  
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-primary">Save Product</button>
+    <button type="button" class="btn btn-primary" (click)="onSubmit(modal)" [disabled]="productForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Saving...' : 'Save Product' }}
+    </button>
   </div>
 </ng-template>
 
@@ -180,17 +234,52 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    <!-- Product form will be added here -->
-    <p class="text-muted">Edit form coming soon...</p>
+  
+      <div class="mb-3">
+        <label for="editName" class="form-label">Product Name</label>
+        <input type="text" class="form-control" id="editName" formControlName="name" [class.is-invalid]="nameField?.touched && nameField?.invalid">
+        <div *ngIf="nameField?.touched && nameField?.invalid" class="invalid-feedback">
+          <div *ngIf="nameField?.errors?.['required']">Name is required.</div>
+          <div *ngIf="nameField?.errors?.['maxlength']">Name must be 50 characters or less.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="editPrice" class="form-label">Price</label>
+        <input type="number" class="form-control" id="editPrice" formControlName="price" [class.is-invalid]="priceField?.touched && priceField?.invalid">
+        <div *ngIf="priceField?.touched && priceField?.invalid" class="invalid-feedback">
+          <div *ngIf="priceField?.errors?.['required']">Price is required.</div>
+          <div *ngIf="priceField?.errors?.['min']">Price must be positive.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="editDescription" class="form-label">Description</label>
+        <textarea class="form-control" id="editDescription" formControlName="description" [class.is-invalid]="descriptionField?.touched && descriptionField?.invalid"></textarea>
+        <div *ngIf="descriptionField?.touched && descriptionField?.invalid" class="invalid-feedback">
+          <div *ngIf="descriptionField?.errors?.['required']">Description is required.</div>
+          <div *ngIf="descriptionField?.errors?.['maxlength']">Description must be 255 characters or less.</div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="editSubCategory" class="form-label">SubCategory</label>
+        <select class="form-select" id="editSubCategory" formControlName="subCategoryId" [class.is-invalid]="subCategoryField?.touched && subCategoryField?.invalid">
+          <option [value]="null" disabled>Select SubCategory</option>
+          <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">{{ subCategory.name }}</option>
+        </select>
+        <div *ngIf="subCategoryField?.touched && subCategoryField?.invalid" class="invalid-feedback">
+          SubCategory is required.
+        </div>
+      </div>
+ 
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-primary">Update Product</button>
+    <button type="button" class="btn btn-primary" (click)="onSubmit(modal)" [disabled]="productForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Updating...' : 'Update Product' }}
+    </button>
   </div>
 </ng-template>
-
 <style>
-.card {
+ .card {
   border: none;
   border-radius: 0.75rem;
 }
@@ -200,6 +289,7 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.5px;
+  cursor: pointer;
 }
 
 .table td {
@@ -228,18 +318,22 @@
 }
 
 .card-header {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card-footer {
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-header {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-footer {
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.w-25 {
+  width: 25% !important;
 }
 </style>

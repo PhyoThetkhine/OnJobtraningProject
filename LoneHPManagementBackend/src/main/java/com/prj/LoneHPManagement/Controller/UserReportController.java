@@ -56,25 +56,44 @@ public class UserReportController {
     }
     @GetMapping("/users/pdf")
     public ResponseEntity<Resource> getUserPdfReport(
-            ) throws JRException {
-        ByteArrayOutputStream reportStream = userReportService.generateAllUsersPdfReport();
+            @RequestParam(value = "status", required = false) String status) throws JRException {
+        System.out.println("Generating PDF report for status: " + (status != null ? status : "all"));
+
+        ByteArrayOutputStream reportStream = status != null
+                ? userReportService.generateUsersPdfReportByStatus(status)
+                : userReportService.generateAllUsersPdfReport();
+
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=user_report.pdf");
+        String filename = status != null ? "user_report_" + status.toLowerCase() + ".pdf" : "user_report.pdf";
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
         headers.setContentType(MediaType.APPLICATION_PDF);
+
         ByteArrayResource resource = new ByteArrayResource(reportStream.toByteArray());
+        System.out.println("PDF report size: " + reportStream.size() + " bytes");
+
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(reportStream.size())
                 .body(resource);
     }
+
     @GetMapping("/users/excel")
-    public ResponseEntity<Resource> getUserExcelRepor(
-          ) throws JRException {
-        ByteArrayOutputStream reportStream = userReportService.generateAllUsersExcelReport();
+    public ResponseEntity<Resource> getUserExcelReport(
+            @RequestParam(value = "status", required = false) String status) throws JRException {
+        System.out.println("Generating Excel report for status: " + (status != null ? status : "all"));
+
+        ByteArrayOutputStream reportStream = status != null
+                ? userReportService.generateUsersExcelReportByStatus(status)
+                : userReportService.generateAllUsersExcelReport();
+
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=user_report.xls");
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        String filename = status != null ? "user_report_" + status.toLowerCase() + ".xlsx" : "user_report.xlsx";
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+
         ByteArrayResource resource = new ByteArrayResource(reportStream.toByteArray());
+        System.out.println("Excel report size: " + reportStream.size() + " bytes");
+
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(reportStream.size())

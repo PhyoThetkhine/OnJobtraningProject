@@ -5,13 +5,12 @@ import com.prj.LoneHPManagement.Service.impl.SubCategoryService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
 import com.prj.LoneHPManagement.model.entity.SubCategory;
+import com.prj.LoneHPManagement.model.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/subCategory")
@@ -53,37 +52,40 @@ public class SubCategoryController {
     public ResponseEntity<SubCategory> createSubCategory(
             @PathVariable Integer mainCategoryId,
             @RequestBody SubCategory subCategory) {
-
-        SubCategory createdSubCategory = subCategoryService.createSubCategory(
-               mainCategoryId, subCategory
-        );
+        SubCategory createdSubCategory = subCategoryService.createSubCategory(mainCategoryId, subCategory);
         return new ResponseEntity<>(createdSubCategory, HttpStatus.CREATED);
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<List<SubCategory>> getAllSubCategories() {
-        return ResponseEntity.ok(subCategoryService.getAllCategory());
-    }
-
-    @GetMapping("/{id}")
+    @GetMapping("/list/{id}")
     public ResponseEntity<SubCategory> getSubCategoryById(@PathVariable Integer id) {
         return ResponseEntity.ok(subCategoryService.getCategoryById(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<SubCategory> updateSubCategory(@PathVariable Integer id, @RequestBody SubCategory subCategory) {
         return ResponseEntity.ok(subCategoryService.updateSubCategory(id, subCategory));
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteSubCategory(@PathVariable Integer id) {
-//        subCategoryService.deleteSubCategory(id);
-//        return ResponseEntity.ok("SubCategory deleted successfully");
-//    }
-//
-//    @PutMapping("/restore/{id}")
-//    public ResponseEntity<String> restoreSubCategory(@PathVariable Integer id) {
-//        subCategoryService.restoreSubCategory(id);
-//        return ResponseEntity.ok("SubCategory restored successfully");
-//    }
+    @PutMapping("/delete/{id}")
+    public ResponseEntity<?> softDeleteSubCategory(@PathVariable Integer id) { // Changed to match MainCategory naming
+        try {
+            subCategoryService.softDeleteSubCategory(id); // Updated method name
+            ApiResponse<String> response = ApiResponse.success(HttpStatus.OK.value(), "Subcategory soft deleted successfully", "Soft Deleted");
+            return ResponseEntity.ok(response);
+        } catch (ServiceException e) {
+            ApiResponse<String> errorResponse = ApiResponse.error(HttpStatus.NOT_FOUND.value(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse); // Changed to NOT_FOUND
+        }
+    }
+
+    @PutMapping("/activate/{id}") // Changed from /restore to /activate
+    public ResponseEntity<ApiResponse<String>> activateSubCategory(@PathVariable Integer id) {
+        try {
+            subCategoryService.activateSubCategory(id); // Changed method name
+            return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Subcategory activated successfully", "Activated")); // Updated message
+        } catch (ServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+        }
+    }
 }

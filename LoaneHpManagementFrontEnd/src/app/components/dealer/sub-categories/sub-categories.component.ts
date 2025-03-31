@@ -27,6 +27,8 @@ export class SubCategoriesComponent implements OnInit {
   categoryForm: FormGroup;
   isSubmitting = false;
   editingCategory: SubCategory | null = null;
+confirmAction: any;
+confirmCategory: any;
 
   constructor(
     private subCategoryService: SubCategoryService,
@@ -49,7 +51,6 @@ export class SubCategoriesComponent implements OnInit {
   loadCategories(page: number = 0) {
     this.loading = true;
     this.error = null;
-
     this.subCategoryService.getAllSubCategories(page, this.pageSize)
       .subscribe({
         next: (response) => {
@@ -60,22 +61,20 @@ export class SubCategoriesComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading sub categories:', error);
-          this.error = 'Failed to load sub categories';
+          this.error = 'Failed to load subcategories';
           this.loading = false;
-          this.toastr.error('Failed to load sub categories');
+          this.toastr.error('Failed to load subcategories');
         }
       });
   }
 
   loadMainCategories() {
-    this.mainCategoryService.getAllMainCategories(0, 100)
+    this.mainCategoryService.getAllMainCategories(0, 1000)
       .subscribe({
         next: (response) => {
-          this.mainCategories = response.content;
+          this.mainCategories = response.content.filter(mc => mc.status === 'active');
         },
         error: (error) => {
-          console.error('Error loading main categories:', error);
           this.toastr.error('Failed to load main categories');
         }
       });
@@ -96,75 +95,80 @@ export class SubCategoriesComponent implements OnInit {
   openEditModal(content: any, category: SubCategory) {
     this.editingCategory = category;
     this.categoryForm.patchValue({
-      category: category.category,
-      mainCategoryId: category.mainCategory.id
+      mainCategoryId: category.mainCategory.id,
+      category: category.category
     });
     this.modalService.open(content, { centered: true });
   }
 
+  openConfirmModal(content: any, category: SubCategory, action: 'delete' | 'activate') {
+    this.confirmCategory = category;
+    this.confirmAction = action;
+    this.modalService.open(content, { centered: true });
+  }
+
   onSubmit() {
-    if (this.categoryForm.invalid || this.isSubmitting) {
-      return;
-    }
+    if (this.categoryForm.invalid || this.isSubmitting) return;
 
-    const categoryName = this.categoryForm.get('category')?.value;
-    const mainCategoryId = this.categoryForm.get('mainCategoryId')?.value;
-    
-    // Check for duplicates, excluding the current category if editing
-    const isDuplicate = this.categories.some(
-      cat => cat.category.toLowerCase() === categoryName.toLowerCase() &&
-             (!this.editingCategory || cat.id !== this.editingCategory.id)
-    );
-
-    if (isDuplicate) {
-      this.toastr.error('Category name already exists');
-      return;
-    }
-
+    const { mainCategoryId, category } = this.categoryForm.value;
     this.isSubmitting = true;
-    
+
     if (this.editingCategory) {
-      // Update existing category
-      this.subCategoryService.updateSubCategory(this.editingCategory.id, categoryName, mainCategoryId)
+      this.subCategoryService.updateSubCategory(this.editingCategory.id, category, mainCategoryId)
         .subscribe({
           next: () => {
-            this.toastr.success('Sub category updated successfully');
+            this.toastr.success('Subcategory updated successfully');
             this.modalService.dismissAll();
             this.loadCategories(this.currentPage);
             this.isSubmitting = false;
             this.editingCategory = null;
           },
           error: (error) => {
-            console.error('Error updating sub category:', error);
-            this.toastr.error('Failed to update sub category');
+            this.toastr.error('Failed to update subcategory');
             this.isSubmitting = false;
           }
         });
     } else {
-      // Create new category
-      this.subCategoryService.createSubCategory(categoryName, mainCategoryId)
+      this.subCategoryService.createSubCategory(mainCategoryId, category)
         .subscribe({
           next: () => {
-            this.toastr.success('Sub category added successfully');
+            this.toastr.success('Subcategory added successfully');
             this.modalService.dismissAll();
             this.loadCategories(this.currentPage);
             this.isSubmitting = false;
           },
           error: (error) => {
-            console.error('Error creating sub category:', error);
-            this.toastr.error('Failed to create sub category');
+            this.toastr.error('Failed to create subcategory');
             this.isSubmitting = false;
           }
         });
     }
   }
 
-  // Helper methods for form validation
-  get categoryField() {
-    return this.categoryForm.get('category');
+  confirmToggleStatus() {
+    if (!this.confirmCategory || !this.confirmAction) return;
+
+    const isDeleting = this.confirmAction === 'delete';
+    const request = isDeleting
+      ? this.subCategoryService.deleteSubCategory(this.confirmCategory.id)
+      : this.subCategoryService.activateSubCategory(this.confirmCategory.id);
+
+    request.subscribe({
+      next: (response) => {
+        this.toastr.success(`Subcategory ${isDeleting ? 'deleted' : 'activated'} successfully`);
+        this.loadCategories(this.currentPage);
+      },
+      error: (error) => {
+        this.toastr.error(`Failed to ${isDeleting ? 'delete' : 'activate'} subcategory`);
+      }
+    });
   }
 
   get mainCategoryField() {
     return this.categoryForm.get('mainCategoryId');
+  }
+
+  get categoryField() {
+    return this.categoryForm.get('category');
   }
 }

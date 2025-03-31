@@ -1,5 +1,7 @@
 package com.prj.LoneHPManagement.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +25,10 @@ public class SubCategory {
     @JoinColumn(name = "main_category_id", nullable = false)
     private MainCategory mainCategory;
 
+    @Column(name = "status", nullable = false)
+    @JsonIgnore
+    private int status;
+
     public int getId() {
         return id;
     }
@@ -45,5 +51,16 @@ public class SubCategory {
 
     public void setMainCategory(MainCategory mainCategory) {
         this.mainCategory = mainCategory;
+    }
+
+    @JsonProperty("status")
+    public String getStatusDescription() {
+        ConstraintEnum constraint = ConstraintEnum.fromCode(status);
+        return constraint != null ? constraint.getDescription() : "unknown";
+    }
+
+    @PrePersist
+    protected void prePersist() {
+        if (status == 0) status = ConstraintEnum.ACTIVE.getCode(); // Default to ACTIVE (13)
     }
 }

@@ -7,9 +7,9 @@ export interface DealerProduct {
   name: string;
   price: number;
   description: string;
-  subCategory: SubCategory;
-  company: Company;
-  createdUser: User;
-  createdDate: string;
-  updatedDate: string;
+  subCategory: any; // Replace with proper SubCategory type
+  cif: any; // Replace with proper CIF type
+  createdUser: any; // Replace with proper User type
+  createdDate: string | null;
+  updatedDate: string | null;
 } 

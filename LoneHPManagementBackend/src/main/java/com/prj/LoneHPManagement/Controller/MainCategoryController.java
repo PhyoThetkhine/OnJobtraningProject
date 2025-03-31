@@ -5,6 +5,7 @@ import com.prj.LoneHPManagement.Service.impl.MainCatogoryService;
 import com.prj.LoneHPManagement.model.dto.ApiResponse;
 import com.prj.LoneHPManagement.model.dto.PagedResponse;
 import com.prj.LoneHPManagement.model.entity.MainCategory;
+import com.prj.LoneHPManagement.model.exception.ServiceException;
 import com.prj.LoneHPManagement.model.repo.MainCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mainCategory")
@@ -63,17 +65,41 @@ public class MainCategoryController {
 //    }
 
 
-    @PutMapping("/{id}")
-    public MainCategory updateMainCat(@PathVariable Integer id, @RequestBody MainCategory mainCategory) {
-        return mainCatogoryService.updateCategory(id, mainCategory);
+    @PutMapping("/update/{id}")
+    public MainCategory updateMainCat(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        String categoryName = payload.get("category");
+        return mainCatogoryService.updateCategory(id, categoryName); // Assume this method accepts a String
     }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteMainCat(@PathVariable Integer id) {
-//        mainCatogoryService.deleteMainCat(id);
-//        return ResponseEntity.ok("Category deleted successfully");
-//    }
 
+    @PutMapping("/delete/{id}")
+    public ResponseEntity<?> softDeleteMainCategory(@PathVariable int id) {
+        try {
+            mainCatogoryService.softDeleteMainCategory(id);
+            ApiResponse<String> response = ApiResponse.success(HttpStatus.OK.value(), "Main category soft deleted successfully", "Soft Deleted");
+            return ResponseEntity.ok(response);
+        } catch (ServiceException e) {
+            ApiResponse<String> errorResponse = ApiResponse.error(HttpStatus.NOT_FOUND.value(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+    }
 
+    @PutMapping("/activate/{id}")
+    public ResponseEntity<ApiResponse<String>> activateMainCategory(@PathVariable int id) {
+        try {
+            mainCatogoryService.activateMainCategory(id);
+            ApiResponse<String> response = ApiResponse.success(
+                    HttpStatus.OK.value(),
+                    "Main category activated successfully",
+                    "Activated"
+            );
+            return ResponseEntity.ok(response);
+        } catch (ServiceException e) {
+            ApiResponse<String> errorResponse = ApiResponse.error(
+                    HttpStatus.NOT_FOUND.value(),
+                    e.getMessage()
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+    }
 
 }

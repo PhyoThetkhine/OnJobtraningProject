@@ -55,6 +55,7 @@
             <th class="border-0 rounded-start ps-4" style="width: 80px;">ID</th>
             <th class="border-0">Category Name</th>
             <th class="border-0">Main Category</th>
+            <th class="border-0">Status</th>
             <th class="border-0 rounded-end text-end pe-4" style="width: 120px;">Actions</th>
           </tr>
         </thead>
@@ -75,14 +76,33 @@
                 <span>{{ category.mainCategory.category }}</span>
               </div>
             </td>
+            <td>
+              <span class="badge" [ngClass]="category.status === 'active' ? 'bg-success' : 'bg-danger'">
+                {{ category.status | titlecase }}
+              </span>
+            </td>
             <td class="text-end pe-4">
-              <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary" title="Edit" (click)="openEditModal(categoryModal, category)">
-                  <i class="bi bi-pencil"></i>
+              <div class="dropdown">
+                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0)" (click)="openEditModal(categoryModal, category)">
+                      <i class="bi bi-pencil me-2"></i>Edit
+                    </a>
+                  </li>
+                  <li *ngIf="category.status === 'active'">
+                    <a class="dropdown-item text-danger" href="javascript:void(0)" (click)="openConfirmModal(confirmModal, category, 'delete')">
+                      <i class="bi bi-trash me-2"></i>Delete
+                    </a>
+                  </li>
+                  <li *ngIf="category.status === 'deleted'">
+                    <a class="dropdown-item text-success" href="javascript:void(0)" (click)="openConfirmModal(confirmModal, category, 'activate')">
+                      <i class="bi bi-arrow-clockwise me-2"></i>Activate
+                    </a>
+                  </li>
+                </ul>
               </div>
             </td>
           </tr>
@@ -196,6 +216,37 @@
       </button>
     </div>
   </form>
+</ng-template>
+
+<!-- Confirmation Modal -->
+<ng-template #confirmModal let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      <i class="bi" [ngClass]="confirmAction === 'delete' ? 'bi-trash text-danger' : 'bi-arrow-clockwise text-success'"></i>
+      <span class="ms-2">{{ confirmAction === 'delete' ? 'Delete' : 'Activate' }} Sub Category</span>
+    </h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body text-center">
+    <p class="mb-3">
+      Are you sure you want to {{ confirmAction }} the subcategory "<strong>{{ confirmCategory?.category }}</strong>"?
+    </p>
+    <p class="text-muted small">
+      {{ confirmAction === 'delete' ? 'This will mark it as deleted without removing it permanently.' : 'This will restore it to active status.' }}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button 
+      type="button" 
+      class="btn d-flex align-items-center" 
+      [ngClass]="confirmAction === 'delete' ? 'btn-danger' : 'btn-success'"
+      (click)="confirmToggleStatus(); modal.dismiss()"
+    >
+      <i class="bi me-2" [ngClass]="confirmAction === 'delete' ? 'bi-trash' : 'bi-check-circle'"></i>
+      {{ confirmAction === 'delete' ? 'Delete' : 'Activate' }}
+    </button>
+  </div>
 </ng-template>
 
 <style>

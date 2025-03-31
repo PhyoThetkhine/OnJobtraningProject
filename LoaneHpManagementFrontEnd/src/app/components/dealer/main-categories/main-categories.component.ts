@@ -24,6 +24,8 @@ export class MainCategoriesComponent implements OnInit {
   categoryForm: FormGroup;
   isSubmitting = false;
   editingCategory: MainCategory | null = null;
+  confirmCategory: MainCategory | null = null;
+  confirmAction: 'delete' | 'activate' | null = null;
 
   constructor(
     private mainCategoryService: MainCategoryService,
@@ -36,11 +38,11 @@ export class MainCategoriesComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadCategories();
   }
 
-  loadCategories(page: number = 0) {
+  loadCategories(page: number = 0): void {
     this.loading = true;
     this.error = null;
 
@@ -62,19 +64,19 @@ export class MainCategoriesComponent implements OnInit {
       });
   }
 
-  onPageChange(page: number) {
+  onPageChange(page: number): void {
     if (page >= 0 && page < this.totalPages) {
       this.loadCategories(page);
     }
   }
 
-  openAddModal(content: any) {
+  openAddModal(content: any): void {
     this.editingCategory = null;
     this.categoryForm.reset();
     this.modalService.open(content, { centered: true });
   }
 
-  openEditModal(content: any, category: MainCategory) {
+  openEditModal(content: any, category: MainCategory): void {
     this.editingCategory = category;
     this.categoryForm.patchValue({
       category: category.category
@@ -82,13 +84,13 @@ export class MainCategoriesComponent implements OnInit {
     this.modalService.open(content, { centered: true });
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.categoryForm.invalid || this.isSubmitting) {
       return;
     }
 
     const categoryName = this.categoryForm.get('category')?.value;
-    
+
     // Check for duplicates, excluding the current category if editing
     const isDuplicate = this.categories.some(
       cat => cat.category.toLowerCase() === categoryName.toLowerCase() &&
@@ -101,7 +103,7 @@ export class MainCategoriesComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    
+
     if (this.editingCategory) {
       // Update existing category
       this.mainCategoryService.updateMainCategory(this.editingCategory.id, categoryName)
@@ -138,7 +140,44 @@ export class MainCategoriesComponent implements OnInit {
     }
   }
 
-  // Helper method for form validation
+  openConfirmModal(content: any, category: MainCategory, action: 'delete' | 'activate'): void {
+    this.confirmCategory = category;
+    this.confirmAction = action;
+    this.modalService.open(content, { centered: true });
+  }
+
+  confirmToggleStatus(): void {
+    if (!this.confirmCategory || !this.confirmAction) return;
+
+    const isDeleting = this.confirmAction === 'delete';
+    const request = isDeleting
+      ? this.mainCategoryService.softDelete(this.confirmCategory.id)
+      : this.mainCategoryService.activate(this.confirmCategory.id);
+
+    request.subscribe({
+      next: () => {
+        this.toastr.success(`Category ${isDeleting ? 'soft-deleted' : 'activated'} successfully`);
+        this.loadCategories(this.currentPage);
+      },
+      error: (error) => {
+        console.error(`Error ${isDeleting ? 'soft-deleting' : 'activating'} category:`, error);
+        this.toastr.error(`Failed to ${isDeleting ? 'soft-delete' : 'activate'} category`);
+      }
+    });
+  }
+
+  getStatusBadgeClass(status: string): string {
+    return status === 'active' ? 'bg-success' : 'bg-danger';
+  }
+
+  canDelete(category: MainCategory): boolean {
+    return category.status === 'active';
+  }
+
+  canActivate(category: MainCategory): boolean {
+    return category.status === 'deleted';
+  }
+
   get categoryField() {
     return this.categoryForm.get('category');
   }

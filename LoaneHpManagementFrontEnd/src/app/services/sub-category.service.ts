@@ -31,21 +31,22 @@ export class SubCategoryService {
       );
   }
 
-  createSubCategory(category: string, mainCategoryId: number): Observable<SubCategory> {
-    return this.http.post<ApiResponse<SubCategory>>(`${this.apiUrl}/create`, { 
-      category,
-      mainCategoryId
-    }).pipe(
-      map(response => response.data)
-    );
+  createSubCategory(mainCategoryId: number, category: string): Observable<SubCategory> {
+    return this.http.post<SubCategory>(`${this.apiUrl}/createSubCat/${mainCategoryId}`, { category });
   }
 
   updateSubCategory(id: number, category: string, mainCategoryId: number): Observable<SubCategory> {
-    return this.http.put<ApiResponse<SubCategory>>(`${this.apiUrl}/update/${id}`, {
+    const payload = {
       category,
-      mainCategoryId
-    }).pipe(
-      map(response => response.data)
-    );
+      mainCategory: { id: mainCategoryId } // Backend expects a nested MainCategory object
+    };
+    return this.http.put<SubCategory>(`${this.apiUrl}/update/${id}`, payload);
   }
+
+  deleteSubCategory(id: number): Observable<ApiResponse<string>> {
+    return this.http.put<ApiResponse<string>>(`${this.apiUrl}/delete/${id}`, null);
+}
+activateSubCategory(id: number): Observable<ApiResponse<string>> {
+    return this.http.put<ApiResponse<string>>(`${this.apiUrl}/activate/${id}`, null);
+}
 } 

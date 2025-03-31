@@ -32,16 +32,30 @@ export class MainCategoryService {
   }
 
   createMainCategory(category: string): Observable<MainCategory> {
-    return this.http.post<ApiResponse<MainCategory>>(`${this.apiUrl}/create`, { category })
+    return this.http.post<ApiResponse<MainCategory>>(`${this.apiUrl}/createMainCat`, { category })
       .pipe(
         map(response => response.data)
       );
   }
 
   updateMainCategory(id: number, category: string): Observable<MainCategory> {
-    return this.http.put<ApiResponse<MainCategory>>(`${this.apiUrl}/update/${id}`, { category })
+    const payload = { id, category }; // Construct full object
+    return this.http.put<ApiResponse<MainCategory>>(`${this.apiUrl}/update/${id}`, payload)
       .pipe(
         map(response => response.data)
       );
   }
+
+  softDelete(id: number): Observable<ApiResponse<string>> {
+    return this.http.put<ApiResponse<string>>(`${this.apiUrl}/delete/${id}`, null, { observe: 'body' });
+}
+
+activate(id: number): Observable<ApiResponse<string>> {
+    return this.http.put<ApiResponse<string>>(`${this.apiUrl}/activate/${id}`, null);
+}
+
+
+
+
+
 } 

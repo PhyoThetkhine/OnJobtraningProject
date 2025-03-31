@@ -69,3 +69,22 @@
 .user-row:hover {
   background-color: #f8f9fa;
 }
+
+.btn-outline-success:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn i {
+  margin-right: 5px;
+}
+
+.input-group .form-select,
+.input-group .form-control {
+  border-radius: 0.25rem;
+}
