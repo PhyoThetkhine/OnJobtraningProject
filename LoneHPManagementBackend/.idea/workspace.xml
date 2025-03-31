@@ -8,6 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
+    <list default="true" id="95df5b7e-6fb4-4747-94de-9146727b615a" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,16 +71,25 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.LoneHpManagementApplication.executor": "Run",
+<<<<<<< HEAD
     "git-widget-placeholder": "code",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/OJT project/OnJobtraningProject/LoneHPManagementBackend",
+=======
+    "git-widget-placeholder": "APM",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/PhyoThetKhineDir/Project/OnJobtraningProject/LoneHPManagementBackend",
+>>>>>>> APM
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "reference.projectsettings.compiler.annotationProcessors",
+<<<<<<< HEAD
     "spring.configuration.checksum": "5253e38dac09cd3d3c3f1d5c019653f0",
+=======
+>>>>>>> APM
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -206,6 +216,7 @@
           <line>46</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
+<<<<<<< HEAD
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java</url>
           <line>50</line>
@@ -627,6 +638,8 @@
           </properties>
           <option name="timeStamp" value="82" />
         </line-breakpoint>
+=======
+>>>>>>> APM
       </breakpoints>
     </breakpoint-manager>
   </component>
