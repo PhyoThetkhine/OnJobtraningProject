@@ -18,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/companies")
+@CrossOrigin(origins = "http://localhost:4200")
 public class CompanyController {
     @Autowired
     private CompanyService companyService;
@@ -92,18 +93,13 @@ public class CompanyController {
 
     // ✅ Update company by ID
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<Company>> updateCompany(
-            @PathVariable int id,
-            @RequestBody CompanyDTO companyDTO
-    ) {
-        Company updatedCompany = companyService.updateCompany(id, companyDTO);
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        HttpStatus.OK.value(),
-                        "Company updated successfully",
-                        updatedCompany
-                )
-        );
+    public ResponseEntity<?> updateCompany(@PathVariable int id, @RequestBody CompanyDTO companyDTO) {
+        try {
+            Company updatedCompany = companyService.updateCompany(id, companyDTO);
+            return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Company updated successfully", updatedCompany).getData());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
     }
 
     // ✅ Delete company by ID

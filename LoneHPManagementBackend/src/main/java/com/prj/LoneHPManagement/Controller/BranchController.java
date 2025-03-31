@@ -99,7 +99,12 @@ public class BranchController {
         return ResponseEntity.ok(updatedBranch);
     }
 
-
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<Branch>>> getActiveBranches() {
+        List<Branch> activeBranches = branchService.getActiveBranches();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(),
+                "Active branches retrieved successfully", activeBranches));
+    }
 
 
 }

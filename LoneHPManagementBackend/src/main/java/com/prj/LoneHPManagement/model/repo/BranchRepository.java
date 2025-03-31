@@ -21,4 +21,7 @@ public interface BranchRepository extends JpaRepository<Branch,Integer> {
     @Query("SELECT MAX(b.branchCode) FROM Branch b")
     String findMaxBranchCode();
 
+    @Query("SELECT b FROM Branch b WHERE b.status = 13") // 13 = ACTIVE
+    List<Branch> findActiveBranches();
+
 }

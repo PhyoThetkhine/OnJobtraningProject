@@ -25,6 +25,7 @@ export class BusinessCreateComponent implements OnInit {
   townships: string[] = [];
   cities: string[] = [];
   businessPhotos: { file: File, preview: string }[] = [];
+  router: any;
 
   constructor(
     private fb: FormBuilder,
@@ -39,6 +40,18 @@ export class BusinessCreateComponent implements OnInit {
   ngOnInit() {
     this.initializeForm();
     this.loadTownshipData();
+    this.checkAuthentication(); // Check token on init
+  }
+
+  private checkAuthentication() {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.warn('No token found. User may not be authenticated.');
+      this.toastr.warning('Please log in to continue.');
+      this.router.navigate(['/login']); // Redirect to login if needed
+    } else {
+      console.log('Token found:', token);
+    }
   }
 
   private initializeForm() {
@@ -161,6 +174,12 @@ export class BusinessCreateComponent implements OnInit {
       this.error = null;
 
       try {
+
+        const token = this.authService.getToken();
+        if (!token) {
+          throw new Error('No authentication token found. Please log in.');
+        }
+
         // Upload business photos
         const businessPhotoUrls: string[] = [];
         for (const photo of this.businessPhotos) {
@@ -177,43 +196,60 @@ export class BusinessCreateComponent implements OnInit {
         }
 
         const businessData = {
-          ...this.businessForm.value,
-          businessPhotos: businessPhotoUrls,
+          name: this.businessForm.value.name,
+          companyType: this.businessForm.value.companyType,
+          businessType: this.businessForm.value.businessType,
+          category: this.businessForm.value.category,
+          registrationDate: new Date(this.businessForm.value.registrationDate).toISOString(), // "2025-03-24T10:00:00"          
+          licenseNumber: this.businessForm.value.licenseNumber,
+          licenseIssueDate: new Date(this.businessForm.value.licenseIssueDate).toISOString().split('T')[0], // "2025-01-01"
+          licenseExpiryDate: new Date(this.businessForm.value.licenseExpiryDate).toISOString().split('T')[0], // "2026-01-01"
+          phoneNumber: this.businessForm.value.phoneNumber,
+          createdUserId: currentUser.id,
           cifId: this.cifId,
-          createdUserId: currentUser.id
+          state: this.businessForm.value.address.state,
+          city: this.businessForm.value.address.city,
+          township: this.businessForm.value.address.township,
+          address: this.businessForm.value.address.additionalAddress || '' // Map additionalAddress to address
+          // Note: businessPhotos, createdDate, updatedDate, and id are not in CompanyDTO yet
         };
 
-        await this.companyService.createCompany(businessData).toPromise();
+        console.log('Submitting business:', JSON.stringify(businessData, null, 2));
+
+       const createCompany = await this.companyService.createCompany(businessData).toPromise();
         this.toastr.success('Business created successfully');
         this.activeModal.close(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating business:', error);
-        this.error = 'Failed to create business';
-        this.toastr.error(this.error);
+        this.error = error.message || 'Failed to create business';
+        this.toastr.error(this.error ?? 'An unknown error occurred');
       } finally {
         this.loading = false;
       }
     } else {
-      Object.keys(this.businessForm.controls).forEach(key => {
-        const control = this.businessForm.get(key);
-        control?.markAsTouched();
-      });
+      // Object.keys(this.businessForm.controls).forEach(key => {
+      //   const control = this.businessForm.get(key);
+      //   control?.markAsTouched();
+      // });
 
-      const addressControls = this.businessForm.get('address') as FormGroup;
-      if (addressControls) {
-        Object.keys(addressControls.controls).forEach(key => {
-          const control = addressControls.get(key);
-          control?.markAsTouched();
-        });
-      }
+      // const addressControls = this.businessForm.get('address') as FormGroup;
+      // if (addressControls) {
+      //   Object.keys(addressControls.controls).forEach(key => {
+      //     const control = addressControls.get(key);
+      //     control?.markAsTouched();
+      //   });
+      // }
 
-      const financialControls = this.businessForm.get('financial') as FormGroup;
-      if (financialControls) {
-        Object.keys(financialControls.controls).forEach(key => {
-          const control = financialControls.get(key);
-          control?.markAsTouched();
-        });
-      }
+      // const financialControls = this.businessForm.get('financial') as FormGroup;
+      // if (financialControls) {
+      //   Object.keys(financialControls.controls).forEach(key => {
+      //     const control = financialControls.get(key);
+      //     control?.markAsTouched();
+      //   });
+      // }
+
+      this.businessForm.markAllAsTouched();
+      this.toastr.error('Please fill all required fields');
     }
   }
 

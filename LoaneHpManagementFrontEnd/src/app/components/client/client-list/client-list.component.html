@@ -12,38 +12,63 @@
     </div>
   </div>
 
-  <!-- Actions Bar -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-primary" routerLink="/clients/create">
-      <i class="bi bi-plus"></i> Add Client
+<!-- Actions Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <!-- Left Section: Add Client -->
+  <div>
+    <button class="btn btn-primary d-flex align-items-center" routerLink="/clients/create">
+      <i class="bi bi-plus me-2"></i> Add Client
     </button>
-    
-    <div class="d-flex">
-      <div class="input-group ms-2" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel">
-        <select class="form-select" 
-                [(ngModel)]="selectedBranch" 
-                (ngModelChange)="onBranchChange()">
-          <option [ngValue]="null">All Branches</option>
-          <option *ngFor="let branch of branches" 
-                  [ngValue]="branch">{{ branch.branchName }}</option>
-        </select>
-      </div>
-      <div class="input-group ms-2">
-        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
-          <option [ngValue]="null">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="terminated">Terminated</option>
-         
-        </select>
-      </div>
-      <div class="input-group">
+
+
+  <!-- Right Section: Filters and Actions -->
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <!-- Report Buttons -->
+    <div class="d-flex gap-2">
+      <select class="form-select w-auto" 
+        [(ngModel)]="selectedBranch" 
+        (change)="onBranchChange()">
+          <option value="">All Branches</option>
+          <option *ngFor="let branch of branches" [value]="branch">{{ branch }}</option>
+      </select>
+      <button class="btn btn-outline-primary btn-sm d-flex align-items-center" 
+              (click)="downloadClientReport('pdf')">
+        <i class="bi bi-file-earmark-pdf me-2"></i> PDF Report
+      </button>
+      <button class="btn btn-outline-success btn-sm d-flex align-items-center" 
+              (click)="downloadClientReport('xls')">
+        <i class="bi bi-file-earmark-excel me-2"></i> Excel Report
+      </button>
+    </div>
+    <div class="input-group ms-2" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel">
+      <select class="form-select" 
+              [(ngModel)]="selectedBranch" 
+              (ngModelChange)="onBranchChange()">
+        <option [ngValue]="null">All Branches</option>
+        <option *ngFor="let branch of branches" 
+                [ngValue]="branch">{{ branch.branchName }}</option>
+      </select>
+    </div>
+
+    <!-- Status and Search -->
+    <div class="d-flex gap-2 align-items-center">
+      <select class="form-select w-auto" [(ngModel)]="selectedStatus" 
+              (ngModelChange)="onStatusChange()">
+        <option [ngValue]="null">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="terminated">Terminated</option>
+      </select>
+      
+
+      <div class="input-group" style="max-width: 300px;">
         <input type="text" class="form-control" placeholder="Search Code..." [(ngModel)]="searchQuery">
         <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
-          <i class="bi bi-search"></i>
         </button>
       </div>
     </div>
   </div>
+</div>
+
 
   <!-- Loading Spinner -->
   <div *ngIf="loading" class="text-center my-4">
@@ -153,4 +178,3 @@
       </ul>
     </nav>
   </div>
-</div>

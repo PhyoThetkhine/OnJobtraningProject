@@ -4,6 +4,7 @@ import { BranchService } from '../../../services/branch.service';
 import { Branch, BranchStatus } from '../../../models/branch.model';
 import { ToastrService } from 'ngx-toastr';
 import { ApiPagedResponse } from '../../../models/common.types';
+import { BranchreportService } from 'src/app/services/branchreport.service';
 
 @Component({
   selector: 'app-branch-list',
@@ -31,7 +32,8 @@ export class BranchListComponent implements OnInit {
   constructor(
     private router: Router,
     private branchService: BranchService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private branchReportService : BranchreportService
   ) {}
 
   ngOnInit() {
@@ -116,4 +118,8 @@ export class BranchListComponent implements OnInit {
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i);
   }
+
+  downloadBranchReport(format : string) {
+    this.branchReportService.generateReport(format);
+}
 }

@@ -3,12 +3,18 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CIF } from '../../../models/cif.model';
 import { CIFService } from '../../../services/cif.service';
-import { PagedResponse } from '../../../models/common.types';
+import { ApiResponse, PagedResponse } from '../../../models/common.types';
 import { AuthService } from 'src/app/services/auth.service';
 import { of, switchMap } from 'rxjs';
 import { AUTHORITY } from 'src/app/models/role.model';
 import { FormsModule } from '@angular/forms';
+
 import { BranchService } from 'src/app/services/branch.service';
+
+import { ClientreportService } from 'src/app/services/clientreport.service';
+
+import { BranchDTO } from 'src/app/models/branch.dto';
+
 import { Branch } from 'src/app/models/branch.model';
 
 @Component({
@@ -37,10 +43,12 @@ originalcifs: CIF[] = [];
   totalPages = 0;
   sortBy = 'id';
 
+
   constructor(
     private cifService: CIFService,
     private authService: AuthService,
-    private branchService: BranchService
+    private branchService: BranchService,
+    private clientReportService: ClientreportService,
   ) {}
 
   ngOnInit() {
@@ -207,6 +215,20 @@ originalcifs: CIF[] = [];
       case 'active': return 'bg-success';
       case 'terminated': return 'bg-danger';
       default: return 'bg-secondary';
+    }
+  }
+
+  downloadClientReport(format: string): void {
+    console.log('Generating report for format:', format, 'branch:', this.selectedBranch);
+    this.clientReportService.generateReport(format, this.selectedBranch || undefined);
+  }
+
+  onBranchChanges() {
+    console.log('Selected branch:', this.selectedBranch);
+    this.currentPage = 0; // Reset to first page
+    this.loadClients(); // Fetch clients for the selected branch
+    if (this.selectedBranch) { // Generate report only if a branch is selected
+      this.downloadClientReport('pdf'); // Trigger report download
     }
   }
 }
