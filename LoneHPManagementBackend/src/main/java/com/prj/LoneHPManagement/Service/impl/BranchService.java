@@ -36,6 +36,27 @@ public class BranchService {
     @Autowired
     private  CodeGenerateService codeGenerateService;
 
+
+    public Branch changeBranchStatus(int id, String status) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("Branch not found with id: " + id));
+
+        // Convert status string to enum code
+        int statusCode = convertStatusToCode(status);
+        branch.setStatus(statusCode);
+
+        return branchRepository.save(branch);
+    }
+
+    private int convertStatusToCode(String status) {
+        return switch (status.toUpperCase()) {
+            case "ACTIVE" -> ConstraintEnum.ACTIVE.getCode();
+            case "TERMINATED" -> ConstraintEnum.TERMINATED.getCode();
+            case "CLOSED" -> ConstraintEnum.CLOSED.getCode();
+            default -> throw new IllegalArgumentException("Invalid status: " + status);
+        };
+    }
+
 //    public Branch createBranch(Branch branch, int addressID, int createdUserId){
 //        Address address = addressRepository.findById(addressID)
 //                .orElseThrow(() -> new ServiceException("Address Not Found"));

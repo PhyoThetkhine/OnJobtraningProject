@@ -122,7 +122,10 @@ export class BranchTransferComponent implements OnInit {
     this.branchService.getAllBranches().subscribe({
       next: (branches: Branch[]) => {
         // Exclude the current branch
-        const targetBranches = branches.filter(b => b.id !== this.branch?.id);
+        const targetBranches = branches.filter(b => 
+          b.status === "active" &&  // Active status code
+          b.id !== this.branch?.id
+        );
 
         // For each branch, call getBranchAccount to get its current account details
         const accountObservables = targetBranches.map(branch =>

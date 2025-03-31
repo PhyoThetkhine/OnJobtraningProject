@@ -5,27 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="173302f2-53d2-474d-b1f3-25ea8d94c8a1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyCreateRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyDTOUpdate.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/FinancialDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/business/business-create/business-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/business/business-create/business-create.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/business/business-update/business-update.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/business/business-update/business-update.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/DealerProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/DealerProductController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CompanyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CompanyService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/DealerProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/DealerProductService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/ClientReportService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/ClientReportService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CompanyServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CompanyServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/DealerProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/DealerProductServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CifDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CifDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/DealerProduct.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/entity/DealerProduct.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/CIFRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/CIFRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/DealerProductRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/DealerProductRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,21 +64,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.LoneHpManagementApplication.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "Spring Boot.LoneHpManagementApplication.executor": "Run",
-    "git-widget-placeholder": "code",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.LoneHpManagementApplication.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;Spring Boot.LoneHpManagementApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;code&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
   </component>

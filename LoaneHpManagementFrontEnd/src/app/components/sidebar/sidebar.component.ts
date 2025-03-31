@@ -97,7 +97,6 @@ export class SidebarComponent implements OnInit {
           permission: 'SME Menu',
           submenu: [
             { title: 'View Loans', route: '/loans/sme', permission: 'Loan Management Menu' },
-         
             { title: 'Create Loan', route: '/loans/sme/create', permission: 'Loan Management Menu' }
           ]
         },
@@ -106,7 +105,6 @@ export class SidebarComponent implements OnInit {
           permission: 'HP Menu',
           submenu: [
             { title: 'View Loans', route: '/loans/hp', permission: 'Loan Management Menu' },
-          
             { title: 'Create Loan', route: '/loans/hp/create', permission: 'Loan Management Menu' }
           ]
         }
@@ -130,7 +128,7 @@ export class SidebarComponent implements OnInit {
         { title: 'Create Role', route: '/access-control/roles/create', permission: 'AccessControl Menu' }
       ]
     },
-    { title: 'Reports', icon: 'bi-file-earmark-text', route: '/reports', permission: 'Report Menu' },
+    // { title: 'Reports', icon: 'bi-file-earmark-text', route: '/reports' }, // Removed permission field
   ];
 
   private bottomMenuItems: MenuItem[] = [

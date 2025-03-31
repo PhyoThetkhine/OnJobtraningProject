@@ -32,7 +32,7 @@
           <ng-container *ngIf="!loading; else loadingBranches">
             <option *ngFor="let account of branchAccounts" [value]="account.id">
               {{ account.branch.branchName }} ({{ account.accCode }})
-              - Balance: {{ account.balance | currency:'MMK ' }}
+            
             </option>
           </ng-container>
         </select>

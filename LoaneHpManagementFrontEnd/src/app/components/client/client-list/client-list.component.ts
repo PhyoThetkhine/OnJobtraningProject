@@ -11,6 +11,7 @@ import { ClientreportService } from 'src/app/services/clientreport.service';
 import { BranchService } from 'src/app/services/branch.service';
 import { Branch } from 'src/app/models/branch.model';
 import { PagedResponse } from 'src/app/models/common.types';
+import { CurrentUser } from 'src/app/models/user.model';
 
 @Component({
   selector: 'app-client-list',
@@ -21,6 +22,8 @@ import { PagedResponse } from 'src/app/models/common.types';
 })
 export class ClientListComponent implements OnInit {
   clients: CIF[] = [];
+  readonly AUTHORITY = AUTHORITY;
+    currentUser: CurrentUser | null = null;
   originalCifs: CIF[] = [];
   branches: Branch[] = [];
   loading = true;
@@ -37,7 +40,7 @@ export class ClientListComponent implements OnInit {
   totalPages = 0;
   sortBy = 'id';
 
-  readonly AUTHORITY = AUTHORITY;
+  
 
   constructor(
     private cifService: CIFService,
@@ -47,8 +50,10 @@ export class ClientListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadCurrentUser(); 
     this.loadBranches();
     this.loadClients();
+    
   }
 
   loadBranches() {
@@ -59,6 +64,13 @@ export class ClientListComponent implements OnInit {
       error: (error) => {
         console.error('Error loading branches:', error);
       }
+    });
+  }
+
+  loadCurrentUser() {
+    this.authService.getCurrentUser().subscribe(user => {
+      this.currentUser = user;
+    
     });
   }
 
@@ -171,11 +183,39 @@ export class ClientListComponent implements OnInit {
     }
   }
 
-  downloadClientReport(format: string): void {
-    this.clientReportService.generateReport(
-      format, 
-      this.selectedBranchName || undefined, 
-      this.selectedStatus || undefined
-    );
-  }
+  // downloadClientReport(format: string): void {
+  //   this.clientReportService.generateReport(
+  //     format, 
+  //     this.selectedBranchName || undefined, 
+  //     this.selectedStatus || undefined
+  //   );
+  // }
+  // In client-list.component.ts
+downloadClientReport(format: string): void {
+  this.authService.getCurrentUser().subscribe({
+    next: (currentUser) => {
+      let branchName: string | undefined;
+
+      // Regular branch users - always use their branch
+      if (currentUser.role.authority === AUTHORITY.RegularBranchLevel) {
+        branchName = currentUser.branch.branchName;
+      } 
+      // Main branch users - use selected branch if any
+      else if (this.selectedBranchId) {
+        const selectedBranch = this.branches.find(b => b.id === this.selectedBranchId);
+        branchName = selectedBranch?.branchName;
+      }
+
+      this.clientReportService.generateReport(
+        format, 
+        branchName, // Pass branch name instead of ID
+        this.selectedStatus || undefined
+      );
+    },
+    error: (error) => {
+      console.error('Error getting current user:', error);
+     
+    }
+  });
+}
 }

@@ -12,46 +12,68 @@
     </div>
   </div>
 
-
   <!-- Actions Bar -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-primary" routerLink="/users/create">
-      <i class="bi bi-plus"></i> Add Staff
-    </button>
-    <div class="d-flex">
-      <div class="input-group" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel">
-        <select class="form-select" [(ngModel)]="selectedBranch" (ngModelChange)="onBranchChange()">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <button class="btn btn-primary d-flex align-items-center" routerLink="/users/create">
+        <i class="bi bi-plus me-2"></i> Add Staff
+      </button>
+    </div>
+    <div class="d-flex flex-grow-1 justify-content-end align-items-center gap-3">
+      <!-- Branch Filter (for Main Branch users) -->
+      <div class="input-group" *ngIf="currentUser?.role?.authority === AUTHORITY.MainBranchLevel" style="min-width: 200px;">
+        <span class="input-group-text bg-light border-end-0"><i class="bi bi-shop"></i></span>
+        <select class="form-select ps-0" [(ngModel)]="selectedBranch" (ngModelChange)="onBranchChange()">
           <option [ngValue]="null">All Branches</option>
           <option *ngFor="let branch of branches" [ngValue]="branch">{{ branch.branchName }}</option>
         </select>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-success" (click)="downloadReport('pdf')">
-          <i class="bi bi-file-earmark-pdf"></i> PDF
-        </button>
-        <button class="btn btn-outline-primary" (click)="downloadReport('excel')">
-          <i class="bi bi-file-earmark-excel"></i> Excel
-        </button>
-      </div>
-      <div class="input-group">
-        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+
+      <!-- Status Filter -->
+      <div class="input-group" style="width: 150px;">
+        <span class="input-group-text bg-light border-end-0"><i class="bi bi-funnel"></i></span>
+        <select class="form-select ps-0" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
           <option [ngValue]="null">All Statuses</option>
           <option value="active">Active</option>
           <option value="terminated">Terminated</option>
           <option value="retired">Retired</option>
         </select>
       </div>
-      <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search by User Code..." [(ngModel)]="searchQuery">
-        <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
 
+      <!-- Search and Reports Group -->
+      <div class="d-flex align-items-center gap-3">
+        <!-- Search -->
+        <div class="input-group" style="max-width: 300px;">
+          <input type="text" class="form-control border-end-0" placeholder="Search by User Code..." 
+                 [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
+          <button class="btn btn-outline-secondary border-start-0" type="button" (click)="onSearch()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+
+        <!-- Reports Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" 
+                  type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-file-earmark-arrow-down me-2"></i> Reports
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="javascript:void(0)" (click)="downloadReport('pdf')">
+                <i class="bi bi-file-earmark-pdf me-2"></i> PDF Report
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="javascript:void(0)" (click)="downloadReport('excel')">
+                <i class="bi bi-file-earmark-excel me-2"></i> Excel Report
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-<div>
+
   <!-- Loading Spinner -->
   <div *ngIf="loading" class="text-center my-4">
     <div class="spinner-border" role="status">

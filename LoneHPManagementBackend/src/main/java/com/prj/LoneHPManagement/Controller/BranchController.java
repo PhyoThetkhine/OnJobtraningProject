@@ -37,6 +37,15 @@ public class BranchController {
     }
 
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Branch> changeBranchStatus(
+            @PathVariable int id,
+            @RequestBody Map<String, String> statusRequest) {
+
+        String newStatus = statusRequest.get("status");
+        Branch updatedBranch = branchService.changeBranchStatus(id, newStatus);
+        return ResponseEntity.ok(updatedBranch);
+    }
     @GetMapping("/branches")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAllbranches(
             @RequestParam(defaultValue = "0") int page,

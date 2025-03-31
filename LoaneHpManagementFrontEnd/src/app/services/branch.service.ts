@@ -72,7 +72,7 @@ export class BranchService {
   }
 
   changeBranchStatus(branchId: number, status: BranchStatus): Observable<Branch> {
-    return this.http.patch<Branch>(`${this.apiUrl}/${branchId}/status`, { status });
+    return this.http.put<Branch>(`${this.apiUrl}/${branchId}/status`, { status });
   }
 
   getAllActiveBranches(): Observable<BranchDTO[]> {

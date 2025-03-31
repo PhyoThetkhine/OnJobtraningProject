@@ -140,7 +140,8 @@ export class CifTransferComponent implements OnInit {
       next: (branches) => {
         // Filter branches with valid IDs and map to requests
         const accountRequests = branches
-          .filter(branch => Boolean(branch.id)) // Ensure ID exists
+          .filter(branch => Boolean(branch.id)&& 
+          branch.status === "active" ) // Ensure ID exists
           .map(branch => {
             // TypeScript now knows branch.id is number
             return this.branchService.getBranchAccount(branch.id!).pipe(
