@@ -49,6 +49,8 @@ import { ClientDetailComponent } from './components/client/client-detail/client-
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { YourProfileComponent } from './components/settings/your-profile/your-profile.component';
 
+
+
 @NgModule({
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   declarations: [
@@ -60,6 +62,7 @@ import { YourProfileComponent } from './components/settings/your-profile/your-pr
     AccountingComponent,
     BranchListComponent,
     SmeLoanListComponent,
+
     SmeLoanApplicationsComponent,
     SmeLoanCreateComponent,
     HpLoanApplicationsComponent,

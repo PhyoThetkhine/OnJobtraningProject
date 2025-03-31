@@ -29,7 +29,15 @@
   <form [formGroup]="branchForm">
     <div class="mb-3">
       <label for="branchName" class="form-label">Branch Name</label>
-      <input type="text" class="form-control" id="branchName" formControlName="branchName">
+      <input type="text" class="form-control" id="branchName" formControlName="branchName" [class.is-invalid]="isFieldInvalid('branchName')">
+      <div class="invalid-feedback" *ngIf="isFieldInvalid('branchName')">
+        <div *ngIf="branchForm.get('branchName')?.errors?.['required'] || branchForm.get('branchName')?.errors?.['minlength']">
+          Branch name is required and must be at least 3 characters
+        </div>
+        <div *ngIf="branchForm.get('branchName')?.errors?.['duplicateBranch']">
+          Branch name already exists
+        </div>
+      </div>
     </div>
 
     <!-- Address Form Group -->

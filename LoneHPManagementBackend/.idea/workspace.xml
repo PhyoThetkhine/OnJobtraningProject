@@ -5,31 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="95df5b7e-6fb4-4747-94de-9146727b615a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/EmailService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/OtpService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/OtpStorageService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/PasswordService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/EmailServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/ChangePasswordRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-detail/client-detail.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-detail/client-detail.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/AccountLimitUpdateDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/account/account-limit-update/account-limit-update.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/account/account-limit-update/account-limit-update.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/account/account-limit-update/account-limit-update.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/account/account-limit-update/account-limit-update.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-create/branch-create.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-create/branch-create.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-create/branch-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-create/branch-create.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-edit/branch-edit.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-edit/branch-edit.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-edit/branch-edit.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-edit/branch-edit.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/settings/change-password/change-password.component.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/auth.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/TransactionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/UserServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CIFCurrentAccountController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CIFCurrentAccountController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CIFCurrentAccountService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CIFCurrentAccountService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CompanyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CompanyService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CIFCurrentAccountServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CIFCurrentAccountServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CompanyServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/CompanyServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CompanyDTO.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,7 +198,9 @@
       <workItem from="1743240423723" duration="906000" />
       <workItem from="1743305777966" duration="9824000" />
       <workItem from="1743337538914" duration="1706000" />
-      <workItem from="1743341315463" duration="1306000" />
+      <workItem from="1743341315463" duration="3417000" />
+      <workItem from="1743354688259" duration="4511000" />
+      <workItem from="1743411784486" duration="64000" />
     </task>
     <servers />
   </component>
@@ -628,6 +626,15 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="68" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/CompanyService.java</url>
+          <line>20</line>
+          <properties class="com.prj.LoneHPManagement.Service.CompanyService" method="updateCompany">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="82" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

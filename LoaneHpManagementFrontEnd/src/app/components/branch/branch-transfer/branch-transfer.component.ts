@@ -1,6 +1,7 @@
+// Import necessary modules and services
 import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BranchService } from '../../../services/branch.service';
 import { PaymentMethodService } from '../../../services/payment-method.service';
 import { TransactionService } from '../../../services/transaction.service';
@@ -16,20 +17,21 @@ import { CurrentUser } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { forkJoin, map } from 'rxjs';
 import { BranchCurrentAccount } from 'src/app/models/branch-account.model';
+import { ConfirmTransferComponent } from '../../shared/confirm-transfer.component/confirm-transfer.component';
 
 @Component({
   selector: 'app-branch-transfer',
   templateUrl: './branch-transfer.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,  FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class BranchTransferComponent implements OnInit {
   @Input() branch!: Branch;
   @Input() branchAccount!: any;
 
   searchCifTerm: string = '';
-filteredCifAccounts: CIFCurrentAccount[] = [];
-showCifDropdown: boolean = false;
+  filteredCifAccounts: CIFCurrentAccount[] = [];
+  showCifDropdown: boolean = false;
   transferForm!: FormGroup;
   loading = false;
   paymentMethods: PaymentMethod[] = [];
@@ -48,7 +50,8 @@ showCifDropdown: boolean = false;
     private transactionService: TransactionService,
     private cifCurrentAccountService: CIFCurrentAccountService,
     private toastr: ToastrService,
-    private authService:AuthService,
+    private authService: AuthService,
+    private modalService: NgbModal,
   ) {}
 
   ngOnInit() {
@@ -60,7 +63,6 @@ showCifDropdown: boolean = false;
   private initializeForm() {
     this.transferForm = this.fb.group({
       accountType: [AccountType.CIF, Validators.required],
-      // cifAccount: [''],
       cifAccount: [null, Validators.required],
       branchAccount: [''],
       paymentMethod: ['', Validators.required],
@@ -70,13 +72,13 @@ showCifDropdown: boolean = false;
         Validators.max(this.branchAccount?.balance || 0)
       ]]
     });
-     // Get the current user's information first
-     this.authService.getCurrentUser().subscribe({
+
+    // Get the current user's information first
+    this.authService.getCurrentUser().subscribe({
       next: (currentUser) => {
         console.log('Current role level:', currentUser.roleLevel);
         this.currentUser = currentUser;
         this.loadCIFAccounts();
-   
       },
       error: (error) => {
         console.error('Error fetching current user:', error);
@@ -89,7 +91,7 @@ showCifDropdown: boolean = false;
     this.transferForm.get('accountType')?.valueChanges.subscribe(type => {
       const cifAccountControl = this.transferForm.get('cifAccount');
       const branchAccountControl = this.transferForm.get('branchAccount');
-      
+
       if (type === AccountType.CIF) {
         cifAccountControl?.setValidators(Validators.required);
         branchAccountControl?.clearValidators();
@@ -97,7 +99,7 @@ showCifDropdown: boolean = false;
         branchAccountControl?.setValidators(Validators.required);
         cifAccountControl?.clearValidators();
       }
-      
+
       cifAccountControl?.updateValueAndValidity();
       branchAccountControl?.updateValueAndValidity();
     });
@@ -115,64 +117,44 @@ showCifDropdown: boolean = false;
     });
   }
 
-  // Add to BranchTransferComponent class
-// private loadBranches() {
-//   this.branchService.getAllBranches().subscribe({
-//     next: (branches) => {
-//       // Filter out current branch if needed
-//       this.branchAccounts = branches
-//         .filter(b => b.id !== this.branch?.id) // Exclude current branch
-//         .map(branch => ({
-          
-//           id: branch.id,
-//           branchName: branch.branchName,
-//           branchCode: branch.branchCode
-//         }));
-//     },
-//     error: (error) => {
-//       console.error('Error loading branches:', error);
-//       this.toastr.error('Failed to load branches');
-//     }
-//   });
-// }
-private loadBranches() {
-  // First, load all branches
-  this.branchService.getAllBranches().subscribe({
-    next: (branches: Branch[]) => {
-      // Exclude the current branch
-      const targetBranches = branches.filter(b => b.id !== this.branch?.id);
-      
-      // For each branch, call getBranchAccount to get its current account details
-      const accountObservables = targetBranches.map(branch =>
-        this.branchService.getBranchAccount(branch.id!).pipe(
-          map(response => {
-            const branchAccount = response.data as BranchCurrentAccount;
-            return {
-              accountId: branchAccount.id,  // This is the branch account id
-              branchName: branch.branchName,
-              branchCode: branch.branchCode
-            };
-          })
-        )
-      );
-      
-      // Wait for all branch account calls to finish
-      forkJoin(accountObservables).subscribe({
-        next: (accounts) => {
-          this.branchAccounts = accounts;
-        },
-        error: (error) => {
-          console.error('Error fetching branch accounts:', error);
-          this.toastr.error('Failed to load branch accounts');
-        }
-      });
-    },
-    error: (error) => {
-      console.error('Error loading branches:', error);
-      this.toastr.error('Failed to load branches');
-    }
-  });
-}
+  private loadBranches() {
+    // First, load all branches
+    this.branchService.getAllBranches().subscribe({
+      next: (branches: Branch[]) => {
+        // Exclude the current branch
+        const targetBranches = branches.filter(b => b.id !== this.branch?.id);
+
+        // For each branch, call getBranchAccount to get its current account details
+        const accountObservables = targetBranches.map(branch =>
+          this.branchService.getBranchAccount(branch.id!).pipe(
+            map(response => {
+              const branchAccount = response.data as BranchCurrentAccount;
+              return {
+                accountId: branchAccount.id, // This is the branch account id
+                branchName: branch.branchName,
+                branchCode: branch.branchCode
+              };
+            })
+          )
+        );
+
+        // Wait for all branch account calls to finish
+        forkJoin(accountObservables).subscribe({
+          next: (accounts) => {
+            this.branchAccounts = accounts;
+          },
+          error: (error) => {
+            console.error('Error fetching branch accounts:', error);
+            this.toastr.error('Failed to load branch accounts');
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading branches:', error);
+        this.toastr.error('Failed to load branches');
+      }
+    });
+  }
 
   private loadPaymentMethods() {
     this.paymentMethodService.getAllPaymentMethods().subscribe({
@@ -193,7 +175,7 @@ private loadBranches() {
       return;
     }
     if (this.branch?.branchCode) {
-      this.cifCurrentAccountService.getBranchCIFAccounts(this.branch.branchCode,this.currentUser?.id).subscribe({
+      this.cifCurrentAccountService.getBranchCIFAccounts(this.branch.branchCode, this.currentUser?.id).subscribe({
         next: (accounts) => {
           this.cifAccounts = accounts.filter(account => account.isFreeze !== 'is_freeze');
         },
@@ -204,29 +186,29 @@ private loadBranches() {
       });
     }
   }
-  
+
   onSearchCifAccount() {
     const searchTerm = this.searchCifTerm.trim();
     console.log('Raw search term:', searchTerm); // Add this for debugging
-    
+
     if (!searchTerm) {
       this.filteredCifAccounts = [];
       this.showCifDropdown = false;
       return;
     }
-  
+
     // Match exact account code with case sensitivity
-    const exactMatch = this.cifAccounts.find(account => 
+    const exactMatch = this.cifAccounts.find(account =>
       account.accCode === searchTerm // Remove .toLowerCase()
     );
-  
+
     if (exactMatch) {
       console.log('Exact case-sensitive match found:', exactMatch);
       this.filteredCifAccounts = [exactMatch];
       this.showCifDropdown = true;
       return;
     }
-  
+
     // For partial matches, use case-insensitive search
     const searchTermLower = searchTerm.toLowerCase();
     this.filteredCifAccounts = this.cifAccounts
@@ -238,12 +220,12 @@ private loadBranches() {
       .sort((a, b) => {
         const aStarts = a.accCode.toLowerCase().startsWith(searchTermLower);
         const bStarts = b.accCode.toLowerCase().startsWith(searchTermLower);
-        
+
         if (aStarts && !bStarts) return -1;
         if (!aStarts && bStarts) return 1;
         return a.accCode.localeCompare(b.accCode);
       });
-  
+
     console.log('Filtered results:', this.filteredCifAccounts);
     this.showCifDropdown = this.filteredCifAccounts.length > 0;
   }
@@ -254,7 +236,7 @@ private loadBranches() {
     this.searchCifTerm = account.accCode; // Show account code in input
     this.showCifDropdown = false;
   }
-  
+
   onBlurCifInput() {
     setTimeout(() => {
       this.showCifDropdown = false;
@@ -271,32 +253,64 @@ private loadBranches() {
 
   onSubmit() {
     if (this.transferForm.valid && this.branchAccount) {
-      this.loading = true;
       const formValue = this.transferForm.value;
 
-      const transferData = {
-        fromAccountId: this.branchAccount.id,
-        toAccountId: formValue.accountType === AccountType.CIF ? formValue.cifAccount : formValue.branchAccount,
-        fromAccountType: 'BRANCH',
-        toAccountType: formValue.accountType,
+      // Prepare transfer details for confirmation
+      const transferDetails = {
         amount: formValue.amount,
-        paymentMethodId: formValue.paymentMethod
+        paymentMethod: this.paymentMethods.find(pm => pm.id === formValue.paymentMethod)?.paymentType,
+        fromAccount: this.branch.branchName,
+        toAccount: this.getToAccountDisplay(formValue)
       };
 
-      this.transactionService.createTransaction(transferData).subscribe({
-        next: () => {
-          this.toastr.success('Transfer completed successfully');
-          this.activeModal.close(true);
-        },
-        error: (error) => {
-          console.error('Error during transfer:', error);
-          this.toastr.error(error.error?.message || 'Transfer failed');
-          this.loading = false;
+      // Show confirmation dialog
+      const modalRef = this.modalService.open(ConfirmTransferComponent);
+      modalRef.componentInstance.transferDetails = transferDetails;
+
+      modalRef.result.then((confirmed) => {
+        if (confirmed) {
+          this.executeTransfer(formValue);
         }
-      });
+      }).catch(() => { /* dismissed action */ });
     } else {
       this.markFormGroupTouched(this.transferForm);
     }
+  }
+
+  private getToAccountDisplay(formValue: any): string {
+    if (formValue.accountType === AccountType.CIF) {
+      const cifAccount = this.cifAccounts.find(acc => acc.id === formValue.cifAccount);
+      return cifAccount ? `${cifAccount.accCode} - ${cifAccount.cif.name}` : '';
+    } 
+     else{
+      const branch = this.branchAccounts.find(b => b.accountId === formValue.branchAccount);
+      return branch ? `${branch.branchName} (${branch.branchCode})` : '';
+   
+  }
+}
+
+  private executeTransfer(formValue: any) {
+    this.loading = true;
+    const transferData = {
+      fromAccountId: this.branchAccount.id,
+      toAccountId: formValue.accountType === AccountType.CIF ? formValue.cifAccount : formValue.branchAccount,
+      fromAccountType: 'BRANCH',
+      toAccountType: formValue.accountType,
+      amount: formValue.amount,
+      paymentMethodId: formValue.paymentMethod
+    };
+
+    this.transactionService.createTransaction(transferData).subscribe({
+      next: () => {
+        this.toastr.success('Transfer completed successfully');
+        this.activeModal.close(true);
+      },
+      error: (error) => {
+        console.error('Error during transfer:', error);
+        this.toastr.error(error.error?.message || 'Transfer failed');
+        this.loading = false;
+      }
+    });
   }
 
   dismiss() {
@@ -332,4 +346,4 @@ private loadBranches() {
     }
     return '';
   }
-} 
+}

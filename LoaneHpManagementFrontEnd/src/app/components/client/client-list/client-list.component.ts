@@ -23,8 +23,9 @@ export class ClientListComponent implements OnInit {
   readonly AUTHORITY = AUTHORITY;
   selectedBranch: Branch | null = null;
   currentUser: any = null;
-
+originalcifs: CIF[] = [];
   clients: CIF[] = [];
+  searchQuery: string = '';
   loading = true;
   selectedStatus: string | null = null;
   error: string | null = null;
@@ -169,6 +170,7 @@ export class ClientListComponent implements OnInit {
     ).subscribe({
       next: (response: PagedResponse<CIF>) => {
         this.clients = response.content;
+        this.originalcifs = response.content; 
         this.totalElements = response.totalElements;
         this.totalPages = response.totalPages;
         this.loading = false;
@@ -179,6 +181,16 @@ export class ClientListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+  
+  onSearch() {
+    if (this.searchQuery) {
+      this.clients = this.originalcifs.filter(clients =>
+        clients.cifCode.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    } else {
+      this.clients = [...this.originalcifs]; // Reset to the original list if the search query is empty
+    }
   }
 
   onPageChange(page: number) {

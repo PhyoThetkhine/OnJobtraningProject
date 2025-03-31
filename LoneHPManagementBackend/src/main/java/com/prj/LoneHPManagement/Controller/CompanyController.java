@@ -66,14 +66,14 @@ public class CompanyController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<ApiResponse<Company>> save(@RequestBody CompanyDTO companyDTO) {
-        // Map DTO to entity, ensure you fetch referenced entities
-        Company savedCompany = companyService.save(companyDTO);
-        ApiResponse<Company> response = ApiResponse.success(HttpStatus.OK.value(),
-                "Company created successfully", savedCompany);
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/save")
+//    public ResponseEntity<ApiResponse<Company>> save(@RequestBody CompanyDTO companyDTO) {
+//        // Map DTO to entity, ensure you fetch referenced entities
+//        Company savedCompany = companyService.save(companyDTO);
+//        ApiResponse<Company> response = ApiResponse.success(HttpStatus.OK.value(),
+//                "Company created successfully", savedCompany);
+//        return ResponseEntity.ok(response);
+//    }
 
 
     // ✅ Get all companies
@@ -92,10 +92,18 @@ public class CompanyController {
 
     // ✅ Update company by ID
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateCompany(@PathVariable int id, @RequestBody CompanyDTO companyDTO) {
+    public ResponseEntity<ApiResponse<Company>> updateCompany(
+            @PathVariable int id,
+            @RequestBody CompanyDTO companyDTO
+    ) {
         Company updatedCompany = companyService.updateCompany(id, companyDTO);
-        updatedCompany = ApiResponse.success(HttpStatus.OK.value(), "Company updated successfully", updatedCompany).getData();
-        return ResponseEntity.ok(updatedCompany);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Company updated successfully",
+                        updatedCompany
+                )
+        );
     }
 
     // ✅ Delete company by ID

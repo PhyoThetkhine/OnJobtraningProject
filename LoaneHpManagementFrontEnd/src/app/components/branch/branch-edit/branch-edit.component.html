@@ -7,7 +7,15 @@
   <form [formGroup]="editForm">
     <div class="mb-3">
       <label for="branchName" class="form-label">Branch Name</label>
-      <input type="text" class="form-control" id="branchName" formControlName="branchName">
+      <input type="text" class="form-control" id="branchName" formControlName="branchName" [class.is-invalid]="isFieldInvalid('branchName')">
+      <div class="invalid-feedback" *ngIf="isFieldInvalid('branchName')">
+        <div *ngIf="editForm.get('branchName')?.errors?.['required'] || editForm.get('branchName')?.errors?.['minlength']">
+          Branch name is required and must be at least 3 characters
+        </div>
+        <div *ngIf="editForm.get('branchName')?.errors?.['duplicateBranch']">
+          Branch name already exists
+        </div>
+      </div>
     </div>
     
     <div class="mb-3">
@@ -44,4 +52,4 @@
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
   <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!editForm.valid">Update</button>
-</div> 
+</div>
