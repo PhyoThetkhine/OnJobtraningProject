@@ -13,12 +13,22 @@
   </div>
 
   <!-- Actions Bar -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-primary" (click)="addBranch()">
-      <i class="bi bi-plus"></i> Add Branch
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <button class="btn btn-primary d-flex align-items-center" (click)="addBranch()">
+    <i class="bi bi-plus me-2"></i> Add Branch
+  </button>
+
+  <!-- Report Buttons -->
+  <div class="d-flex gap-3">
+    <button class="btn btn-outline-primary btn-sm d-flex align-items-center" (click)="downloadBranchReport('pdf')">
+      <i class="bi bi-file-earmark-pdf me-2"></i> PDF Report
     </button>
-   
+    <button class="btn btn-outline-success btn-sm d-flex align-items-center" (click)="downloadBranchReport('xls')">
+      <i class="bi bi-file-earmark-excel me-2"></i> Excel Report
+    </button>
   </div>
+</div>
+
 
   <!-- Loading Spinner -->
   <div class="text-center my-4" *ngIf="loading">

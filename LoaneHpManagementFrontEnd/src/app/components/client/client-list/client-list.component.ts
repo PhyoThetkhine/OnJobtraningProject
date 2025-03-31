@@ -3,11 +3,15 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CIF } from '../../../models/cif.model';
 import { CIFService } from '../../../services/cif.service';
-import { PagedResponse } from '../../../models/common.types';
+import { ApiResponse, PagedResponse } from '../../../models/common.types';
 import { AuthService } from 'src/app/services/auth.service';
 import { switchMap } from 'rxjs';
 import { AUTHORITY } from 'src/app/models/role.model';
 import { FormsModule } from '@angular/forms';
+import { ClientreportService } from 'src/app/services/clientreport.service';
+import { BranchService } from 'src/app/services/branch.service';
+import { BranchDTO } from 'src/app/models/branch.dto';
+import { Branch } from 'src/app/models/branch.model';
 
 @Component({
   selector: 'app-client-list',
@@ -28,11 +32,27 @@ export class ClientListComponent implements OnInit {
   totalElements = 0;
   totalPages = 0;
   sortBy = 'id';
+  selectedBranch: string = '';
+  branches: string[] = [];
 
-  constructor(private cifService: CIFService,    private authService: AuthService) {}
+
+  constructor(private cifService: CIFService,    private authService: AuthService, private clientReportService : ClientreportService, private branchService : BranchService) {}
 
   ngOnInit() {
     this.loadClients();
+    this.loadActiveBranches();
+  }
+
+  loadActiveBranches() {
+    this.branchService.getAllActiveBranches().subscribe({
+      next: (branches) => {
+        this.branches = branches.map(branch => branch.branchName);
+        console.log('Branches:', this.branches);
+      },
+      error: (error) => {
+        console.error('Error loading branches:', error);
+      }
+    });
   }
 
   onStatusChange() {
@@ -116,6 +136,20 @@ export class ClientListComponent implements OnInit {
     
       default:
         return 'bg-secondary';
+    }
+  }
+
+  downloadClientReport(format: string): void {
+    console.log('Generating report for format:', format, 'branch:', this.selectedBranch);
+    this.clientReportService.generateReport(format, this.selectedBranch || undefined);
+  }
+
+  onBranchChange() {
+    console.log('Selected branch:', this.selectedBranch);
+    this.currentPage = 0; // Reset to first page
+    this.loadClients(); // Fetch clients for the selected branch
+    if (this.selectedBranch) { // Generate report only if a branch is selected
+      this.downloadClientReport('pdf'); // Trigger report download
     }
   }
 }

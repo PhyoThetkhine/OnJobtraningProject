@@ -22,19 +22,39 @@ export class PaymentMethodCreateComponent {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (!this.paymentMethod.paymentType?.trim()) {
+    const paymentType = this.paymentMethod.paymentType?.trim();
+
+    if (!paymentType) {
       this.errorMessage = 'Payment type is required.';
       return;
     }
 
-    this.paymentMethodService.createPaymentMethod(this.paymentMethod).subscribe({
-      next: (response) => {
-        this.successMessage = response.message; // "Payment method created successfully"
-        this.paymentMethod = { paymentType: '' }; // Reset form
+    // Step 1: Check if the payment method already exists
+    this.paymentMethodService.checkPaymentMethodExists(paymentType).subscribe({
+      next: (exists) => {
+        if (exists) {
+          this.errorMessage = 'Payment method already exists.';
+          return;
+        }
+
+        // Step 2: If it doesn’t exist, proceed with creation
+        this.paymentMethodService.createPaymentMethod(this.paymentMethod).subscribe({
+          next: (response) => {
+            this.successMessage = response.message || 'Payment method created successfully';
+            this.paymentMethod = { paymentType: '' }; // Reset form
+            this.paymentMethodCreated.emit(); // Notify parent component
+            this.clearMessages();
+          },
+          error: (err) => {
+            console.error('Error:', err);
+            this.errorMessage = err.message || 'Error creating payment method';
+            this.clearMessages();
+          },
+        });
       },
       error: (err) => {
-        console.error('Error:', err);
-        this.errorMessage = err.message || 'Error creating payment method';
+        console.error('Error checking payment method:', err);
+        this.errorMessage = 'Error validating payment method';
       },
     });
   }

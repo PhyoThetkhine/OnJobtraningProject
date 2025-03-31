@@ -6,6 +6,8 @@ import { ToastrService } from 'ngx-toastr';
 import { CompanyService } from '../../../services/company.service';
 import { Company } from '../../../models/company.model';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from 'src/app/services/auth.service';
+import { CloudinaryService } from 'src/app/services/cloudinary.service';
 
 @Component({
   selector: 'app-business-update',
@@ -24,13 +26,20 @@ export class BusinessUpdateComponent implements OnInit {
   states: string[] = [];
   townships: string[] = [];
   cities: string[] = [];
+  error: null | undefined;
+  businessPhotos: any;
+  businessId: any;
+  cifId: any;
 
   constructor(
     private formBuilder: FormBuilder,
     private companyService: CompanyService,
     private activeModal: NgbActiveModal,
     private toastr: ToastrService,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService,
+     private cloudinaryService: CloudinaryService,
+    
   ) {}
 
   ngOnInit(): void {
@@ -168,34 +177,73 @@ export class BusinessUpdateComponent implements OnInit {
     return '';
   }
 
-  onSubmit(): void {
+  async onSubmit() {
     if (this.businessForm.valid) {
       this.loading = true;
-      const updatedData = {
-        ...this.businessForm.value,
-        id: this.company.id
-      };
+      this.error = null;
 
-      this.companyService.updateCompany(this.company.id, updatedData)
-        .subscribe({
-          next: (response) => {
-            this.toastr.success('Business information updated successfully');
-            this.activeModal.close(response);
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Error updating business:', error);
-            this.toastr.error('Failed to update business information');
-            this.loading = false;
-          }
-        });
-    } else {
-      Object.keys(this.businessForm.controls).forEach(key => {
-        const control = this.businessForm.get(key);
-        if (control?.invalid) {
-          control.markAsTouched();
+      try {
+        // Get authentication token - same as create method
+        const token = this.authService.getToken();
+        if (!token) {
+          throw new Error('No authentication token found. Please log in.');
         }
-      });
+
+        // Upload business photos if there are new ones
+        const businessPhotoUrls: string[] = [];
+        if (this.businessPhotos && this.businessPhotos.length > 0) {
+          for (const photo of this.businessPhotos) {
+            const uploadResult = await this.cloudinaryService.uploadImage(photo.file).toPromise();
+            if (uploadResult) {
+              businessPhotoUrls.push(uploadResult.secure_url);
+            }
+          }
+        }
+
+        // Get current user - same as create method
+        const currentUser = await this.authService.getCurrentUser().toPromise();
+        if (!currentUser) {
+          throw new Error('No authenticated user found');
+        }
+
+        // Prepare business data for update
+        const businessData = {
+          id: this.businessId, // Add the business ID for update (assuming you have this)
+          name: this.businessForm.value.name,
+          companyType: this.businessForm.value.companyType,
+          businessType: this.businessForm.value.businessType,
+          category: this.businessForm.value.category,
+          registrationDate: new Date(this.businessForm.value.registrationDate).toISOString(),
+          licenseNumber: this.businessForm.value.licenseNumber,
+          licenseIssueDate: new Date(this.businessForm.value.licenseIssueDate).toISOString().split('T')[0],
+          licenseExpiryDate: new Date(this.businessForm.value.licenseExpiryDate).toISOString().split('T')[0],
+          phoneNumber: this.businessForm.value.phoneNumber,
+          updatedUserId: currentUser.id, // Using updatedUserId instead of createdUserId
+          cifId: this.cifId,
+          state: this.businessForm.value.address.state,
+          city: this.businessForm.value.address.city,
+          township: this.businessForm.value.address.township,
+          address: this.businessForm.value.address.additionalAddress || '',
+          ...(businessPhotoUrls.length > 0 && { businessPhotos: businessPhotoUrls }) // Only add if new photos exist
+        };
+
+        console.log('Updating business:', JSON.stringify(businessData, null, 2));
+
+        // Update company instead of create
+        const updateCompany = await this.companyService.updateCompany(this.businessId, businessData).toPromise();
+        this.toastr.success('Business updated successfully');
+        this.activeModal.close(true);
+      } catch (error: any) {
+        console.error('Error updating business:', error);
+        this.error = error.message || 'Failed to update business';
+        this.toastr.error(this.error ?? 'An unknown error occurred');
+      } finally {
+        this.loading = false;
+      }
+    } else {
+      // Same validation handling as create method
+      this.businessForm.markAllAsTouched();
+      this.toastr.error('Please fill all required fields');
     }
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, switchMap } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { PaymentMethod, PagedResponse, PaymentMethodStatus } from '../models/payment-method.model';
 import { ApiResponse, CurrentUser } from '../models/user.model';
@@ -25,6 +25,7 @@ export class PaymentMethodService {
       `${this.apiUrl}/list?page=${page}&size=${size}&sortBy=${sortBy}`
     );
   }
+
   deletePaymentMethod(id: number): Observable<ApiResponse<void>> {
     return this.http.put<ApiResponse<void>>(
       `${this.apiUrl}/${id}/status/deleted`,
@@ -63,5 +64,15 @@ export class PaymentMethodService {
     return this.http.put<ApiResponse<PaymentMethod>>(`${this.apiUrl}/update/${id}`, method);
   }
 
+  checkPaymentMethodExists(paymentType: string): Observable<boolean> {
+    return this.getAllPaymentMethods().pipe(
+      map((response: ApiResponse<PagedResponse<PaymentMethod>>) => {
+        const paymentMethods = response.data.content; // Assuming PagedResponse has a 'content' array
+        return paymentMethods.some(
+          (method) => method.paymentType.toLowerCase() === paymentType.toLowerCase()
+        );
+      })
+    );
+  }
   
 } 
