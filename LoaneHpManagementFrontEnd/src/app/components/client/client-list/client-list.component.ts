@@ -36,7 +36,10 @@ export class ClientListComponent implements OnInit {
   branches: string[] = [];
 
 
-  constructor(private cifService: CIFService,    private authService: AuthService, private clientReportService : ClientreportService, private branchService : BranchService) {}
+  constructor(private cifService: CIFService,    
+              private authService: AuthService, 
+              private clientReportService : ClientreportService, 
+              private branchService : BranchService) {}
 
   ngOnInit() {
     this.loadClients();
@@ -59,6 +62,7 @@ export class ClientListComponent implements OnInit {
     this.currentPage = 0;
     this.loadClients();
   }
+
   loadClients() {
     this.loading = true;
     this.error = null;
@@ -114,10 +118,13 @@ export class ClientListComponent implements OnInit {
       }
     });
   }
+
   onPageChange(page: number) {
     this.currentPage = page;
     this.loadClients();
+    
   }
+  
 
   get pages(): number[] {
     const pages = [];
@@ -140,8 +147,8 @@ export class ClientListComponent implements OnInit {
   }
 
   downloadClientReport(format: string): void {
-    console.log('Generating report for format:', format, 'branch:', this.selectedBranch);
-    this.clientReportService.generateReport(format, this.selectedBranch || undefined);
+    console.log('Generating report for format:', format, 'branch:', this.selectedBranch , 'status:', this.selectedStatus);
+    this.clientReportService.generateReport(format, this.selectedBranch || undefined, this.selectedStatus || undefined);
   }
 
   onBranchChange() {

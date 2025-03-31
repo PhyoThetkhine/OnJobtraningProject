@@ -53,13 +53,21 @@ public class ClientReportService {
         public int getPageSize() { return pageSize; }
     }
 
-    public ReportResponse generateCifReport(String format, int page, int size, String branchName) throws IOException {
+    public ReportResponse generateCifReport(String format, int page, int size, String branchName, Integer status) throws IOException {
         Pageable pageable = PageRequest.of(page, size);
         Page<CIF> cifPage = (branchName != null && !branchName.trim().isEmpty())
                 ? cifRepository.findByBranchName(branchName, pageable)
                 : cifRepository.findAll(pageable);
 
-
+        if (branchName != null && !branchName.trim().isEmpty() && status != null) {
+            cifPage = cifRepository.findByBranchNameAndStatus(branchName, status, pageable);
+        } else if (branchName != null && !branchName.trim().isEmpty()) {
+            cifPage = cifRepository.findByBranchName(branchName, pageable);
+        } else if (status != null) {
+            cifPage = cifRepository.findByStatus(status, pageable);
+        } else {
+            cifPage = cifRepository.findAll(pageable);
+        }
 
         if (cifPage.isEmpty()) {
             throw new IllegalArgumentException("No CIF data found" +
@@ -107,6 +115,7 @@ public class ClientReportService {
         dto.setPhoneNumber(cif.getPhoneNumber());
         dto.setNRC(cif.getNRC());
         dto.setCifType(cif.getCifType() != null ? cif.getCifType().name() : null);
+        dto.setStatus(cif.getStatus());
 
         String userCode = (cif.getCreatedUser() != null) ? cif.getCreatedUser().getUserCode() : null;
         dto.setUserCode(userCode);

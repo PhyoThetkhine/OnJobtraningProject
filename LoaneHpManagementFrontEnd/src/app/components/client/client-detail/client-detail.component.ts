@@ -48,15 +48,8 @@ import { CifTransferComponent } from '../cif-transfer/cif-transfer.component';
     CommonModule,
     RouterModule,
     NgbNavModule,
-    FormsModule,
-    ConfirmationModalComponent,
-    BusinessCreateComponent,
-    BusinessUpdateComponent,
-    FinancialUpdateComponent,
-    CollateralCreateComponent,
-    CollateralEditComponent,
-    AccountLimitUpdateComponent
-  ]
+    FormsModule
+]
 })
 export class ClientDetailComponent implements OnInit {
   @ViewChild('nav') nav!: NgbNav;

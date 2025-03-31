@@ -9,27 +9,34 @@ export class ClientreportService {
 
   constructor(private http: HttpClient) {}
 
-  generateReport(format: string, branchName?: string) {
+  generateReport(format: string, branchName?: string, status?: string) {
     let params = new HttpParams()
       .set('format', format)
-      .set('page', '0')
+      .set('page', '0') // You might want to make page/size dynamic in the future
       .set('size', '10');
+    
     if (branchName) {
       params = params.set('branchName', branchName);
     }
+    if (status) {
+      params = params.set('status', status); // Add status to query params
+    }
+
     console.log('Sending report request:', `${this.apiUrl}/generateCifReport`, params.toString());
 
     this.http.get(`${this.apiUrl}/generateCifReport`, {
       params,
-      responseType: 'blob'
+      responseType: 'blob' // Expecting a file response
     }).subscribe({
       next: (blob) => {
         console.log('Report blob received:', blob);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `CIF_Report_${branchName || 'All'}.${format}`;
-        console.log('Downloading file:', a.download);
+        // Include status in filename for clarity
+        const fileName = `CIF_Report_${branchName || 'All'}_${status || 'All'}.${format}`;
+        a.download = fileName;
+        console.log('Downloading file:', fileName);
         a.click();
         window.URL.revokeObjectURL(url);
       },

@@ -56,4 +56,11 @@ public interface CIFRepository extends JpaRepository<CIF, Integer> {
 
     @Query("SELECT c FROM CIF c WHERE c.createdUser.branch.branchName = :branchName")
     Page<CIF> findByBranchName(@Param("branchName") String branchName, Pageable pageable);
+
+    @Query("SELECT c FROM CIF c WHERE " +
+            "(:branchName IS NULL OR c.createdUser.branch.branchName = :branchName) AND " +
+            "(:status IS NULL OR c.status = :status)")
+    Page<CIF> findByBranchNameAndStatus(@Param("branchName") String branchName,
+                                        @Param("status") Integer status,
+                                        Pageable pageable);
 }

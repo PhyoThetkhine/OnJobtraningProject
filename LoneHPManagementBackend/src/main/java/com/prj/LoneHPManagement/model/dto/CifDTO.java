@@ -23,8 +23,17 @@ public class CifDTO {
     private String userCode;
     private Integer addressId;
     private String cifType;
+    private int status;
 
-    public CifDTO(int id, String cifCode, String name, String email, UserCIFBaseEntity.Gender gender, Date dateOfBirth, String phoneNumber, String nrc, CIF.CIFType cifType) {
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public CifDTO(int id, String cifCode, String name, String email, UserCIFBaseEntity.Gender gender, Date dateOfBirth, String phoneNumber, String nrc, CIF.CIFType cifType, int status) {
     }
 
     public Integer getAddressId() {
@@ -38,7 +47,7 @@ public class CifDTO {
     public CifDTO(int id, String cifCode, String name, String email, String phoneNumber, Date dateOfBirth,
                   String nrc, String nrcFrontPhoto, String nrcBackPhoto, String userCode, String branchName,
                   String state, String city, String township, String additionalAddress, Integer createdUserId,
-                  Integer addressId) {
+                  Integer addressId, int status) {
         this.id = id;
         this.cifCode = cifCode;
         this.name = name;
@@ -56,6 +65,7 @@ public class CifDTO {
         this.additionalAddress = additionalAddress;
         this.createdUserId = createdUserId;
         this.addressId = addressId;
+        this.status = status;
     }
 
     public Integer getCreatedUserId() {
@@ -140,7 +150,7 @@ public class CifDTO {
     public CifDTO(int id, String cifCode, String name, String email, String phoneNumber,
                   Date dateOfBirth, String NRC, String NRCFrontPhoto, String NRCBackPhoto, String userCode, String branchName,
                   String state, String city, String township, String additionalAddress, String gender, Integer createdUserId
-                    , Integer addressId) {
+                    , Integer addressId,int status) {
         this.id = id;
         this.cifCode = cifCode;
         this.name = name;
@@ -158,6 +168,7 @@ public class CifDTO {
         this.additionalAddress = additionalAddress;
         this.createdUserId = createdUserId;
         this.addressId = addressId;
+        this.status = status;
 //        this.gender = gender;
     }
 
