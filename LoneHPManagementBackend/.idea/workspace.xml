@@ -5,9 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="95df5b7e-6fb4-4747-94de-9146727b615a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchReportController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/ClientReportController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchReportService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/ClientReportService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/CifDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/reports/BranchReport.jrxml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/reports/ClientReport.jrxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-list/branch-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-list/branch-list.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-list/branch-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-list/branch-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/payment/payment-method-create/payment-method-create.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/branch.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/branch.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/payment-method.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/services/payment-method.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/HPAutoPaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/SMEAutoPaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/CompanyController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/BranchDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/dto/BranchDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/BranchRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/BranchRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/CIFRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/model/repo/CIFRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,14 +55,14 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/PhyoThetkhine/Microfinance.git&quot;,
-    &quot;accountId&quot;: &quot;fa44434e-7831-4995-9fd0-f83929bbd0e4&quot;
+    &quot;url&quot;: &quot;https://github.com/PhyoThetkhine/OnJobtraningProject.git&quot;,
+    &quot;accountId&quot;: &quot;c4968b92-130f-4190-93ae-1b6e2da06fae&quot;
   }
 }</component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
-        <option name="mavenHome" value="Use Maven wrapper" />
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
       </MavenGeneralSettings>
     </option>
   </component>
@@ -71,9 +91,9 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Spring Boot.LoneHpManagementApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;APM&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/PhyoThetKhineDir/Project/OnJobtraningProject/LoneHPManagementBackend&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Deep Team/OnJobtraningProject/LoneHPManagementBackend/src/main/java/com/prj/LoneHPManagement/Service/impl&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -90,6 +110,16 @@
 }</component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Deep Team\OnJobtraningProject\LoneHPManagementBackend\src\main\java\com\prj\LoneHPManagement\Service\impl" />
+      <recent name="C:\Deep Team\OnJobtraningProject\LoneHPManagementBackend\src\main\java\com\prj\LoneHPManagement\Controller" />
+      <recent name="C:\Deep Team\OnJobtraningProject\LoneHPManagementBackend\src\main\resources\reports" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.prj.LoneHPManagement.model.dto" />
+    </key>
   </component>
   <component name="RunManager" selected="Application.LoneHpManagementApplication">
     <configuration name="LoneHpManagementApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -118,13 +148,6 @@
         <item itemvalue="Application.LoneHpManagementApplication" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="jdk-17.0.10-corretto-17.0.10-f644763e9732-24fca987" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">

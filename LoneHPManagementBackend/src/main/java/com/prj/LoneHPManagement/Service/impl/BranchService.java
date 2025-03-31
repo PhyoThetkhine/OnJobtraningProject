@@ -124,4 +124,8 @@ public class BranchService {
 
         return branch;
     }
+
+    public List<Branch> getActiveBranches(){
+        return branchRepository.findActiveBranches();
+    }
 }

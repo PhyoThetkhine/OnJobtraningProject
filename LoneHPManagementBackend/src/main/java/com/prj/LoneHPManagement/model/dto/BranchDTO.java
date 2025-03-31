@@ -27,6 +27,15 @@ public class BranchDTO {
     private String city;
     private String state;
     private String additionalAddress;
+    private String userCode;
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
+    }
 
     public int getId() {
         return id;

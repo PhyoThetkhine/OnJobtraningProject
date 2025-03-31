@@ -84,13 +84,13 @@ export class AuthService {
         if (response.data) {
           const token = response.data.split(': ')[1];
           localStorage.setItem('token', token);
-          try {
-            const decoded: DecodedToken = jwtDecode(token);
-            this.userPermissions.next(decoded.permissions || []);
-          } catch (error) {
-            console.error('Error decoding token:', error);
-            this.userPermissions.next([]);
-          }
+          // try {
+          //   const decoded: DecodedToken = jwtDecode(token);
+          //   this.userPermissions.next(decoded.permissions || []);
+          // } catch (error) {
+          //   console.error('Error decoding token:', error);
+          //   this.userPermissions.next([]);
+          // }
         }
       })
     );

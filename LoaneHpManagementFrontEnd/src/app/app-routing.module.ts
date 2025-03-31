@@ -37,6 +37,7 @@ import { RoleDetailComponent } from './components/access-control/role-detail/rol
 import { HpLoanDetailComponent } from './components/loan/hp/hp-loan-detail/hp-loan-detail.component';
 import { ClientDetailComponent } from './components/client/client-detail/client-detail.component';
 import { YourProfileComponent } from './components/settings/your-profile/your-profile.component';
+import { BusinessUpdateComponent } from './components/business/business-update/business-update.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },

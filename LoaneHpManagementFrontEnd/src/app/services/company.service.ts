@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Company } from '../models/company.model';
 import { BusinessPhoto } from '../models/business-photo.model';
 import { ApiResponse, PagedResponse } from '../models/common.types';
+import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +15,7 @@ import { ApiResponse, PagedResponse } from '../models/common.types';
 export class CompanyService {
   private apiUrl = `${environment.apiUrl}/companies`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router, private authService: AuthService) {}
 
   getCompaniesByCif(cifId: number, page: number = 0, size: number = 10, sortBy: string = 'id'): Observable<PagedResponse<Company>> {
     const params = new HttpParams()
@@ -41,10 +43,15 @@ export class CompanyService {
       );
   }
 
-  updateCompany(id: number, companyData: Partial<Company>): Observable<Company> {
-    return this.http.put<ApiResponse<Company>>(`${this.apiUrl}/update/${id}`, companyData)
-      .pipe(
-        map(response => response.data)
-      );
+  updateCompany(id: number, companyData: any): Observable<Company> {
+    const token = this.authService.getToken();
+    if (!token) {
+      this.router.navigate(['/login']);
+      return throwError(() => new Error('Authentication required'));
+    }
+    const headers = new HttpHeaders()
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/json');
+    return this.http.put<Company>(`${this.apiUrl}/update/${id}`, companyData, { headers });
   }
 } 

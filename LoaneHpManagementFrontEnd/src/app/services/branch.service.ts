@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Branch, CreateBranchDto, BranchStatus } from '../models/branch.model';
 import { User } from '../models/user.model';
 import { CIF } from '../models/cif.model';
 import { environment } from '../../environments/environment';
 import { ApiResponse, PagedResponse, ApiPagedResponse } from '../models/common.types';
 import { BranchCurrentAccount } from '../models/branch-account.model';
+import { BranchDTO } from '../models/branch.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -72,5 +73,11 @@ export class BranchService {
 
   changeBranchStatus(branchId: number, status: BranchStatus): Observable<Branch> {
     return this.http.patch<Branch>(`${this.apiUrl}/${branchId}/status`, { status });
+  }
+
+  getAllActiveBranches(): Observable<BranchDTO[]> {
+    return this.http.get<ApiResponse<BranchDTO[]>>(`${this.apiUrl}/active`).pipe(
+      map(response => response.data) // Extract the 'data' field
+    );
   }
 } 
