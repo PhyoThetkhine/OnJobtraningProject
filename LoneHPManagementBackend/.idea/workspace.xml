@@ -5,13 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="173302f2-53d2-474d-b1f3-25ea8d94c8a1" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/branch/branch-transfer/branch-transfer.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/client/client-list/client-list.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../LoaneHpManagementFrontEnd/src/app/components/user/user-list/user-list.component.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Controller/BranchController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/prj/LoneHPManagement/Service/impl/BranchService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +63,7 @@
     &quot;Application.LoneHpManagementApplication.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;Spring Boot.LoneHpManagementApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;code&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -167,6 +161,7 @@
       <workItem from="1743168547859" duration="1494000" />
       <workItem from="1743219788518" duration="635000" />
       <workItem from="1743431917766" duration="13564000" />
+      <workItem from="1743475143641" duration="2119000" />
     </task>
     <servers />
   </component>

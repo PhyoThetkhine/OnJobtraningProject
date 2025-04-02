@@ -1,3 +1,4 @@
+
 // Import necessary modules and services
 import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
@@ -51,7 +52,7 @@ export class BranchTransferComponent implements OnInit {
     private cifCurrentAccountService: CIFCurrentAccountService,
     private toastr: ToastrService,
     private authService: AuthService,
-    private modalService: NgbModal,
+   
   ) {}
 
   ngOnInit() {
@@ -122,10 +123,7 @@ export class BranchTransferComponent implements OnInit {
     this.branchService.getAllBranches().subscribe({
       next: (branches: Branch[]) => {
         // Exclude the current branch
-        const targetBranches = branches.filter(b => 
-          b.status === "active" &&  // Active status code
-          b.id !== this.branch?.id
-        );
+        const targetBranches = branches.filter(b => b.id !== this.branch?.id);
 
         // For each branch, call getBranchAccount to get its current account details
         const accountObservables = targetBranches.map(branch =>
@@ -254,41 +252,49 @@ export class BranchTransferComponent implements OnInit {
     }
   }
 
-  onSubmit() {
-    if (this.transferForm.valid && this.branchAccount) {
-      const formValue = this.transferForm.value;
+//   onSubmit() {
+//     if (this.transferForm.valid && this.branchAccount) {
+//       const formValue = this.transferForm.value;
 
-      // Prepare transfer details for confirmation
-      const transferDetails = {
-        amount: formValue.amount,
-        paymentMethod: this.paymentMethods.find(pm => pm.id === formValue.paymentMethod)?.paymentType,
-        fromAccount: this.branch.branchName,
-        toAccount: this.getToAccountDisplay(formValue)
-      };
+//       // Prepare transfer details for confirmation
+//       const transferDetails = {
+//         amount: formValue.amount,
+//         paymentMethod: this.paymentMethods.find(pm => pm.id === formValue.paymentMethod)?.paymentType,
+//         fromAccount: this.branch.branchName,
+//         toAccount: this.getToAccountDisplay(formValue)
+//       };
 
-      // Show confirmation dialog
-      const modalRef = this.modalService.open(ConfirmTransferComponent);
-      modalRef.componentInstance.transferDetails = transferDetails;
+//       // Show confirmation dialog
+//       const modalRef = this.modalService.open(ConfirmTransferComponent);
+//       modalRef.componentInstance.transferDetails = transferDetails;
 
-      modalRef.result.then((confirmed) => {
-        if (confirmed) {
-          this.executeTransfer(formValue);
-        }
-      }).catch(() => { /* dismissed action */ });
-    } else {
-      this.markFormGroupTouched(this.transferForm);
-    }
-  }
+//       modalRef.result.then((confirmed) => {
+//         if (confirmed) {
+//           this.executeTransfer(formValue);
+//         }
+//       }).catch(() => { /* dismissed action */ });
+//     } else {
+//       this.markFormGroupTouched(this.transferForm);
+//     }
+//   }
 
-  private getToAccountDisplay(formValue: any): string {
-    if (formValue.accountType === AccountType.CIF) {
-      const cifAccount = this.cifAccounts.find(acc => acc.id === formValue.cifAccount);
-      return cifAccount ? `${cifAccount.accCode} - ${cifAccount.cif.name}` : '';
-    } 
-     else{
-      const branch = this.branchAccounts.find(b => b.accountId === formValue.branchAccount);
-      return branch ? `${branch.branchName} (${branch.branchCode})` : '';
+//   private getToAccountDisplay(formValue: any): string {
+//     if (formValue.accountType === AccountType.CIF) {
+//       const cifAccount = this.cifAccounts.find(acc => acc.id === formValue.cifAccount);
+//       return cifAccount ? `${cifAccount.accCode} - ${cifAccount.cif.name}` : '';
+//     } 
+//      else{
+//       const branch = this.branchAccounts.find(b => b.accountId === formValue.branchAccount);
+//       return branch ? `${branch.branchName} (${branch.branchCode})` : '';
    
+//   }
+// }
+onSubmit() {
+  if (this.transferForm.valid && this.branchAccount) {
+    const formValue = this.transferForm.value;
+    this.executeTransfer(formValue); // Directly execute transfer
+  } else {
+    this.markFormGroupTouched(this.transferForm);
   }
 }
 

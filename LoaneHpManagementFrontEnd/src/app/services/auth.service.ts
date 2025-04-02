@@ -78,24 +78,42 @@ interface DecodedToken {
     }
   }
 
+  // login(credentials: { userCode: string; password: string }): Observable<LoginResponse> {
+  //   return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+  //     tap(response => {
+  //       if (response.data) {
+  //         const token = response.data.split(': ')[1];
+  //         localStorage.setItem('token', token);
+  //         // try {
+  //         //   const decoded: DecodedToken = jwtDecode(token);
+  //         //   this.userPermissions.next(decoded.permissions || []);
+  //         // } catch (error) {
+  //         //   console.error('Error decoding token:', error);
+  //         //   this.userPermissions.next([]);
+  //         // }
+  //       }
+  //     })
+  //   );
+  // }
   login(credentials: { userCode: string; password: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         if (response.data) {
           const token = response.data.split(': ')[1];
           localStorage.setItem('token', token);
-          // try {
-          //   const decoded: DecodedToken = jwtDecode(token);
-          //   this.userPermissions.next(decoded.permissions || []);
-          // } catch (error) {
-          //   console.error('Error decoding token:', error);
-          //   this.userPermissions.next([]);
-          // }
+          // Add this critical part back
+          try {
+            const decoded: DecodedToken = jwtDecode(token);
+            this.userPermissions.next(decoded.permissions || []);
+          } catch (error) {
+            
+            console.error('Error decoding token:', error);
+            this.userPermissions.next([]);
+          }
         }
       })
     );
   }
-  
  
 
 
